@@ -1,0 +1,160 @@
+# Build Guide
+
+ESPHome-based thermostat and monitor for a 4×2×2 ft bioactive corn snake enclosure. The ESP32 pulse-controls an 80 W radiant heat panel (RHP) through an SSR, monitors hot/cool/humidity, and reports to Home Assistant. A Z-Wave smart plug acts as an independent failsafe.
+
+See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
+
+---
+
+## Design principles
+
+- **Control runs locally on the ESP32.** PID and safety logic never depend on Home Assistant or Wi-Fi.
+- **Control input = max(stone DS18B20, MLX90614 IR).** The thermostat regulates on whichever hot-zone reading is hottest.
+- **Fail off.** Any NaN, stale (>60 s), implausible, or >92°F hot-zone reading forces the heater off. The heater also boots off and enables only once sensors are valid.
+- **Independent failsafe upstream.** The ZEN04 plug can cut the whole heater circuit regardless of ESP32 or SSR state.
+- **Settings persist locally.** Setpoints, the day/night schedule, alert limits, and Heater Enable are stored in the ESP32's flash and restored on boot, so control continues unchanged if Home Assistant is offline.
+- **ESP32 powered separately.** It runs on its own USB supply on a different outlet, so monitoring and alerts survive a failsafe trip.
+- **No mains wiring inside the enclosure.** Only low-voltage sensor cables and the panel's own cord enter the tank.
+
+## Target temperatures (corn snake)
+
+| Zone | Target |
+|---|---|
+| Warm surface (stone top) | 85–88°F (default day setpoint 87°F) |
+| Cool side | 72–75°F |
+| Night | Upper 60s ambient OK (default night setpoint 75°F) |
+| Humidity | ~40% (30s tolerated) |
+| Software hard limit | 92°F, heater forced off (re-enables below 90°F) |
+| Failsafe trip (HA) | ~95°F |
+
+---
+
+## Parts inventory
+
+| Part | Qty | ~Price | Source / notes |
+|---|---|---|---|
+| ESP32 dev board (WROOM-32) | 1 | $8 | Check pin-row spacing fits the protoboard |
+| ElectroCookie solderable protoboard (5 + 1 mini) | 1 pack | $12–15 | Amazon; mount the ESP32 on female headers |
+| DROK DS18B20 waterproof probe 2-pack (adapter boards, 4.7k resistors) | 1–2 | $10–12/pack | [Amazon B0FLDQJ71M](https://www.amazon.com/dp/B0FLDQJ71M) |
+| GY-906-DCI (MLX90614ESF-DCI) IR sensor, 5° FOV | 1 | $30–40 | [Amazon B0B63N57CS](https://www.amazon.com/dp/B0B63N57CS) |
+| SHT30 enclosed probe, 2 m cable | 1 | $8–12 | Amazon "SHT30 probe waterproof" |
+| HiLetgo 1.3" SH1106 OLED (4-pin I2C) | 1 | $12 | [Amazon B07BHHV844](https://www.amazon.com/dp/B07BHHV844) |
+| Cat6 stranded patch cable (cut in half) | 1 | $5–8 | Any; solid-core bulk cable not recommended |
+| RJ45 jack for the main board | 1 | $1–2 | Through-hole RJ45 or a second screw adapter |
+| RJ45 screw-terminal adapter (sensor end) | 1 | $10–15 | XUGERIP 4-pack [Amazon B0FQJTKCZZ](https://www.amazon.com/dp/B0FQJTKCZZ) or [SchmalzTech mini](https://www.robotshop.com/products/schmalztech-rj45-mini-screw-terminal-breakout-board) |
+| 10k resistor (GPIO26 pull-down), 100 nF capacitors | few | $1 | Any |
+| Inkbird SSR-40DA (budget) **or** genuine Crydom D2410 | 1 | $10 / $48–57 | Inkbird [Amazon B00HV974KC](https://www.amazon.com/dp/B00HV974KC); Crydom via [Digi-Key](https://www.digikey.com/en/products/result?keywords=Crydom%20D2410) |
+| Zooz ZEN04 Z-Wave plug (failsafe) | 1 | $35–40 | [getzooz.com](https://www.getzooz.com) |
+| C14 fused inlet, 5×20 mm (no switch) | 1 | $8–10 | [Amazon search](https://www.amazon.com/s?k=IEC+C14+inlet+fuse+holder+panel+mount) |
+| 2A slow-blow 5×20 mm fuses | 1 pack | $6 | [Amazon search](https://www.amazon.com/s?k=2A+250V+slow+blow+5x20mm+fuse) |
+| C13 power cord, 18 AWG, 3-prong | 1 | $7 | Any computer cord |
+| NEMA 5-15R pigtail outlet (black/white/green leads) | 1 | $5–10 | Amazon |
+| Project box: 3D-printed ASA/PETG (not PLA) or purchased, + cable glands | 1 | $15–20 | |
+| USB 5V supply + cable (ESP32) | 1 | $8 | On a separate outlet |
+| 18 AWG stranded wire, insulated 0.187" quick-connects, heat shrink | — | $10 | Any |
+
+**Verify on arrival**
+- [ ] SH1106 is the **4-pin I2C** version (header: GND VCC SCL SDA).
+- [ ] MLX90614 has the **tall canned lens** (GY-906-DCI, narrow FOV).
+- [ ] C14 inlet: identify the **fused L**, N, and E tabs with a continuity test.
+- [ ] SHT30 probe: confirm which of yellow/white is SDA vs SCL from the seller listing.
+
+---
+
+## Low-voltage wiring
+
+All sensors on **3V3**, never 5V/VIN.
+
+| Device | Address | ESP32 pin | Wire colors / pins |
+|---|---|---|---|
+| Stone DS18B20 (hot zone) | 1-Wire | GPIO4 | Probe → adapter: yellow DAT, red VCC, black GND |
+| Cool-side DS18B20 | 1-Wire | GPIO16 | Same as above |
+| SHT30 probe | 0x44 | SDA GPIO21 / SCL GPIO22 | Red VCC, black GND, yellow/white = SDA/SCL (verify) |
+| SH1106 OLED | 0x3C | SDA GPIO21 / SCL GPIO22 | Header: GND VCC SCL SDA |
+| GY-906-DCI (MLX90614) | 0x5A | SDA GPIO21 / SCL GPIO22 | Via Cat6 + RJ45 (map below) |
+| SSR input | — | GPIO26 → terminal 3 (+), GND → terminal 4 (−) | **10k pull-down GPIO26 → GND** |
+
+**Cat6 (T568B) pair map to the GY-906**
+
+| Pair | Signal | Return |
+|---|---|---|
+| Orange: pin 2 / white-orange pin 1 | SDA | GND |
+| Green: pin 6 / white-green pin 3 | SCL | GND |
+| Blue: pin 4 / white-blue pin 5 | 3V3 → VIN | GND |
+| Brown: pins 7, 8 | Unused or GND | |
+
+Notes:
+- Each DS18B20 has its own GPIO because the adapter boards have built-in pull-ups. The OLED and GY-906 boards supply I2C pull-ups, so don't add more unless the I2C scan fails.
+- I2C runs at 50 kHz for the Cat6 run. Add a 100 nF capacitor across VIN/GND at the sensor-end adapter.
+- If the SSR triggers unreliably at 3.3V, drive it from 5V through an NPN transistor (1k base resistor) or a logic-level MOSFET (100 Ω gate, 10k pull-down).
+- For a possible second channel: GPIO17/18 (DS18B20s), GPIO32/33 (second I2C bus for a second MLX), SHT30 at 0x45, GPIO27 (second SSR). Avoid GPIO0, 2, 12, 15 and 34–39.
+
+## Mains-side wiring
+
+Path: wall outlet → **ZEN04** → C13 cord → **C14 fused inlet (2A)** → SSR → pigtail outlet → RHP.
+
+| From | To | Conductor |
+|---|---|---|
+| C14 L (fused) | SSR terminal 1 | Hot |
+| SSR terminal 2 | Outlet black lead | Hot |
+| C14 N | Outlet white lead | Neutral |
+| C14 E | Outlet green ring lug (+ box chassis if metal) | Ground |
+
+- Only hot passes through the SSR.
+- Use slow-blow fuses and insulated quick-connects with heat shrink.
+- The inlet has no switch. Use the ZEN04 (or unplug) to cut power for maintenance.
+- Keep SSR mains terminals physically separated from the ESP32 and low-voltage wiring.
+
+---
+
+## Sensor placement
+
+- **Stone probe:** on **top** of the basking stone (radiant heat comes from above), recessed in a shallow masonry-cut groove sealed with aquarium-safe silicone, near an edge but still under the panel.
+- **Cool probe:** cool-side floor.
+- **GY-906-DCI:** ~12" above the stone (reads ~1" spot), beside the panel rather than under it. The RJ45 adapter and Cat6 jacket are rated only to ~70°C.
+- **SHT30 probe:** mid-height toward the cool side, away from the water bowl and panel, above the substrate.
+- **OLED + ESP32:** in the project box **outside** the enclosure.
+- Route sensor cables through a sealed grommet; keep cable jackets away from the panel.
+- **Never** use electric heat rocks; the stone is passive thermal mass only.
+
+## ESPHome config summary (`snake-thermostat.yaml`)
+
+- `slow_pwm` output on GPIO26 (15 s period) driven by a `pid` climate entity.
+- Control sensor "Hot Zone (Control)" = max(stone, IR), NaN if either is invalid.
+- Day/night setpoints and schedule hours are number entities (persisted in flash). The active setpoint is pushed to the thermostat every 30 s and on any change. Time comes from SNTP, then Home Assistant; with no valid time, the day setpoint is used.
+- Safety loop (2 s): forces heat off on any fault, clears once readings are valid and below 90°F, and only heats while **Heater Enable** is on. The 92°F hard limit is fixed in firmware.
+- MLX emissivity set to 0.95 for stone.
+- OLED shows Hot / Cool / RH / heater % / setpoint, shifts pixels every few minutes, and turns off during night hours.
+- After autotune, paste the suggested `kp/ki/kd` from the logs into `control_parameters`.
+- Full entity list: `ENTITIES.md`.
+
+## Failsafe (Home Assistant + ZEN04)
+
+The automation turns off the ZEN04 and sends a phone alert when any of these fire:
+
+1. Either hot-zone reading > ~95°F (catches a stuck SSR).
+2. ESP32 `Status` offline for more than a few minutes (catches a crash).
+3. ZEN04 reads > ~20–30 W while `Heater Duty` = 0% (or `Heater Active` is off) for 60 s (direct stuck-SSR detection; threshold allows for SSR off-state leakage).
+
+Optional: alert if `Heater Duty` > 0 for several minutes but the ZEN04 reads ~0 W (fuse blown, plug off).
+
+Accepted trade-off: the failsafe depends on HA being up. A 4 ft gradient gives the snake room to retreat.
+
+---
+
+## Bring-up and test checklist
+
+- [ ] Flash the ESP32 over USB; confirm the I2C scan in logs shows 0x3C, 0x44, 0x5A.
+- [ ] Both DS18B20s read sensibly; compare to a reference thermometer.
+- [ ] Unplug a probe: Heater Fault turns on and heater duty goes to 0.
+- [ ] Multimeter: ground continuity from the plug's ground pin to the outlet ground (unplugged).
+- [ ] Lamp in the outlet: ESP32 pulses it; lamp stays off during boot and flashing.
+- [ ] Each ZEN04 trigger kills the lamp (heat the stone probe, unplug the ESP32, force a stuck-on condition).
+- [ ] RHP connected: run autotune with the stone installed (1–2 hr), update PID values, then watch a full day/night cycle, including the night setpoint switch.
+- [ ] Cool side holds ≥ 72°F in the enclosure's room for a week before the animal moves in.
+- [ ] Transfer from breadboard to the ElectroCookie protoboard for permanent install.
+
+## Open items
+
+- [ ] Home Assistant automation for the three ZEN04 triggers
+- [ ] Confirm Z-Wave and Wi-Fi reach the enclosure location

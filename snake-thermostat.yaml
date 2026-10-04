@@ -1,0 +1,519 @@
+# =====================================================================
+# Reptile enclosure thermostat & monitor (ESP32 + ESPHome, single channel)
+# Docs: README.md, BUILD.md, ENTITIES.md | Wiring: snake-thermostat-wiring.drawio
+#
+# Copy secrets.example.yaml to secrets.yaml and fill it in.
+#
+# ESPHome works in °C internally; Home Assistant converts to °F for display
+# if your HA unit system is imperial.
+#
+# SAFETY MODEL
+#   - PID + safety logic run locally; no dependence on Home Assistant/Wi-Fi.
+#   - All user settings (setpoints, schedule, alert limits, heater enable)
+#     are stored in flash and restored on boot.
+#   - Control input = max(stone DS18B20, IR) — the hottest hot-zone reading.
+#   - Heater forced OFF on NaN, stale (>60 s), implausible, or over-limit
+#     reading. The hard limit (33.3°C / 92°F) is fixed in firmware.
+#   - Heater boots OFF; heat is enabled only once sensors are valid.
+#   - Use an independent upstream failsafe (see BUILD.md).
+# =====================================================================
+
+substitutions:
+  name: snake-thermostat
+  friendly: "Snake Enclosure"
+  hard_limit_c: "33.3"     # 92°F — heater forced off above this
+  clear_below_c: "32.2"    # 90°F — fault clears below this
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly}
+  on_boot:
+    priority: -100
+    then:
+      - climate.control:
+          id: pid_heat
+          mode: "OFF"
+      - script.execute: apply_setpoint
+
+esp32:
+  board: esp32dev
+
+logger:
+  level: INFO
+
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "${name}-fallback"
+    password: !secret fallback_password
+
+# Settings changes are written to flash within this interval.
+preferences:
+  flash_write_interval: 1min
+
+# Time for the day/night schedule: SNTP first, Home Assistant as fallback.
+# If no time source is available, the day setpoint is used.
+time:
+  - platform: sntp
+    id: sntp_time
+  - platform: homeassistant
+    id: ha_time
+
+# ---------------------------------------------------------------------
+# Buses
+# ---------------------------------------------------------------------
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+  frequency: 50kHz              # slow for the Cat6 run to the IR sensor
+  scan: true                    # expect 0x3C (OLED), 0x44 (SHT30), 0x5A (MLX)
+
+one_wire:
+  - platform: gpio
+    pin: GPIO4                  # stone (hot zone) DS18B20
+    id: ow_stone
+  - platform: gpio
+    pin: GPIO16                 # cool side DS18B20
+    id: ow_cool
+
+# ---------------------------------------------------------------------
+# Runtime state
+# ---------------------------------------------------------------------
+globals:
+  - id: t_stone_ms
+    type: uint32_t
+    initial_value: "0"
+  - id: t_ir_ms
+    type: uint32_t
+    initial_value: "0"
+  - id: heat_fault
+    type: bool
+    initial_value: "true"       # faulted until sensors prove valid
+  - id: fault_reason
+    type: std::string
+    initial_value: '"Starting up"'
+  - id: night_active
+    type: bool
+    initial_value: "false"
+  - id: display_on
+    type: bool
+    initial_value: "true"
+
+# ---------------------------------------------------------------------
+# User settings (Home Assistant controls; persisted in flash)
+# ---------------------------------------------------------------------
+switch:
+  - platform: template
+    id: heater_enable
+    name: "Heater Enable"
+    icon: mdi:radiator
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+number:
+  - platform: template
+    id: day_setpoint
+    name: "Hot Zone Day Setpoint"
+    icon: mdi:white-balance-sunny
+    device_class: temperature
+    unit_of_measurement: "°C"
+    min_value: 24
+    max_value: 31.1              # 88°F — kept below the hard limit
+    step: 0.1
+    initial_value: 30.6          # 87°F
+    optimistic: true
+    restore_value: true
+    mode: box
+    on_value:
+      - script.execute: apply_setpoint
+
+  - platform: template
+    id: night_setpoint
+    name: "Hot Zone Night Setpoint"
+    icon: mdi:weather-night
+    device_class: temperature
+    unit_of_measurement: "°C"
+    min_value: 15
+    max_value: 31.1
+    step: 0.1
+    initial_value: 24            # 75°F
+    optimistic: true
+    restore_value: true
+    mode: box
+    on_value:
+      - script.execute: apply_setpoint
+
+  - platform: template
+    id: night_start
+    name: "Night Start Hour"
+    icon: mdi:clock-start
+    unit_of_measurement: "h"
+    min_value: 0
+    max_value: 23
+    step: 1
+    initial_value: 21
+    optimistic: true
+    restore_value: true
+    mode: box
+    on_value:
+      - script.execute: apply_setpoint
+
+  - platform: template
+    id: night_end
+    name: "Night End Hour"
+    icon: mdi:clock-end
+    unit_of_measurement: "h"
+    min_value: 0
+    max_value: 23
+    step: 1
+    initial_value: 7
+    optimistic: true
+    restore_value: true
+    mode: box
+    on_value:
+      - script.execute: apply_setpoint
+
+  - platform: template
+    id: cool_low_alert
+    name: "Cool Side Low Alert"
+    icon: mdi:thermometer-low
+    device_class: temperature
+    unit_of_measurement: "°C"
+    min_value: 10
+    max_value: 27
+    step: 0.1
+    initial_value: 21.1          # 70°F
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: humidity_low_alert
+    name: "Humidity Low Alert"
+    icon: mdi:water-percent-alert
+    unit_of_measurement: "%"
+    min_value: 10
+    max_value: 80
+    step: 1
+    initial_value: 30
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: humidity_high_alert
+    name: "Humidity High Alert"
+    icon: mdi:water-percent-alert
+    unit_of_measurement: "%"
+    min_value: 20
+    max_value: 95
+    step: 1
+    initial_value: 70
+    optimistic: true
+    restore_value: true
+    mode: box
+
+# Picks the day or night setpoint and pushes it to the PID thermostat.
+script:
+  - id: apply_setpoint
+    mode: restart
+    then:
+      - lambda: |-
+          auto t = id(sntp_time).now();
+          if (!t.is_valid()) t = id(ha_time).now();
+          bool night = false;
+          if (t.is_valid()) {
+            const int h = t.hour;
+            const int s = (int) id(night_start).state;
+            const int e = (int) id(night_end).state;
+            if (s != e) night = (s < e) ? (h >= s && h < e) : (h >= s || h < e);
+          }
+          id(night_active) = night;
+          const float sp = night ? id(night_setpoint).state : id(day_setpoint).state;
+          if (!isnan(sp) && fabsf(id(pid_heat).target_temperature - sp) > 0.05f) {
+            auto call = id(pid_heat).make_call();
+            call.set_target_temperature(sp);
+            call.perform();
+          }
+
+# ---------------------------------------------------------------------
+# Sensors
+# ---------------------------------------------------------------------
+sensor:
+  - platform: dallas_temp
+    one_wire_id: ow_stone
+    id: stone_temp
+    name: "Stone Temperature"
+    update_interval: 10s
+    on_value:
+      then:
+        - lambda: id(t_stone_ms) = millis();
+
+  - platform: dallas_temp
+    one_wire_id: ow_cool
+    id: cool_temp
+    name: "Cool Side Temperature"
+    update_interval: 30s
+
+  - platform: mlx90614
+    address: 0x5A
+    update_interval: 5s
+    ambient:
+      name: "IR Sensor Ambient"
+      id: ir_ambient
+    object:
+      name: "Stone Surface (IR)"
+      id: ir_object
+      emissivity: 0.95          # slate/stone ≈ 0.93–0.95
+      on_value:
+        then:
+          - lambda: id(t_ir_ms) = millis();
+
+  - platform: sht3xd
+    address: 0x44
+    update_interval: 30s
+    temperature:
+      name: "Enclosure Air Temperature"
+      id: air_temp
+    humidity:
+      name: "Enclosure Humidity"
+      id: humidity
+
+  - platform: template
+    id: hot_zone_control
+    name: "Hot Zone (Control)"
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: 5s
+    lambda: |-
+      const float s = id(stone_temp).state;
+      const float ir = id(ir_object).state;
+      if (isnan(s) || isnan(ir)) return NAN;
+      return std::max(s, ir);
+
+  - platform: template
+    id: active_setpoint
+    name: "Active Setpoint"
+    unit_of_measurement: "°C"
+    device_class: temperature
+    accuracy_decimals: 1
+    update_interval: 30s
+    lambda: return id(pid_heat).target_temperature;
+
+  - platform: pid
+    climate_id: pid_heat
+    id: heater_duty
+    name: "Heater Duty"
+    type: HEAT
+
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    update_interval: 60s
+
+  - platform: uptime
+    name: "Uptime"
+
+text_sensor:
+  - platform: template
+    id: heater_status
+    name: "Heater Status"
+    icon: mdi:information-outline
+    update_interval: 5s
+    lambda: |-
+      if (id(heat_fault)) return {"Fault: " + id(fault_reason)};
+      if (!id(heater_enable).state) return {std::string("Disabled")};
+      const float d = id(heater_duty).state;
+      return {std::string((!isnan(d) && d > 0.5f) ? "Heating" : "Idle")};
+
+binary_sensor:
+  - platform: template
+    name: "Heater Fault"
+    device_class: problem
+    lambda: return id(heat_fault);
+
+  - platform: template
+    name: "Heater Active"
+    device_class: heat
+    lambda: |-
+      const float d = id(heater_duty).state;
+      return !isnan(d) && d > 0.5f;
+
+  - platform: template
+    name: "Night Mode"
+    icon: mdi:weather-night
+    lambda: return id(night_active);
+
+  - platform: template
+    name: "Cool Side Low"
+    device_class: cold
+    lambda: |-
+      const float c = id(cool_temp).state;
+      return !isnan(c) && c < id(cool_low_alert).state;
+
+  - platform: template
+    name: "Humidity Out of Range"
+    device_class: problem
+    lambda: |-
+      const float h = id(humidity).state;
+      return !isnan(h) && (h < id(humidity_low_alert).state || h > id(humidity_high_alert).state);
+
+  - platform: status
+    name: "Status"
+
+button:
+  - platform: template
+    name: "PID Autotune"
+    entity_category: config
+    on_press:
+      - climate.pid.autotune: pid_heat
+  - platform: template
+    name: "PID Reset Integral"
+    entity_category: config
+    on_press:
+      - climate.pid.reset_integral_term: pid_heat
+  - platform: restart
+    name: "Restart"
+
+# ---------------------------------------------------------------------
+# Heater output: pulse (slow PWM) to the SSR on GPIO26
+# (10k pull-down on the board keeps it off during boot/flash)
+# ---------------------------------------------------------------------
+output:
+  - platform: slow_pwm
+    id: heater_pwm
+    pin: GPIO26
+    period: 15s
+
+# Target temperature is driven by the setpoint numbers above; changing it
+# directly on this entity is overwritten within 30 s.
+climate:
+  - platform: pid
+    id: pid_heat
+    name: "Hot Zone Thermostat"
+    sensor: hot_zone_control
+    default_target_temperature: 30.6°C
+    heat_output: heater_pwm
+    visual:
+      min_temperature: 15°C
+      max_temperature: 31.1°C
+      temperature_step: 0.5
+    # Starting values only. Run "PID Autotune" with the stone installed,
+    # then paste the suggested values from the logs here.
+    control_parameters:
+      kp: 0.3
+      ki: 0.0005
+      kd: 0.0
+      output_averaging_samples: 5
+      derivative_averaging_samples: 5
+    deadband_parameters:
+      threshold_high: 0.3°C
+      threshold_low: -0.3°C
+
+# ---------------------------------------------------------------------
+# Loops
+# ---------------------------------------------------------------------
+interval:
+  # Safety loop — every 2 s
+  - interval: 2s
+    then:
+      - lambda: |-
+          const uint32_t now = millis();
+          const uint32_t STALE_MS = 60000;
+          const float HARD_LIMIT = ${hard_limit_c};
+          const float CLEAR_BELOW = ${clear_below_c};
+          const float s = id(stone_temp).state;
+          const float ir = id(ir_object).state;
+
+          std::string reason;
+          if (isnan(s)) reason = "stone probe no reading";
+          else if (isnan(ir)) reason = "IR sensor no reading";
+          else if (now - id(t_stone_ms) > STALE_MS) reason = "stone probe stale";
+          else if (now - id(t_ir_ms) > STALE_MS) reason = "IR sensor stale";
+          else if (s < 5.0f || s > 60.0f) reason = "stone probe implausible";
+          else if (ir < 5.0f || ir > 70.0f) reason = "IR sensor implausible";
+          else if (s > HARD_LIMIT || ir > HARD_LIMIT) reason = "over temperature limit";
+
+          if (!reason.empty()) {
+            if (!id(heat_fault) || id(fault_reason) != reason)
+              ESP_LOGW("safety", "Heater OFF: %s (stone=%.1f ir=%.1f)", reason.c_str(), s, ir);
+            id(heat_fault) = true;
+            id(fault_reason) = reason;
+          } else if (id(heat_fault) && std::max(s, ir) < CLEAR_BELOW) {
+            id(heat_fault) = false;
+            id(fault_reason) = "";
+            ESP_LOGI("safety", "Sensors valid; fault cleared");
+          }
+
+          const bool want_heat = id(heater_enable).state && !id(heat_fault);
+          const auto want_mode = want_heat ? climate::CLIMATE_MODE_HEAT : climate::CLIMATE_MODE_OFF;
+          if (id(pid_heat).mode != want_mode) {
+            auto call = id(pid_heat).make_call();
+            call.set_mode(want_mode);
+            call.perform();
+          }
+          if (!want_heat) id(heater_pwm).set_level(0.0f);
+
+  # Schedule + display power — every 30 s
+  - interval: 30s
+    then:
+      - script.execute: apply_setpoint
+      - lambda: |-
+          if (id(night_active) && id(display_on)) { id(oled).turn_off(); id(display_on) = false; }
+          else if (!id(night_active) && !id(display_on)) { id(oled).turn_on(); id(display_on) = true; }
+
+# ---------------------------------------------------------------------
+# Display — 1.3" SH1106 (4-pin I2C: GND VCC SCL SDA). Off during night hours.
+# ---------------------------------------------------------------------
+font:
+  - file: "gfonts://Roboto Mono"
+    id: f_big
+    size: 15
+  - file: "gfonts://Roboto Mono"
+    id: f_small
+    size: 10
+
+display:
+  - platform: ssd1306_i2c
+    model: "SH1106 128x64"
+    address: 0x3C
+    id: oled
+    update_interval: 5s
+    lambda: |-
+      // Shift a pixel or two every few minutes to limit burn-in.
+      const int dx = (millis() / 60000) % 3;
+      const int dy = (millis() / 180000) % 2;
+      auto F = [](float c) { return c * 1.8f + 32.0f; };
+
+      const float hot = id(hot_zone_control).state;
+      const float cool = id(cool_temp).state;
+      const float rh = id(humidity).state;
+
+      if (isnan(hot)) it.print(dx, dy, id(f_big), "Hot   --");
+      else it.printf(dx, dy, id(f_big), "Hot  %5.1fF", F(hot));
+
+      if (isnan(cool)) it.print(dx, 17 + dy, id(f_big), "Cool  --");
+      else it.printf(dx, 17 + dy, id(f_big), "Cool %5.1fF", F(cool));
+
+      if (isnan(rh)) it.print(dx, 34 + dy, id(f_big), "RH    --");
+      else it.printf(dx, 34 + dy, id(f_big), "RH   %4.0f%%", rh);
+
+      if (id(heat_fault)) {
+        it.print(dx, 52 + dy, id(f_small), "HEATER OFF: FAULT");
+      } else if (!id(heater_enable).state) {
+        it.print(dx, 52 + dy, id(f_small), "Heater disabled");
+      } else {
+        const float d = id(heater_duty).state;
+        it.printf(dx, 52 + dy, id(f_small), "Heat %3.0f%%  Set %.0fF",
+                  isnan(d) ? 0.0f : d, F(id(pid_heat).target_temperature));
+      }
