@@ -1,7 +1,7 @@
 // Main thermostat enclosure: base (mains bay + low-voltage bay) and lid.
 // MOCKUP: component dimensions are typical values; verify against real parts.
 // Frame: origin = outer back-left-bottom corner of the base, +Z up.
-// -Y wall = BACK (inlet, outlet, cable slot). +Y wall = FRONT (OLED window).
+// -Y wall = BACK (inlet, outlet, cable grommets). +Y wall = FRONT (OLED window).
 include <BOSL2/std.scad>
 $fa = 1; $fs = 0.2;
 part = "base";                  // "base" | "lid" | "assembly"
@@ -33,9 +33,14 @@ outlet_cut = [27, 27];  outlet_panel_t = 1.6;  outlet_x = 73;
 outlet_pocket = [34, 34];       // inside thinning pocket around the cutout
 
 // Low-voltage bay
-// One cable slot in the back wall, open to the top: pre-solder the harness, then drop it in.
-// A tab on the lid closes the top of the slot, leaving cable_gap_h for the cables.
-cable_slot_w = 50;  cable_slot_z0 = 15;  cable_gap_h = 10;  lid_tab_clr = 0.3;
+// Two rubber grommets (Vrupin kit, 3/4" = 19.05 mm mounting hole) in the back wall.
+// Each hole has a slot up to the rim so pre-soldered cables drop in (slit the grommet);
+// a lid tab with a concave bottom closes the slot so the grommet seats all the way round.
+grommet_hole_d = 19.05;  grommet_flange_d = 25.4;  // flange OD (verify)
+grommet_panel_t = 1.6;          // grommet groove width; wall is thinned to this (verify)
+grommet_z = 19;  grommet_pitch = 36;  grommet_slot_w = 8;  // slot passes Cat6 (~6 mm)
+grommet_pocket_d = grommet_flange_d + 3;
+lid_tab_clr = 0.3;
 pb_size = [84, 53];             // ElectroCookie full board (verify)
 pb_hole_pitch = 73.7;           // 2 centerline mounting holes, ~29 rows x 2.54 (verify)
 pb_center_y = 55;
@@ -78,8 +83,9 @@ assert(c14_x - c14_hole_pitch/2 - 4 > wall, "C14 ears hit left wall");
 assert(outlet_x + outlet_pocket.x/2 < div_x, "outlet pocket crosses divider");
 assert(c14_x + c14_hole_pitch/2 + 4 < outlet_x - outlet_pocket.x/2, "C14 and outlet overlap");
 assert(mains_cx + ssr_size.x/2 < div_x && mains_cx - ssr_size.x/2 > wall, "SSR does not fit");
-assert(cable_slot_w/2 + boss_d < lv_w/2, "cable slot hits corner boss");
-assert(cable_slot_z0 + cable_gap_h < outer.z - 5, "lid tab too short");
+assert(grommet_pitch/2 + grommet_pocket_d/2 + boss_d < lv_w/2, "grommet pocket hits corner boss");
+assert(grommet_pitch > grommet_pocket_d, "grommet pockets overlap");
+assert(grommet_z - grommet_flange_d/2 > floor_t, "grommet flange hits floor");
 assert(oled_rail_top <= outer.z - lip_h - 0.3, "OLED rails hit lid lip");
 assert(pb_center_y + pb_size.y/2 < oled_y_back - 1, "protoboard hits OLED rails");
 assert(pb_size.x < lv_w && pb_center_y + pb_size.y/2 < wall + in_y && pb_center_y - pb_size.y/2 > wall + 14, "protoboard does not fit");
@@ -137,8 +143,13 @@ module base() {
     translate([outlet_x, wall/2, mid_z]) cube([outlet_cut.x, wall+2*eps, outlet_cut.y], center=true);
     translate([outlet_x - outlet_pocket.x/2, outlet_panel_t, mid_z - outlet_pocket.y/2])
       cube([outlet_pocket.x, wall - outlet_panel_t + eps, outlet_pocket.y]);
-    // cable slot (back wall, LV bay), open to the top
-    translate([lv_cx - cable_slot_w/2, -eps, cable_slot_z0]) cube([cable_slot_w, wall + 2*eps, outer.z]);
+    // grommet keyholes (back wall, LV bay): hole + slot to the rim + inside thinning pocket
+    for (s=[-1,1]) translate([lv_cx + s*grommet_pitch/2, 0, 0]) {
+      translate([0, -eps, grommet_z]) cyl(d=grommet_hole_d, h=wall + 2*eps, orient=BACK, anchor=BOT);
+      translate([-grommet_slot_w/2, -eps, grommet_z]) cube([grommet_slot_w, wall + 2*eps, outer.z]);
+      hull() for (z=[grommet_z, outer.z + grommet_pocket_d/2])
+        translate([0, grommet_panel_t, z]) cyl(d=grommet_pocket_d, h=wall - grommet_panel_t + eps, orient=BACK, anchor=BOT);
+    }
     // OLED window (front wall), chamfered outward
     translate([lv_cx, oled_y_in - eps, oled_win_z]) rotate([-90,0,0])
       prismoid(size1=oled_win, size2=oled_win + [2*wall, 2*wall], h=wall + 2*eps, anchor=BOT);
@@ -156,9 +167,12 @@ module lid_assembled() {
         cube([lip_out.x, lip_out.y, lip_h+eps]);
         translate([lip_t, lip_t, -eps]) cube([lip_out.x-2*lip_t, lip_out.y-2*lip_t, lip_h+3*eps]);
       }
-      // tab that closes the top of the cable slot
-      tab_h = outer.z - (cable_slot_z0 + cable_gap_h);
-      translate([lv_cx - cable_slot_w/2 + lid_tab_clr, 0, -tab_h]) cube([cable_slot_w - 2*lid_tab_clr, wall, tab_h + eps]);
+      // tabs that close the grommet slots; concave bottom completes the round hole
+      for (s=[-1,1]) translate([lv_cx + s*grommet_pitch/2, 0, 0]) difference() {
+        translate([-grommet_slot_w/2 + lid_tab_clr, 0, grommet_z - outer.z])
+          cube([grommet_slot_w - 2*lid_tab_clr, grommet_panel_t, outer.z - grommet_z + eps]);
+        translate([0, -eps, grommet_z - outer.z]) cyl(d=grommet_hole_d, h=grommet_panel_t + 2*eps, orient=BACK, anchor=BOT);
+      }
     }
     // lip clearance around bosses and divider
     for (p = boss_pts) translate([p.x, p.y, -lip_h-eps]) cyl(d=boss_d+0.8, h=lip_h+eps, anchor=BOT);
@@ -178,7 +192,53 @@ module lid_print() {
 
 if (part == "base") base();
 else if (part == "lid") lid_print();
+else if (part == "mockup") { base(); components(); color("SteelBlue", 0.25) translate([0, 0, outer.z]) lid_assembled(); }
+else if (part == "mockup_open") { base(); components(); }
 else if (part == "assembly") {
   base();
   color("SteelBlue", 0.6) translate([0, 0, outer.z + 15]) lid_assembled();
+}
+
+// ---- placeholder components for visual mockups (approximate shapes, not for printing) ----
+module components() {
+  ssr_z = floor_t + ssr_boss_h;
+  // SSR-40DA
+  color("Gainsboro") translate([mains_cx, ssr_center_y, ssr_z]) cuboid([ssr_size.x, ssr_size.y, 23], anchor=BOT);
+  color("Silver") for (sx=[-1,1], sy=[-1,1]) translate([mains_cx + sx*20, ssr_center_y + sy*11, ssr_z + 23]) cyl(d=7, h=2, anchor=BOT);
+  // C14 inlet: flange outside, body inside
+  color("#222") translate([c14_x, 0, mid_z]) {
+    translate([0, -3, 0]) cuboid([c14_hole_pitch + 8, 3, c14_cut.y + 2], rounding=2, edges="Y", anchor=FRONT);
+    cuboid([c14_cut.x - 0.5, 27, c14_cut.y - 0.5], anchor=FRONT);
+  }
+  // power cord plug into the C14
+  color("#333") translate([c14_x, -3, mid_z]) cuboid([24, 30, 20], rounding=3, anchor=BACK);
+  // NEMA outlet: face flush outside, body inside
+  color("#222") translate([outlet_x, 0, mid_z]) cuboid([outlet_cut.x - 0.5, 24, outlet_cut.y - 0.5], anchor=FRONT);
+  color("#111") translate([outlet_x, -0.6, mid_z]) cuboid([outlet_cut.x + 2, 0.6, outlet_cut.y + 2], anchor=FRONT);
+  // heat panel plug in the outlet
+  color("#ddd") translate([outlet_x, -0.6, mid_z]) cuboid([22, 26, 24], rounding=3, anchor=BACK);
+  // protoboard + ESP32 on female headers
+  pb_z = floor_t + standoff_h;
+  color("#111") translate([lv_cx, pb_center_y, pb_z]) cuboid([pb_size.x, pb_size.y, 1.6], rounding=3, edges="Z", anchor=BOT);
+  color("#333") for (sy=[-1,1]) translate([lv_cx, pb_center_y + sy*12.7, pb_z + 1.6]) cuboid([48, 2.5, 8.5], anchor=BOT);
+  color("#1a1a1a") translate([lv_cx, pb_center_y, pb_z + 10.1]) cuboid([55, 28, 1.6], anchor=BOT);
+  color("Silver") translate([lv_cx + 14, pb_center_y, pb_z + 11.7]) cuboid([18, 25, 3], anchor=BOT);
+  // OLED module in its grooves
+  oy = oled_y_in - oled_glass_t - oled_clr;
+  color("#1565c0") translate([lv_cx, oy, oled_z0]) cuboid([oled_pcb.x, oled_pcb.z, oled_pcb.y], anchor=BACK+BOT);
+  color("#0b0b2a") translate([lv_cx, oy, oled_win_z]) cuboid([34.5, oled_glass_t, 23], anchor=FRONT);
+  // grommets + cables
+  for (s=[-1,1]) translate([lv_cx + s*grommet_pitch/2, 0, grommet_z]) {
+    color("#151515") translate([0, grommet_panel_t/2, 0]) rotate([90,0,0]) difference() {
+      union() {
+        for (z=[-1,1]) translate([0,0,z*(grommet_panel_t/2 + 0.75)]) cyl(d=grommet_flange_d, h=1.5);
+        cyl(d=grommet_hole_d, h=grommet_panel_t + eps);
+      }
+      cyl(d=12.7, h=10);
+    }
+  }
+  cab = [[-1, [[-2.5, 1.5, 6.0, "#3a7bd5"], [3.5, -2, 3.5, "#111"]]],        // Cat6 + USB
+         [ 1, [[-2.6, -1.5, 4.0, "#111"], [2.6, -1.5, 4.0, "#111"], [0, 2.6, 4.5, "#111"]]]]; // DS18B20 x2 + SHT30
+  for (g = cab) for (c = g[1]) color(c[3])
+    translate([lv_cx + g[0]*grommet_pitch/2 + c[0], -40, grommet_z + c[1]]) cyl(d=c[2], h=40 + 20, orient=BACK, anchor=BOT);
 }
