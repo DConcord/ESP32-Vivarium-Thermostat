@@ -1,7 +1,7 @@
 // Main thermostat enclosure: base (mains bay + low-voltage bay) and lid.
 // MOCKUP: component dimensions are typical values; verify against real parts.
-// Frame: origin = outer front-left-bottom corner of the base, +Z up.
-// -Y wall is the "bottom" when the box is wall-mounted (all cables exit there).
+// Frame: origin = outer back-left-bottom corner of the base, +Z up.
+// -Y wall = BACK (inlet, outlet, cable slot). +Y wall = FRONT (OLED window).
 include <BOSL2/std.scad>
 $fa = 1; $fs = 0.2;
 part = "base";                  // "base" | "lid" | "assembly"
@@ -33,21 +33,24 @@ outlet_cut = [27, 27];  outlet_panel_t = 1.6;  outlet_x = 73;
 outlet_pocket = [34, 34];       // inside thinning pocket around the cutout
 
 // Low-voltage bay
-gland_d = 12.5;  gland_n = 4;  gland_pitch = 20; // PG7 glands
+// One cable slot in the back wall, open to the top: pre-solder the harness, then drop it in.
+// A tab on the lid closes the top of the slot, leaving cable_gap_h for the cables.
+cable_slot_w = 50;  cable_slot_z0 = 15;  cable_gap_h = 10;  lid_tab_clr = 0.3;
 pb_size = [84, 53];             // ElectroCookie full board (verify)
 pb_hole_pitch = 73.7;           // 2 centerline mounting holes, ~29 rows x 2.54 (verify)
-pb_center_y = 61;
+pb_center_y = 55;
 standoff_d = 8.5;  standoff_h = 6;  pb_insert_depth = 6.5;  // M3 x 5 inserts
-usb_slot = [14, 9];  usb_z = 22;  // slot in +X wall (Y width, Z height)
 div_notch = [10, 8];            // wire pass-through at floor (Y width, Z height)
 
 // Lid
 lid_t = 3;  lip_h = 3;  lip_t = 1.6;  lip_clr = 0.2;
-// SH1106 1.3" module: PCB ~35.4 x 33.5, M2 holes (pitch to verify)
-oled_hole_pitch = [30.4, 28.5];
-oled_win = [31, 17];  oled_win_dy = 1.5;  // window offset toward the header
-oled_post_d = 4.5;  oled_post_h = 2;  m2_pilot_d = 1.7;  m2_pilot_depth = 4;
-oled_center_y = 50;
+// SH1106 1.3" OLED on the FRONT wall. The PCB drops into open-top grooves behind the
+// window (glass against the wall), rests on a ledge, and the lid lip keeps it down.
+oled_pcb = [35.4, 33.5, 1.6];   // width (X), height (Z), thickness (verify)
+oled_glass_t = 1.6;             // glass stack in front of the PCB (verify)
+oled_win = [31, 17];  oled_win_dz = 1.5;  // window offset toward the header (up)
+oled_z0 = 9;                    // PCB bottom edge height
+oled_clr = 0.3;  rail_t = 2;  rail_lip = 2;
 
 // ---- derived ----
 in_x = mains_w + div_t + lv_w;
@@ -59,6 +62,12 @@ mains_cx = wall + mains_w/2;
 mid_z = floor_t + in_h/2;
 boss_off = wall + boss_d/2 - 1;               // boss centers from outer edges
 boss_pts = [for (x=[boss_off, outer.x-boss_off], y=[boss_off, outer.y-boss_off]) [x,y]];
+oled_groove = oled_glass_t + oled_pcb.z + 2*oled_clr;   // depth behind the front wall
+oled_w = oled_pcb.x + 2*oled_clr;
+oled_y_in = outer.y - wall;                              // front wall inner face
+oled_y_back = oled_y_in - oled_groove - rail_t;
+oled_rail_top = oled_z0 + oled_pcb.y + 1;
+oled_win_z = oled_z0 + oled_pcb.y/2 + oled_win_dz;
 
 // ---- asserts ----
 assert(wall >= 2.0, "mains enclosure wall too thin");
@@ -69,7 +78,10 @@ assert(c14_x - c14_hole_pitch/2 - 4 > wall, "C14 ears hit left wall");
 assert(outlet_x + outlet_pocket.x/2 < div_x, "outlet pocket crosses divider");
 assert(c14_x + c14_hole_pitch/2 + 4 < outlet_x - outlet_pocket.x/2, "C14 and outlet overlap");
 assert(mains_cx + ssr_size.x/2 < div_x && mains_cx - ssr_size.x/2 > wall, "SSR does not fit");
-assert(lv_cx + (gland_n-1)/2*gland_pitch + gland_d/2 < outer.x - wall - boss_d, "glands hit corner");
+assert(cable_slot_w/2 + boss_d < lv_w/2, "cable slot hits corner boss");
+assert(cable_slot_z0 + cable_gap_h < outer.z - 5, "lid tab too short");
+assert(oled_rail_top <= outer.z - lip_h - 0.3, "OLED rails hit lid lip");
+assert(pb_center_y + pb_size.y/2 < oled_y_back - 1, "protoboard hits OLED rails");
 assert(pb_size.x < lv_w && pb_center_y + pb_size.y/2 < wall + in_y && pb_center_y - pb_size.y/2 > wall + 14, "protoboard does not fit");
 
 // ---- geometry: base ----
@@ -94,6 +106,17 @@ module base() {
       // C14 ear pads (inverted teardrop: no overhang underneath)
       for (s=[-1,1]) translate([c14_x + s*c14_hole_pitch/2, wall + c14_pad_t/2 - eps, mid_z])
         mirror([0,0,1]) teardrop(h=c14_pad_t + 2*eps, d=c14_pad_d);
+      // OLED holder: ledge + two L-rails forming open-top grooves
+      translate([lv_cx, 0, 0]) {
+        translate([-oled_w/2 - rail_t, oled_y_back, 0])
+          cube([oled_w + 2*rail_t, oled_y_in - oled_y_back + eps, oled_z0]);
+        for (s=[-1,1]) {
+          translate([s*(oled_w/2 + rail_t/2) - rail_t/2, oled_y_back, 0])
+            cube([rail_t, oled_y_in - oled_y_back + eps, oled_rail_top]);
+          translate([s > 0 ? oled_w/2 - rail_lip : -oled_w/2 - eps, oled_y_back, 0])
+            cube([rail_lip + eps, rail_t, oled_rail_top]);
+        }
+      }
     }
     // lid screw inserts
     for (p = boss_pts) translate([p.x, p.y, outer.z - m3_insert_depth])
@@ -114,11 +137,11 @@ module base() {
     translate([outlet_x, wall/2, mid_z]) cube([outlet_cut.x, wall+2*eps, outlet_cut.y], center=true);
     translate([outlet_x - outlet_pocket.x/2, outlet_panel_t, mid_z - outlet_pocket.y/2])
       cube([outlet_pocket.x, wall - outlet_panel_t + eps, outlet_pocket.y]);
-    // cable glands (-Y wall, LV bay)
-    for (i=[0:gland_n-1]) translate([lv_cx + (i-(gland_n-1)/2)*gland_pitch, wall/2, mid_z])
-      teardrop(h=wall+2*eps, d=gland_d);
-    // USB slot (+X wall)
-    translate([outer.x - wall/2, pb_center_y, usb_z]) cube([wall+2*eps, usb_slot.x, usb_slot.y], center=true);
+    // cable slot (back wall, LV bay), open to the top
+    translate([lv_cx - cable_slot_w/2, -eps, cable_slot_z0]) cube([cable_slot_w, wall + 2*eps, outer.z]);
+    // OLED window (front wall), chamfered outward
+    translate([lv_cx, oled_y_in - eps, oled_win_z]) rotate([-90,0,0])
+      prismoid(size1=oled_win, size2=oled_win + [2*wall, 2*wall], h=wall + 2*eps, anchor=BOT);
   }
 }
 
@@ -133,10 +156,9 @@ module lid_assembled() {
         cube([lip_out.x, lip_out.y, lip_h+eps]);
         translate([lip_t, lip_t, -eps]) cube([lip_out.x-2*lip_t, lip_out.y-2*lip_t, lip_h+3*eps]);
       }
-      // OLED posts
-      for (sx=[-1,1], sy=[-1,1])
-        translate([lv_cx + sx*oled_hole_pitch.x/2, oled_center_y + sy*oled_hole_pitch.y/2, eps])
-          cyl(d=oled_post_d, h=oled_post_h+eps, anchor=TOP);
+      // tab that closes the top of the cable slot
+      tab_h = outer.z - (cable_slot_z0 + cable_gap_h);
+      translate([lv_cx - cable_slot_w/2 + lid_tab_clr, 0, -tab_h]) cube([cable_slot_w - 2*lid_tab_clr, wall, tab_h + eps]);
     }
     // lip clearance around bosses and divider
     for (p = boss_pts) translate([p.x, p.y, -lip_h-eps]) cyl(d=boss_d+0.8, h=lip_h+eps, anchor=BOT);
@@ -146,13 +168,6 @@ module lid_assembled() {
       cyl(d=m3_clear, h=3*lid_t, anchor=CENTER);
       translate([0,0,lid_t-m3_head_depth]) cyl(d=m3_head_d, h=m3_head_depth+eps, anchor=BOT);
     }
-    // OLED window, chamfered on the outside face
-    translate([lv_cx, oled_center_y + oled_win_dy, -eps])
-      prismoid(size1=oled_win, size2=oled_win + [2*lid_t, 2*lid_t], h=lid_t+2*eps, anchor=BOT);
-    // OLED M2 pilot holes (blind, from the post end)
-    for (sx=[-1,1], sy=[-1,1])
-      translate([lv_cx + sx*oled_hole_pitch.x/2, oled_center_y + sy*oled_hole_pitch.y/2, -oled_post_h-eps])
-        cyl(d=m2_pilot_d, h=m2_pilot_depth+eps, anchor=BOT);
   }
 }
 
