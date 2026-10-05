@@ -194,6 +194,7 @@ if (part == "base") base();
 else if (part == "lid") lid_print();
 else if (part == "mockup") { base(); components(); color("SteelBlue", 0.25) translate([0, 0, outer.z]) lid_assembled(); }
 else if (part == "mockup_open") { base(); components(); }
+else if (part == "empty") { base(); color("SteelBlue", 0.25) translate([0, 0, outer.z]) lid_assembled(); }
 else if (part == "assembly") {
   base();
   color("SteelBlue", 0.6) translate([0, 0, outer.z + 15]) lid_assembled();
