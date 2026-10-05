@@ -2,6 +2,7 @@
 // MOCKUP: GY-906-DCI dimensions are estimates from photos; measure and update.
 // Parts: body (front-down), cap, yoke (base-down), clip (on its side).
 // Assembly: clip grips a panel edge -> M3 pan screw -> yoke -> 2x M3 tilt screws -> body.
+// Kadrick M3 heat-set inserts (OD 4.5, tip 3.9): hole 4.0, depth = length + 1.5.
 include <BOSL2/std.scad>
 $fa = 1; $fs = 0.2;
 part = "body";                  // "body" | "cap" | "yoke" | "clip"
@@ -20,7 +21,9 @@ sleeve_t = 1.6;                 // locating sleeve around the tube
 ledge_w = 1;                    // PCB rests on this ledge
 wire_h = 12;                    // space above PCB for header wires + 100 nF cap
 post_d = 4.5;  m2_pilot_d = 1.7;
-piv_boss_d = 8;  piv_boss_l = 3;  m3_pilot_d = 2.6;  m3_pilot_depth = 4.5;
+m3_insert_d = 4.0;
+piv_boss_d = 9;  piv_boss_l = 5;  piv_insert_depth = 5.5;  // M3 x 4 inserts
+cap_tab = [9, 7];  cap_tab_h = 8;  cap_insert_depth = 6.5;   // M3 x 5 inserts, tabs on +/-Y
 corner_r = 2;
 
 // ---- parameters: cap ----
@@ -28,8 +31,8 @@ cap_t = 2;  cap_lip_h = 3;  cap_lip_t = 1.2;  cap_clr = 0.2;
 cable_d = 6.5;                  // Cat6 jacket pass-through
 
 // ---- parameters: yoke ----
-ear_t = 3;  yoke_w = 16;  yoke_base_t = 4;  washer_gap = 0.5;
-m3_clear = 3.4;  m3_nut_af = 5.7;  m3_nut_h = 2.5;
+ear_t = 3;  yoke_w = 16;  yoke_base_t = 6;  washer_gap = 0.5;  // pan: M3 x 5 insert, through
+m3_clear = 3.4;
 piv_margin = 1.5;               // clearance between swinging pod and yoke base
 
 // ---- parameters: clip ----
@@ -46,7 +49,8 @@ pocket_xy = [pcb.x + 2*clr, pcb.y + 2*clr];
 under_xy = pocket_xy - [2*ledge_w, 2*ledge_w];
 piv_z = z_top/2;
 body_span_x = body_xy.x + 2*piv_boss_l;
-swing_r = norm([z_top/2, body_xy.y/2]);  // pod corner radius about the pivot
+swing_r = norm([z_top/2, body_xy.y/2 + cap_tab.y]);  // pod corner (incl. cap tabs) about the pivot
+cap_hole_y = body_xy.y/2 + 2.5;
 ear_gap = body_span_x + 2*washer_gap;
 ear_piv_h = yoke_base_t + swing_r + piv_margin;
 ear_h = ear_piv_h + yoke_w/2;
@@ -55,7 +59,9 @@ ear_h = ear_piv_h + yoke_w/2;
 assert(wall >= 1.2);
 assert(pcb_hole_xy.x + post_d/2 <= under_xy.x/2 + wall, "PCB post outside body");
 assert(norm(tube_xy - pcb_hole_xy) > tube_d/2 + pcb_hole_d/2, "PCB hole overlaps tube");
-assert(m3_pilot_depth < wall + piv_boss_l, "pivot pilot breaks into cavity");
+assert(piv_insert_depth < wall + piv_boss_l - 0.5, "pivot insert breaks into cavity");
+assert(cap_tab.y - (cap_hole_y - body_xy.y/2) - 4.5/2 >= 1.2, "cap tab wall too thin");
+assert(jaw_t >= 4, "jaw too thin for M3 x 4 insert");
 assert(pan_hole_x > spine_t + yoke_w/2, "yoke hits clip spine");
 
 // ---- body ----
@@ -75,15 +81,23 @@ module body() {
       // pivot bosses (inverted teardrop so the underside prints without support)
       for (s=[-1,1]) translate([s*(body_xy.x/2 + piv_boss_l/2 - eps), 0, piv_z])
         mirror([0,0,1]) teardrop(h=piv_boss_l + 2*eps, d=piv_boss_d, spin=90);  // point down: solid boss
+      // cap screw tabs, with a >45 deg wedge underneath so they print without support
+      for (s=[-1,1]) translate([0, s*(body_xy.y/2 - eps), z_top - cap_tab_h]) hull() {
+        translate([0, s*cap_tab.y/2, 0]) cuboid([cap_tab.x, cap_tab.y + eps, cap_tab_h], anchor=BOT);
+        translate([0, s*eps/2, -cap_tab.y - 1]) cuboid([cap_tab.x, eps, eps], anchor=BOT);
+      }
     }
     // tube bore and front aperture
     translate([tube_xy.x, tube_xy.y, front_t]) cyl(d=tube_d + 2*clr, h=z_pcb, anchor=BOT);
     translate([tube_xy.x, tube_xy.y, -eps]) cyl(d=tube_d + 2*clr - 2*lip_w, h=front_t + 2*eps, anchor=BOT);
     // M2 pilot in post
     translate([pcb_hole_xy.x, pcb_hole_xy.y, z_pcb - 6]) cyl(d=m2_pilot_d, h=6+eps, anchor=BOT);
-    // M3 pilots in pivot bosses
+    // M3 inserts in pivot bosses
     for (s=[-1,1]) translate([s*(body_span_x/2 + eps), 0, piv_z])
-      cyl(d=m3_pilot_d, h=2*m3_pilot_depth, orient=RIGHT);
+      cyl(d=m3_insert_d, h=2*piv_insert_depth, orient=RIGHT);
+    // M3 inserts in cap tabs
+    for (s=[-1,1]) translate([0, s*cap_hole_y, z_top - cap_insert_depth])
+      cyl(d=m3_insert_d, h=cap_insert_depth + eps, anchor=BOT);
   }
 }
 
@@ -93,12 +107,15 @@ module cap() {
   difference() {
     union() {
       cuboid([body_xy.x, body_xy.y, cap_t], rounding=corner_r, edges="Z", anchor=BOT);
+      for (s=[-1,1]) translate([0, s*(body_xy.y/2 + cap_tab.y/2 - eps), 0])
+        cuboid([cap_tab.x, cap_tab.y + 2*eps, cap_t], anchor=BOT);
       translate([0,0,cap_t - eps]) difference() {
         cuboid([lip_out.x, lip_out.y, cap_lip_h + eps], anchor=BOT);
         translate([0,0,-eps]) cuboid([lip_out.x - 2*cap_lip_t, lip_out.y - 2*cap_lip_t, cap_lip_h + 3*eps], anchor=BOT);
       }
     }
     translate([0,0,-eps]) cyl(d=cable_d, h=cap_t + 2*eps, anchor=BOT);
+    for (s=[-1,1]) translate([0, s*cap_hole_y, -eps]) cyl(d=m3_clear, h=cap_t + 2*eps, anchor=BOT);
   }
 }
 
@@ -116,9 +133,8 @@ module yoke() {
     }
     // tilt screw holes
     for (s=[-1,1]) translate([s*(ear_gap/2 + ear_t/2), 0, ear_piv_h]) cyl(d=m3_clear, h=ear_t + 2*eps, orient=RIGHT);
-    // pan screw hole + nut trap on the inside face
-    translate([0,0,-eps]) cyl(d=m3_clear, h=yoke_base_t + 2*eps, anchor=BOT);
-    translate([0,0,yoke_base_t - m3_nut_h]) cyl(d=m3_nut_af/cos(30), h=m3_nut_h + eps, $fn=6, anchor=BOT);
+    // pan insert (M3 x 5, through; press in from the clip side = print bed face)
+    translate([0,0,-eps]) cyl(d=m3_insert_d, h=yoke_base_t + 2*eps, anchor=BOT);
   }
 }
 
@@ -132,8 +148,8 @@ module clip() {
     }
     // pan screw hole through lower jaw
     translate([pan_hole_x, jaw_t/2, clip_w/2]) cyl(d=m3_clear, h=jaw_t + 2*eps, orient=BACK);
-    // grip screw pilot through upper jaw
-    translate([grip_hole_x, jaw_t*1.5 + panel_t, clip_w/2]) cyl(d=m3_pilot_d, h=jaw_t + 2*eps, orient=BACK);
+    // grip screw insert through upper jaw (M3 x 4, press in from the outside face)
+    translate([grip_hole_x, jaw_t*1.5 + panel_t, clip_w/2]) cyl(d=m3_insert_d, h=jaw_t + 2*eps, orient=BACK);
   }
 }
 

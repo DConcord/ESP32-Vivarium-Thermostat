@@ -16,16 +16,18 @@ in_y = 90;  in_h = 45;          // interior depth (Y) and height (Z)
 corner_r = 4;                   // outer vertical-edge rounding
 
 boss_d = 9;                     // lid screw bosses in the 4 corners
-m3_insert_d = 4.2;  m3_insert_depth = 6;
+// Kadrick heat-set inserts: M3 OD 4.5 / 3.9 tip, M4 OD 5.5 / 5.0 tip. Hole = tip + ~0.1, depth = length + 1.5
+m3_insert_d = 4.0;  m3_insert_depth = 7.5;     // lid screws: M3 x 6 inserts
 m3_clear = 3.4;  m3_head_d = 6.2;  m3_head_depth = 1.5;
 
 // Inkbird SSR-40DA: 62.5 x 45 body, M4 holes 47.6 apart along the long axis
 ssr_size = [62.5, 45];  ssr_hole_pitch = 47.6;
-ssr_boss_d = 10;  ssr_boss_h = 5;  m4_insert_d = 5.8;  m4_insert_depth = 5.5;
+ssr_boss_d = 10;  ssr_boss_h = 8;  m4_insert_d = 5.1;  m4_insert_depth = 9.5;  // M4 x 8 inserts
 ssr_center_y = 66;              // SSR sits in the back half of the mains bay
 
 // C14 fused inlet (screw-ear type): panel cutout and ear holes
 c14_cut = [28, 32];  c14_hole_pitch = 40;  c14_x = 31;
+c14_pad_d = 9;  c14_pad_t = 5;  c14_insert_depth = 6.5; // inside pads, M3 x 5 inserts from outside
 // NEMA 5-15R snap-in receptacle: cutout, and snap clips want a thin panel
 outlet_cut = [27, 27];  outlet_panel_t = 1.6;  outlet_x = 73;
 outlet_pocket = [34, 34];       // inside thinning pocket around the cutout
@@ -35,7 +37,7 @@ gland_d = 12.5;  gland_n = 4;  gland_pitch = 20; // PG7 glands
 pb_size = [84, 53];             // ElectroCookie full board (verify)
 pb_hole_pitch = 73.7;           // 2 centerline mounting holes, ~29 rows x 2.54 (verify)
 pb_center_y = 61;
-standoff_d = 7;  standoff_h = 6;
+standoff_d = 8.5;  standoff_h = 6;  pb_insert_depth = 6.5;  // M3 x 5 inserts
 usb_slot = [14, 9];  usb_z = 22;  // slot in +X wall (Y width, Z height)
 div_notch = [10, 8];            // wire pass-through at floor (Y width, Z height)
 
@@ -60,6 +62,9 @@ boss_pts = [for (x=[boss_off, outer.x-boss_off], y=[boss_off, outer.y-boss_off])
 
 // ---- asserts ----
 assert(wall >= 2.0, "mains enclosure wall too thin");
+assert(floor_t + ssr_boss_h - m4_insert_depth >= 1.2, "SSR insert breaks through floor");
+assert(c14_insert_depth < wall + c14_pad_t - 1, "C14 insert breaks through pad");
+assert(standoff_d - 4.5 >= 3.5, "standoff wall too thin around insert");
 assert(c14_x - c14_hole_pitch/2 - 4 > wall, "C14 ears hit left wall");
 assert(outlet_x + outlet_pocket.x/2 < div_x, "outlet pocket crosses divider");
 assert(c14_x + c14_hole_pitch/2 + 4 < outlet_x - outlet_pocket.x/2, "C14 and outlet overlap");
@@ -86,6 +91,9 @@ module base() {
       // protoboard standoffs
       for (sx=[-1,1]) translate([lv_cx + sx*pb_hole_pitch/2, pb_center_y, 0])
         cyl(d=standoff_d, h=floor_t+standoff_h, anchor=BOT);
+      // C14 ear pads (inverted teardrop: no overhang underneath)
+      for (s=[-1,1]) translate([c14_x + s*c14_hole_pitch/2, wall + c14_pad_t/2 - eps, mid_z])
+        mirror([0,0,1]) teardrop(h=c14_pad_t + 2*eps, d=c14_pad_d);
     }
     // lid screw inserts
     for (p = boss_pts) translate([p.x, p.y, outer.z - m3_insert_depth])
@@ -94,14 +102,14 @@ module base() {
     for (s=[-1,1]) translate([mains_cx + s*ssr_hole_pitch/2, ssr_center_y, floor_t+ssr_boss_h-m4_insert_depth])
       cyl(d=m4_insert_d, h=m4_insert_depth+eps, anchor=BOT);
     // protoboard inserts
-    for (sx=[-1,1]) translate([lv_cx + sx*pb_hole_pitch/2, pb_center_y, floor_t+standoff_h-m3_insert_depth])
-      cyl(d=m3_insert_d, h=m3_insert_depth+eps, anchor=BOT);
+    for (sx=[-1,1]) translate([lv_cx + sx*pb_hole_pitch/2, pb_center_y, floor_t+standoff_h-pb_insert_depth])
+      cyl(d=m3_insert_d, h=pb_insert_depth+eps, anchor=BOT);
     // divider wire notch
     translate([div_x-eps, outer.y/2 - div_notch.x/2, floor_t-eps]) cube([div_t+2*eps, div_notch.x, div_notch.y]);
     // C14 inlet cutout + ear holes (-Y wall)
     translate([c14_x, wall/2, mid_z]) cube([c14_cut.x, wall+2*eps, c14_cut.y], center=true);
-    for (s=[-1,1]) translate([c14_x + s*c14_hole_pitch/2, wall/2, mid_z])
-      cyl(d=m3_clear, h=wall+2*eps, orient=FWD);
+    for (s=[-1,1]) translate([c14_x + s*c14_hole_pitch/2, -eps, mid_z])
+      cyl(d=m3_insert_d, h=c14_insert_depth+eps, orient=BACK, anchor=BOT);
     // outlet cutout + inside thinning pocket (-Y wall)
     translate([outlet_x, wall/2, mid_z]) cube([outlet_cut.x, wall+2*eps, outlet_cut.y], center=true);
     translate([outlet_x - outlet_pocket.x/2, outlet_panel_t, mid_z - outlet_pocket.y/2])
