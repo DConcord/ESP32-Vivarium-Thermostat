@@ -50,7 +50,7 @@ See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
 | STP36NF06L logic-level MOSFET, TO-220 | 1 | $3 | [Digi-Key](https://www.digikey.com/en/products/detail/stmicroelectronics/STP36NF06L/1039545). Any N-MOSFET with R<sub>DS(on)</sub> specified at 4.5 V works |
 | 1 MΩ 1% resistor + 4.7 µF low-leakage film capacitor | 1 each | $2 | Watchdog timing (~2.1 s) |
 | 1N4007 diode | 1 | — | Relay coil flyback |
-| Resistors: 10k ×4, 1k, 100k; capacitors: 100 nF, 100 µF | — | $1 | Pull-downs, divider, gate, decoupling |
+| Resistors: 10k ×5, 1k, 100k; capacitors: 100 nF, 100 µF | — | $1 | 10k: 2 pull-downs + 3 for the feedback divider (1 top, 2 in series bottom); 1k gate; 100k gate pull-down; decoupling |
 | C14 fused inlet, 5×20 mm (no switch) | 1 | $8–10 | [Amazon search](https://www.amazon.com/s?k=IEC+C14+inlet+fuse+holder+panel+mount) |
 | 2A slow-blow 5×20 mm fuses | 1 pack | $6 | [Amazon search](https://www.amazon.com/s?k=2A+250V+slow+blow+5x20mm+fuse) |
 | C13 power cord, 18 AWG, 3-prong | 1 | $7 | Any computer cord |
