@@ -15,7 +15,13 @@
 #   - Heater forced OFF on NaN, stale (>60 s), implausible, or over-limit
 #     reading. The hard limit (33.3°C / 92°F) is fixed in firmware.
 #   - Heater boots OFF; heat is enabled only once sensors are valid.
-#   - Use an independent upstream failsafe (see BUILD.md).
+#   - Plausibility checks on the two hot-zone sensors: sustained stone/IR
+#     disagreement, or full heat while the hot zone neither rises nor sits
+#     above enclosure air, latches heat off until "Clear Heater Fault" is
+#     pressed or the ESP32 restarts.
+#   - Hardware cutoff: relay K1 in series with the SSR stays closed only
+#     while PERMIT (GPIO25) is high AND HEARTBEAT (GPIO23) keeps toggling.
+#     A fault, a disabled heater, OTA, or a stalled loop opens it.
 # =====================================================================
 
 substitutions:
@@ -23,6 +29,12 @@ substitutions:
   friendly: "Snake Enclosure"
   hard_limit_c: "33.3"     # 92°F — heater forced off above this
   clear_below_c: "32.2"    # 90°F — fault clears below this
+  # Plausibility checks (tune at bring-up; see BUILD.md)
+  disagree_c: "4.0"        # stone vs IR difference (~7°F) ...
+  disagree_min: "10"       # ... sustained this many minutes
+  no_rise_c: "1.0"         # at full duty the hot zone must rise this much (~2°F) ...
+  no_rise_min: "30"        # ... within this many minutes, or ...
+  near_air_c: "3.0"        # ... be at least this far (~5°F) above enclosure air
 
 esphome:
   name: ${name}
@@ -34,6 +46,13 @@ esphome:
           id: pid_heat
           mode: "OFF"
       - script.execute: apply_setpoint
+  on_shutdown:
+    then:
+      - output.turn_off: cutoff_permit
+      - output.turn_off: cutoff_heartbeat
+      - output.set_level:
+          id: heater_pwm
+          level: 0%
 
 esp32:
   board: esp32dev
@@ -48,6 +67,15 @@ api:
 ota:
   - platform: esphome
     password: !secret ota_password
+    # The main loop stalls during OTA, which could leave the SSR pin high.
+    # Open the cutoff first; the hardware timeout backs this up.
+    on_begin:
+      then:
+        - output.turn_off: cutoff_permit
+        - output.turn_off: cutoff_heartbeat
+        - output.set_level:
+            id: heater_pwm
+            level: 0%
 
 wifi:
   ssid: !secret wifi_ssid
@@ -107,6 +135,25 @@ globals:
   - id: display_on
     type: bool
     initial_value: "true"
+  # Latched plausibility fault; empty when none.
+  - id: plaus_fault
+    type: std::string
+    initial_value: '""'
+  - id: disagree_since_ms
+    type: uint32_t
+    initial_value: "0"
+  - id: full_since_ms           # start of the current no-rise window
+    type: uint32_t
+    initial_value: "0"
+  - id: full_ref_c              # hot-zone reading at that start
+    type: float
+    initial_value: "NAN"
+  - id: heartbeat_level
+    type: bool
+    initial_value: "false"
+  - id: permit_on
+    type: bool
+    initial_value: "false"
 
 # ---------------------------------------------------------------------
 # User settings (Home Assistant controls; persisted in flash)
@@ -371,6 +418,24 @@ binary_sensor:
   - platform: status
     name: "Status"
 
+  # Watchdog output (U1 Q), level-shifted to 3.3 V. Shows the relay coil is
+  # commanded on; it does not prove the contacts closed.
+  - platform: gpio
+    id: cutoff_closed
+    name: "Heat Cutoff Closed"
+    icon: mdi:electric-switch-closed
+    pin:
+      number: GPIO34            # input-only; divider on the board sets the level
+      mode: INPUT
+
+  # Firmware is permitting heat but the watchdog is not closing K1.
+  - platform: template
+    name: "Heat Cutoff Problem"
+    device_class: problem
+    lambda: return id(permit_on) && !id(cutoff_closed).state;
+    filters:
+      - delayed_on: 5s
+
 button:
   - platform: template
     name: "PID Autotune"
@@ -382,6 +447,19 @@ button:
     entity_category: config
     on_press:
       - climate.pid.reset_integral_term: pid_heat
+  # Clears a latched plausibility fault. Other faults clear on their own
+  # once readings are valid and below 90°F.
+  - platform: template
+    name: "Clear Heater Fault"
+    icon: mdi:restart-alert
+    on_press:
+      - lambda: |-
+          if (!id(plaus_fault).empty())
+            ESP_LOGW("safety", "Plausibility fault cleared by user: %s", id(plaus_fault).c_str());
+          id(plaus_fault) = "";
+          id(disagree_since_ms) = 0;
+          id(full_since_ms) = 0;
+          id(full_ref_c) = NAN;
   - platform: restart
     name: "Restart"
 
@@ -394,6 +472,15 @@ output:
     id: heater_pwm
     pin: GPIO26
     period: 15s
+
+  # Hardware cutoff (see BUILD.md "Heater cutoff"). Both have 10k pull-downs,
+  # so K1 stays open through reset, boot, and flashing.
+  - platform: gpio
+    id: cutoff_permit
+    pin: GPIO25
+  - platform: gpio
+    id: cutoff_heartbeat
+    pin: GPIO23
 
 # Target temperature is driven by the setpoint numbers above; changing it
 # directly on this entity is overwritten within 30 s.
@@ -424,14 +511,20 @@ climate:
 # Loops
 # ---------------------------------------------------------------------
 interval:
-  # Safety loop — every 2 s
-  - interval: 2s
+  # Safety loop — every 250 ms. HEARTBEAT toggles only at the end of a
+  # passing run, so a stalled loop stops the pulses and opens K1.
+  - interval: 250ms
     then:
       - lambda: |-
           const uint32_t now = millis();
           const uint32_t STALE_MS = 60000;
           const float HARD_LIMIT = ${hard_limit_c};
           const float CLEAR_BELOW = ${clear_below_c};
+          const float DISAGREE_C = ${disagree_c};
+          const uint32_t DISAGREE_MS = ${disagree_min} * 60000UL;
+          const float NO_RISE_C = ${no_rise_c};
+          const uint32_t NO_RISE_MS = ${no_rise_min} * 60000UL;
+          const float NEAR_AIR_C = ${near_air_c};
           const float s = id(stone_temp).state;
           const float ir = id(ir_object).state;
 
@@ -443,6 +536,38 @@ interval:
           else if (s < 5.0f || s > 60.0f) reason = "stone probe implausible";
           else if (ir < 5.0f || ir > 70.0f) reason = "IR sensor implausible";
           else if (s > HARD_LIMIT || ir > HARD_LIMIT) reason = "over temperature limit";
+
+          // Plausibility checks (latched). Both sensors read the same stone,
+          // so they should track each other, and full heat should warm it.
+          // The air comparison stops a panel that is simply maxed out in a
+          // cold room (stone warm but no longer rising) from tripping.
+          if (reason.empty() && id(plaus_fault).empty()) {
+            if (fabsf(s - ir) > DISAGREE_C) {
+              if (id(disagree_since_ms) == 0) id(disagree_since_ms) = now;
+              else if (now - id(disagree_since_ms) > DISAGREE_MS)
+                id(plaus_fault) = "stone and IR disagree";
+            } else {
+              id(disagree_since_ms) = 0;
+            }
+
+            const float d = id(heater_duty).state;
+            const float hot = std::max(s, ir);
+            float air = id(air_temp).state;
+            if (isnan(air)) air = id(cool_temp).state;
+            if (!isnan(d) && d >= 95.0f) {
+              if (id(full_since_ms) == 0 || isnan(id(full_ref_c)) || hot >= id(full_ref_c) + NO_RISE_C) {
+                id(full_since_ms) = now;     // start or restart the window
+                id(full_ref_c) = hot;
+              } else if (now - id(full_since_ms) > NO_RISE_MS &&
+                         !isnan(air) && hot < air + NEAR_AIR_C) {
+                id(plaus_fault) = "full heat but hot zone not warming";
+              }
+            } else {
+              id(full_since_ms) = 0;
+              id(full_ref_c) = NAN;
+            }
+          }
+          if (reason.empty() && !id(plaus_fault).empty()) reason = id(plaus_fault);
 
           if (!reason.empty()) {
             if (!id(heat_fault) || id(fault_reason) != reason)
@@ -462,7 +587,20 @@ interval:
             call.set_mode(want_mode);
             call.perform();
           }
-          if (!want_heat) id(heater_pwm).set_level(0.0f);
+
+          // Hardware cutoff: PERMIT follows want_heat; HEARTBEAT toggles last.
+          if (want_heat) {
+            id(cutoff_permit).turn_on();
+            id(permit_on) = true;
+            id(heartbeat_level) = !id(heartbeat_level);
+          } else {
+            id(heater_pwm).set_level(0.0f);
+            id(cutoff_permit).turn_off();
+            id(permit_on) = false;
+            id(heartbeat_level) = false;
+          }
+          if (id(heartbeat_level)) id(cutoff_heartbeat).turn_on();
+          else id(cutoff_heartbeat).turn_off();
 
   # Schedule + display power — every 30 s
   - interval: 30s

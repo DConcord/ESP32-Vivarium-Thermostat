@@ -7,13 +7,13 @@ Built for a corn snake, but the setpoints are adjustable for other species.
 ## Goals
 
 - **Precise heat:** pulse-proportional (PID) control of a radiant heat panel through a solid-state relay, regulating on the hottest of a surface probe and an IR sensor.
-- **Safe by default:** heat turns off on any sensor fault, stale or implausible reading, or over-temperature (fixed hard limit). Designed to be paired with an independent upstream failsafe plug.
+- **Safe by default:** heat turns off on any sensor fault, stale or implausible reading, or over-temperature (fixed hard limit). A watchdog-held relay in series with the SSR cuts heater power if the firmware stalls or detects a fault, and the two hot-zone sensors cross-check each other.
 - **Local first:** control and all settings live on the ESP32 and persist through reboots and Home Assistant outages.
 - **Visible:** an on-device OLED plus Home Assistant entities for every reading, setting, and status.
 
 ## Hardware (summary)
 
-ESP32 · 2× DS18B20 (stone surface, cool side) · MLX90614ESF-DCI IR sensor (over Cat6) · SHT30 humidity probe · SH1106 OLED · SSR · radiant heat panel. Full parts list and wiring are in `BUILD.md`.
+ESP32 · 2× DS18B20 (stone surface, cool side) · MLX90614ESF-DCI IR sensor (over Cat6) · SHT30 humidity probe · SH1106 OLED · SSR · watchdog cutoff relay · radiant heat panel. Full parts list and wiring are in `BUILD.md`.
 
 ## Files
 
@@ -22,7 +22,7 @@ ESP32 · 2× DS18B20 (stone surface, cool side) · MLX90614ESF-DCI IR sensor (ov
 | `snake-thermostat.yaml` | ESPHome firmware config |
 | `secrets.example.yaml` | Template for `secrets.yaml` (Wi-Fi, API, OTA) |
 | `snake-thermostat-wiring.drawio` | Wiring diagrams: low-voltage and mains pages (open at diagrams.net) |
-| `BUILD.md` | Parts, wiring tables, sensor placement, failsafe design, bring-up checklist |
+| `BUILD.md` | Parts, wiring tables, sensor placement, heater cutoff and plausibility checks, bring-up checklist |
 | `ENTITIES.md` | Home Assistant entities and an example dashboard card |
 
 ## Quick start
@@ -32,8 +32,8 @@ ESP32 · 2× DS18B20 (stone surface, cool side) · MLX90614ESF-DCI IR sensor (ov
 3. Flash with ESPHome and confirm the I2C scan finds 0x3C, 0x44, 0x5A.
 4. Adopt the device in Home Assistant and add the controls from `ENTITIES.md` to a dashboard.
 5. Run **PID Autotune** with the enclosure assembled, then copy the tuned values into the YAML.
-6. Set up and test the upstream failsafe before an animal goes in.
+6. Bench-test every heater cutoff path in the `BUILD.md` checklist before an animal goes in.
 
 ## Safety
 
-This project switches mains power to a heater near a live animal. Use a fused, grounded enclosure for mains wiring, an independent failsafe, and test every fault path before use. Use at your own risk.
+This project switches mains power to a heater near a live animal. Use a fused, grounded enclosure for mains wiring, have the mains side reviewed, and test every fault path before use. Use at your own risk.

@@ -37,12 +37,14 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 | Entity | Description |
 |---|---|
 | `sensor.snake_enclosure_heater_status` | Text: Heating, Idle, Disabled, or "Fault: reason" |
-| `binary_sensor.snake_enclosure_heater_fault` | On when heat is forced off by a fault |
+| `binary_sensor.snake_enclosure_heater_fault` | On when heat is forced off by a fault (K1 is also open) |
 | `binary_sensor.snake_enclosure_heater_active` | On while the heater is pulsing |
 | `binary_sensor.snake_enclosure_night_mode` | On during night hours |
 | `binary_sensor.snake_enclosure_cool_side_low` | On when cool side is below its alert threshold |
 | `binary_sensor.snake_enclosure_humidity_out_of_range` | On when humidity is outside its alert range |
 | `binary_sensor.snake_enclosure_status` | Device connectivity (use for an "offline" alert) |
+| `binary_sensor.snake_enclosure_heat_cutoff_closed` | On while the watchdog is commanding relay K1 closed (does not detect welded contacts) |
+| `binary_sensor.snake_enclosure_heat_cutoff_problem` | On when heat is permitted but K1 is not closing for 5 s |
 
 ## Diagnostics and maintenance
 
@@ -52,6 +54,7 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 | `sensor.snake_enclosure_uptime` | Seconds since boot |
 | `button.snake_enclosure_pid_autotune` | Start PID autotune (results appear in device logs) |
 | `button.snake_enclosure_pid_reset_integral` | Clear the PID integral term |
+| `button.snake_enclosure_clear_heater_fault` | Clear a latched plausibility fault (sensor disagreement or "not warming"). Other faults clear on their own |
 | `button.snake_enclosure_restart` | Reboot the ESP32 |
 
 ## Example dashboard card
@@ -84,6 +87,9 @@ cards:
     title: Alerts
     entities:
       - binary_sensor.snake_enclosure_heater_fault
+      - button.snake_enclosure_clear_heater_fault
+      - binary_sensor.snake_enclosure_heat_cutoff_closed
+      - binary_sensor.snake_enclosure_heat_cutoff_problem
       - binary_sensor.snake_enclosure_cool_side_low
       - binary_sensor.snake_enclosure_humidity_out_of_range
       - binary_sensor.snake_enclosure_status
