@@ -143,7 +143,7 @@ Path: wall outlet → C13 cord → **C14 fused inlet (2A)** → **K1 (COM → NO
 
 ## Heater cutoff (watchdog relay)
 
-A second, independent actuator in series with the SSR. The SSR still does all the regulating. K1 stays closed during normal operation and opens only on a fault.
+A second, independent actuator in series with the SSR. Full component-level wiring: [`heater-cutoff-wiring.svg`](heater-cutoff-wiring.svg). The SSR still does all the regulating. K1 stays closed during normal operation and opens only on a fault.
 
 ```text
 Fused L ──> K1 COM/NO ──> SSR ──> outlet ──> heat panel
