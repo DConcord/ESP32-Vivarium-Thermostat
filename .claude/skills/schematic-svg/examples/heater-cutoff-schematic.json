@@ -1,0 +1,736 @@
+{
+ "circuit": "thermostat-circuit.json",
+ "title": "Heater cutoff board: complete wiring",
+ "subtitle": "K1 closes only while PERMIT (GPIO25) is high AND HEARTBEAT (GPIO23) keeps toggling. Every +5V tag joins the ESP32 5V/VIN pin; every GND tag joins ESP32 GND.",
+ "canvas": {
+  "w": 1500
+ },
+ "panels": [
+  {
+   "rect": [
+    30,
+    90,
+    1240,
+    680
+   ],
+   "label": "LOW VOLTAGE (5 V) · protoboard"
+  },
+  {
+   "rect": [
+    1290,
+    90,
+    185,
+    680
+   ],
+   "label": "MAINS 120 V AC",
+   "sub": [
+    "≥ 6 mm from low-voltage"
+   ],
+   "style": "mains"
+  }
+ ],
+ "symbols": [
+  {
+   "ref": "ESP",
+   "kind": "block",
+   "at": [
+    60,
+    250
+   ],
+   "w": 140,
+   "h": 510,
+   "style": "grey",
+   "title": "ESP32",
+   "sub": [
+    "dev board"
+   ],
+   "right": [
+    {
+     "pin": "5V",
+     "y": 80
+    },
+    {
+     "pin": "23",
+     "y": 110
+    },
+    {
+     "pin": "25",
+     "y": 230
+    },
+    {
+     "pin": "34",
+     "y": 450
+    },
+    {
+     "pin": "GND_2",
+     "y": 490
+    }
+   ],
+   "labels": {
+    "5V": "5V / VIN",
+    "23": "GPIO23",
+    "25": "GPIO25",
+    "34": "GPIO34",
+    "GND_2": "GND"
+   }
+  },
+  {
+   "ref": "U1",
+   "kind": "block",
+   "style": "ic",
+   "at": [
+    520,
+    300
+   ],
+   "w": 130,
+   "pitch": 40,
+   "pad_top": 20,
+   "left": [
+    "p1",
+    "p2",
+    "p3",
+    "p4",
+    "p5",
+    "p6",
+    "p7",
+    "p8"
+   ],
+   "right": [
+    "p16",
+    "p15",
+    "p14",
+    "p13",
+    "p12",
+    "p11",
+    "p10",
+    "p9"
+   ],
+   "title": "U1  CD74HCT123E",
+   "sub": [
+    "top view · dot/notch = pin 1 · use a socket"
+   ]
+  },
+  {
+   "ref": "R1",
+   "kind": "resistor",
+   "at": [
+    320,
+    360
+   ],
+   "dir": "down",
+   "len": 80
+  },
+  {
+   "ref": "R2",
+   "kind": "resistor",
+   "at": [
+    380,
+    480
+   ],
+   "dir": "down",
+   "len": 80
+  },
+  {
+   "ref": "C1",
+   "kind": "cap",
+   "at": [
+    700,
+    320
+   ],
+   "dir": "up",
+   "len": 70,
+   "label_side": "left",
+   "value": "100 nF"
+  },
+  {
+   "ref": "R3",
+   "kind": "resistor",
+   "at": [
+    760,
+    360
+   ],
+   "dir": "right",
+   "len": 90,
+   "value": "1 MΩ 1%"
+  },
+  {
+   "ref": "C2",
+   "kind": "film",
+   "at": [
+    720,
+    400
+   ],
+   "dir": "up",
+   "len": 40,
+   "label_at": [
+    736,
+    384
+   ],
+   "value": "4.7 µF film"
+  },
+  {
+   "ref": "R4",
+   "kind": "resistor",
+   "at": [
+    900,
+    440
+   ],
+   "dir": "down",
+   "len": 90,
+   "label_side": "left",
+   "value": "100k"
+  },
+  {
+   "ref": "R5",
+   "kind": "resistor",
+   "at": [
+    800,
+    440
+   ],
+   "dir": "down",
+   "len": 100,
+   "value": "10k"
+  },
+  {
+   "ref": "R6",
+   "kind": "resistor",
+   "at": [
+    800,
+    540
+   ],
+   "dir": "down",
+   "len": 70,
+   "value": "10k"
+  },
+  {
+   "ref": "R7",
+   "kind": "resistor",
+   "at": [
+    800,
+    610
+   ],
+   "dir": "down",
+   "len": 70,
+   "value": "10k"
+  },
+  {
+   "ref": "K1",
+   "kind": "block",
+   "style": "blue",
+   "at": [
+    1010,
+    230
+   ],
+   "w": 210,
+   "h": 300,
+   "pad_top": 210,
+   "pitch": 30,
+   "left": [
+    "IN",
+    "5V",
+    "GND"
+   ],
+   "title": "K1  relay shield",
+   "sub": [
+    "Songle SRD-05VDC-SL-C",
+    "(D1 mini relay shield)"
+   ]
+  },
+  {
+   "ref": "C3",
+   "kind": "elec",
+   "at": [
+    1200,
+    570
+   ],
+   "dir": "down",
+   "len": 70,
+   "value": "100 µF"
+  },
+  {
+   "ref": "C14",
+   "kind": "block",
+   "at": [
+    1310,
+    140
+   ],
+   "w": 140,
+   "h": 36,
+   "style": "grey",
+   "title": "C14 inlet (fused L)",
+   "title_y": 163,
+   "bottom": [
+    {
+     "pin": "L",
+     "x": 20
+    }
+   ],
+   "stub": 24,
+   "hide_pin_labels": true
+  },
+  {
+   "ref": "K1",
+   "kind": "switch",
+   "at": [
+    1330,
+    300
+   ],
+   "title": ""
+  },
+  {
+   "ref": "SSR",
+   "kind": "block",
+   "at": [
+    1310,
+    450
+   ],
+   "w": 150,
+   "h": 70,
+   "style": "red",
+   "title": "SSR (existing)",
+   "sub": [
+    "AC1 ← K1 NO · AC2 → outlet"
+   ],
+   "top": [
+    {
+     "pin": "AC1",
+     "x": 140
+    }
+   ],
+   "bottom": [
+    {
+     "pin": "AC2",
+     "x": 75
+    }
+   ],
+   "hide_pin_labels": true
+  },
+  {
+   "ref": "OUT",
+   "kind": "block",
+   "at": [
+    1320,
+    600
+   ],
+   "w": 130,
+   "h": 40,
+   "style": "grey",
+   "title": "outlet hot (black)",
+   "title_y": 625,
+   "top": [
+    {
+     "pin": "L",
+     "x": 65
+    }
+   ],
+   "hide_pin_labels": true
+  }
+ ],
+ "wires": [
+  {
+   "from": "ESP.23",
+   "to": "U1.p2",
+   "label": "HEARTBEAT",
+   "label_at": [
+    400,
+    352
+   ]
+  },
+  {
+   "from": "ESP.25",
+   "to": "U1.p3",
+   "via": [
+    [
+     460,
+     480
+    ],
+    [
+     460,
+     400
+    ]
+   ],
+   "label": "PERMIT",
+   "label_at": [
+    290,
+    472
+   ]
+  },
+  {
+   "from": "U1.p16",
+   "to": [
+    800,
+    320
+   ]
+  },
+  {
+   "from": "U1.p15",
+   "to": "R3.1"
+  },
+  {
+   "from": "U1.p14",
+   "to": "C2.1"
+  },
+  {
+   "from": "U1.p13",
+   "to": "K1.IN",
+   "label": "1Q = RELAY ON",
+   "label_at": [
+    735,
+    432
+   ]
+  },
+  {
+   "from": "R5.2",
+   "to": "ESP.34",
+   "via": [
+    [
+     770,
+     540
+    ],
+    [
+     770,
+     700
+    ]
+   ],
+   "label": "FEEDBACK (≈3.3 V when K1 is on)",
+   "label_at": [
+    480,
+    692
+   ]
+  },
+  {
+   "from": "C14.L",
+   "to": "K1.COM",
+   "w": 3
+  },
+  {
+   "from": "K1.NO",
+   "to": "SSR.AC1",
+   "via": [
+    [
+     1450,
+     270
+    ]
+   ],
+   "w": 3
+  },
+  {
+   "from": "SSR.AC2",
+   "to": "OUT.L",
+   "w": 3
+  }
+ ],
+ "tags": [
+  {
+   "pin": "ESP.5V",
+   "net": "+5V",
+   "side": "right",
+   "len": 30
+  },
+  {
+   "pin": "ESP.GND_2",
+   "net": "GND",
+   "side": "right",
+   "len": 30
+  },
+  {
+   "pin": "U1.p1",
+   "net": "GND",
+   "side": "left",
+   "len": 30
+  },
+  {
+   "pin": "U1.p8",
+   "net": "GND",
+   "side": "left",
+   "len": 30
+  },
+  {
+   "pin": "R1.2",
+   "net": "GND",
+   "side": "down",
+   "len": 0
+  },
+  {
+   "pin": "R2.2",
+   "net": "GND",
+   "side": "down",
+   "len": 0
+  },
+  {
+   "at": [
+    800,
+    320
+   ],
+   "net": "+5V",
+   "side": "right"
+  },
+  {
+   "pin": "C1.2",
+   "net": "GND",
+   "side": "up",
+   "len": 0
+  },
+  {
+   "pin": "R3.2",
+   "net": "+5V",
+   "side": "right",
+   "len": 0
+  },
+  {
+   "pin": "U1.p11",
+   "net": "GND",
+   "side": "right",
+   "len": 30
+  },
+  {
+   "pin": "U1.p10",
+   "net": "GND",
+   "side": "right",
+   "len": 30
+  },
+  {
+   "pin": "U1.p9",
+   "net": "+5V",
+   "side": "right",
+   "len": 30
+  },
+  {
+   "pin": "R4.2",
+   "net": "GND",
+   "side": "down",
+   "len": 0
+  },
+  {
+   "pin": "R7.2",
+   "net": "GND",
+   "side": "down",
+   "len": 0
+  },
+  {
+   "pin": "K1.5V",
+   "net": "+5V",
+   "side": "left",
+   "len": 0
+  },
+  {
+   "pin": "K1.GND",
+   "net": "GND",
+   "side": "left",
+   "len": 0
+  },
+  {
+   "pin": "C3.+",
+   "net": "+5V",
+   "side": "up",
+   "len": 10
+  },
+  {
+   "pin": "C3.-",
+   "net": "GND",
+   "side": "down",
+   "len": 0
+  }
+ ],
+ "nc": [
+  "U1.p4",
+  "U1.p5",
+  "U1.p6",
+  "U1.p7",
+  "U1.p12"
+ ],
+ "decor": [
+  {
+   "line": [
+    [
+     1220,
+     300
+    ],
+    [
+     1324,
+     300
+    ]
+   ],
+   "color": "#1D4ED8",
+   "dash": true
+  },
+  {
+   "rect": [
+    1030,
+    300,
+    170,
+    100
+   ],
+   "stroke": "#93C5FD",
+   "fill": "#FFFFFF",
+   "dash": true
+  }
+ ],
+ "texts": [
+  {
+   "at": [
+    302,
+    334
+   ],
+   "text": "← +5V source"
+  },
+  {
+   "at": [
+    712,
+    268
+   ],
+   "text": "right at pin 16",
+   "size": 10
+  },
+  {
+   "at": [
+    736,
+    416
+   ],
+   "text": "(pins 14–15, any way round)",
+   "size": 10
+  },
+  {
+   "at": [
+    700,
+    640
+   ],
+   "text": "unused half",
+   "size": 10
+  },
+  {
+   "at": [
+    900,
+    566
+   ],
+   "text": "holds relay off if",
+   "size": 9,
+   "anchor": "middle"
+  },
+  {
+   "at": [
+    900,
+    578
+   ],
+   "text": "U1 is unplugged",
+   "size": 9,
+   "anchor": "middle"
+  },
+  {
+   "at": [
+    1115,
+    322
+   ],
+   "text": "already on the shield:",
+   "size": 10,
+   "anchor": "middle"
+  },
+  {
+   "at": [
+    1115,
+    346
+   ],
+   "text": "coil · transistor ·",
+   "size": 10,
+   "anchor": "middle"
+  },
+  {
+   "at": [
+    1115,
+    360
+   ],
+   "text": "flyback diode · LED",
+   "size": 10,
+   "anchor": "middle"
+  },
+  {
+   "at": [
+    1255,
+    292
+   ],
+   "text": "coil",
+   "size": 10,
+   "color": "#1D4ED8",
+   "anchor": "middle"
+  },
+  {
+   "at": [
+    1366,
+    398
+   ],
+   "text": "K1 screw terminal",
+   "size": 11,
+   "color": "#1F2937",
+   "anchor": "middle",
+   "weight": "bold"
+  },
+  {
+   "at": [
+    1366,
+    412
+   ],
+   "text": "COM = middle screw",
+   "size": 9,
+   "anchor": "middle"
+  },
+  {
+   "at": [
+    1366,
+    425
+   ],
+   "text": "shown open (coil off)",
+   "size": 9,
+   "anchor": "middle"
+  },
+  {
+   "at": [
+    1382,
+    700
+   ],
+   "text": "Neutral and ground",
+   "size": 10,
+   "anchor": "middle"
+  },
+  {
+   "at": [
+    1382,
+    714
+   ],
+   "text": "unchanged",
+   "size": 10,
+   "anchor": "middle"
+  },
+  {
+   "at": [
+    1220,
+    670
+   ],
+   "text": "stripe = −",
+   "size": 10
+  }
+ ],
+ "parts_table": [
+  "U1",
+  "K1",
+  "C1",
+  "C2",
+  "C3",
+  "R1",
+  "R2",
+  "R3",
+  "R4",
+  "R5",
+  "R6",
+  "R7"
+ ],
+ "checklist": [
+  "U1 pin 1 (dot/notch) faces the right way in its socket.",
+  "Check the shield drives its relay from D1: power 5V/GND, touch D1 to 5V and it should click.",
+  "C3 stripe (−) to GND.",
+  "Meter: 5V/VIN pin ≥ 4.5 V with K1 energized.",
+  "Test COM–NO with a meter before any mains wiring."
+ ],
+ "notes": [
+  "Resistor bands are for common 4-band 5% parts; 1% parts have 5 bands (10k = brown-black-black-red-brown)."
+ ]
+}

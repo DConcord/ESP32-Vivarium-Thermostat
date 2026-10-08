@@ -16,13 +16,23 @@ Everything is driven by a JSON spec rendered by `scripts/bbsvg.py`. Don't hand-d
 SVG: the script owns the board drawing, part artwork, build list and all checks, so
 your effort goes into placement decisions.
 
+Connectivity should come from a shared **circuit.json** (parts + nets, format in
+`references/circuit.md`), the same file the `schematic-svg` skill draws from. The
+layout then only says where things go, and its check runs against the circuit
+file, so the schematic and the breadboard can't drift apart. A standalone
+`expected_nets` list still works for quick one-offs.
+
 ## Workflow
 
-1. **Pin down the circuit as a netlist.** List every net and the part pins on it
-   (`"GND": ["U1.p8", "R2.2", "J1.GND", ...]`). Take it from the user's schematic,
-   firmware pin map, or your own design; if you're unsure what a pin does, ask
-   rather than guess. Unused IC pins each get their own one-pin net so the checker
-   proves they stay unconnected.
+1. **Pin down the circuit.** If the project has a circuit.json, point the layout
+   at it (`"circuit": "thermostat-circuit.json"`, plus `"board_id"` so unplaced parts
+   assigned to this board are reported). Otherwise write one (preferred, so a
+   schematic can reuse it), or for a quick one-off list `expected_nets` inline.
+   Either way every net lists its part pins (`"GND": ["U1.p8", "R2.2", ...]`). Take
+   them from the user's schematic, firmware pin map or your own design; if you're
+   unsure what a pin does, ask rather than guess. Wires leaving the board are
+   pins of the device they go to (`{"pin": "J1.HB", "hole": "j18"}`), so a cable
+   between two boards checks on both.
 2. **Pin down the hardware.** Board size (half-size ElectroCookie = 30 columns),
    what each rail carries, and the exact modules involved. For dev boards, get the
    pin order from the silkscreen (a photo is ideal) and the row spacing in holes:
@@ -76,6 +86,10 @@ skill covers the physical layout. Use the same reference designators in both.
   `internal_ties`, so the netlist check knows about connections made inside the module.
 - **Metal tabs are live.** A TO-220 tab is usually the drain/collector. Point it
   toward empty space and keep other nets' leads away from it.
+- **Off-board modules you want shown** (a relay shield, a sensor board): set
+  `"box": true` on the device. It's drawn beside the board with its pins listed,
+  and the wires are routed in nested lanes that don't cross. Use plain labelled
+  exits for simple sensor leads.
 - **Mains never goes on the breadboard.** Relays switching mains, and relay modules
   or shields with screw terminals, mount separately (≥ 6 mm from low-voltage copper)
   and connect with a few low-voltage wires drawn as `offboard`. Don't plug a relay
@@ -97,16 +111,16 @@ skill covers the physical layout. Use the same reference designators in both.
   "board": {"cols": 30},
   "rails": {"T+": {"label": "+5V"}, "T-": {"label": "GND"}, "B-": {"label": "GND"}, "B+": {"label": "+5V"}},
   "colors": {"hb": "#D97706"},
-  "devices": {"OLED": {"name": "SH1106 OLED", "color": "#7C3AED"}},
+  "circuit": "project-circuit.json", "board_id": "main",
+  "devices": {"OLED": {"name": "SH1106 OLED", "color": "#7C3AED"},
+              "K1": {"name": "relay shield", "box": true, "lines": ["COM ← fused L"]}},
   "parts": [
     {"ref": "U1", "kind": "dip", "pin_count": 16, "col": 9, "value": "CD74HCT123E"},
     {"ref": "R1", "kind": "resistor", "value": "10k", "pins": {"1": "j10", "2": "B-@10"}},
     {"ref": "ESP", "kind": "module", "rows": [{"row": "a", "start_col": 19, "step": -1, "names": ["3V3", "EN", "..."]}]}
   ],
   "jumpers": [{"from": "a9", "to": "T+@8", "color": "5v"}],
-  "offboard": [{"device": "OLED", "signal": "SDA", "hole": "j23", "dir": "down"}],
-  "internal_ties": [["ESP.GND", "ESP.GND_2"]],
-  "expected_nets": {"5V": ["U1.p16", "R3.2", "..."]},
+  "offboard": [{"pin": "OLED.SDA", "hole": "j23", "dir": "down"}],
   "notes": ["..."]
 }
 ```
@@ -115,15 +129,20 @@ Holes: `"e9"` (row e, column 9) or `"T+@8"` (rail T+, at column 8). Part kinds:
 `resistor` (colour bands drawn from `value`), `cap`, `film`, `elec` (pins `+`/`-`),
 `diode` (pins `A`/`K`), `to220` (any 3 pin names, `tab`), `header`, `dip` (auto pins
 `p1..pN`), `module` (named pin rows; duplicate names become `GND`, `GND_2`, …).
-Netlist names are `REF.PIN` for parts and `DEVICE.SIGNAL` for off-board wires.
+Netlist names are `REF.PIN` for parts and off-board wires alike. Without a
+circuit file, add `expected_nets` and `internal_ties` to the spec instead.
 Optional per-part `label_at` (`[dx, dy]` px or a hole) moves the reference label,
 and `note` adds a build-list note. Read `references/spec.md` for every field.
 
 ## Examples
 
-- `examples/watchdog-cutoff.json`: a DIP one-shot with pull-downs, timing parts,
-  a divider straddling the gap, and a relay shield wired off-board.
-- `examples/esp32-devkitc-main.json`: a 38-pin ESP32 on female headers with
-  under-module jumpers, bus columns for I2C, and ~25 labelled off-board wires.
+- `examples/heater-cutoff-breadboard.json` + `examples/thermostat-circuit.json`: a DIP
+  one-shot with pull-downs, timing parts, a divider straddling the gap, and a relay
+  shield drawn as a device box, checked against the shared circuit file.
+- `examples/esp32-breadboard.json`: a 38-pin ESP32 on female headers with
+  under-module jumpers, bus columns for I2C, and ~25 labelled off-board wires
+  (same circuit file).
+- `examples/watchdog-cutoff.json`: the cutoff board in standalone form
+  (`expected_nets` inline, no circuit file).
 
 Start from whichever is closer to the user's circuit.

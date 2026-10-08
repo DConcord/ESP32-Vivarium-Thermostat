@@ -1,0 +1,276 @@
+{
+ "title": "Heater cutoff on a half-size ElectroCookie solderable breadboard",
+ "subtitle": "Top (component side) view. Rows a–e are joined in each column, as are f–j. No tracks need cutting.",
+ "board": {
+  "cols": 30
+ },
+ "rails": {
+  "T+": {
+   "label": "+5V"
+  },
+  "T-": {
+   "label": "GND"
+  },
+  "B-": {
+   "label": "GND"
+  },
+  "B+": {
+   "label": "+5V"
+  }
+ },
+ "colors": {
+  "hb": "#D97706",
+  "per": "#2563EB",
+  "tim": "#7C3AED",
+  "q": "#C026D3",
+  "fb": "#059669"
+ },
+ "devices": {
+  "K1": {
+   "name": "K1 relay shield, mounted separately",
+   "color": "#1D4ED8",
+   "box": true,
+   "warning": "≥ 6 mm from any other board",
+   "lines": [
+    "Songle SRD-05VDC-SL-C on a D1 mini shield",
+    "IN = the shield’s D1 pin",
+    "Screw terminal: NO → SSR 1 · COM ← fused L",
+    "(COM is the middle screw) · NC unused"
+   ]
+  }
+ },
+ "parts": [
+  {
+   "ref": "U1",
+   "kind": "dip",
+   "pin_count": 16,
+   "col": 9,
+   "value": "CD74HCT123E"
+  },
+  {
+   "ref": "J1",
+   "kind": "header",
+   "pins": {
+    "5V": "f2",
+    "GND": "f3",
+    "HB": "f4",
+    "PERMIT": "f5",
+    "FB": "f6"
+   }
+  },
+  {
+   "ref": "R1",
+   "kind": "resistor",
+   "value": "10k",
+   "pins": {
+    "1": "j10",
+    "2": "B-@10"
+   },
+   "label_at": [
+    14,
+    4
+   ]
+  },
+  {
+   "ref": "R2",
+   "kind": "resistor",
+   "value": "10k",
+   "pins": {
+    "1": "j11",
+    "2": "B-@11"
+   },
+   "label_at": [
+    30,
+    20
+   ]
+  },
+  {
+   "ref": "R3",
+   "kind": "resistor",
+   "value": "1M",
+   "pins": {
+    "1": "a10",
+    "2": "T+@10"
+   }
+  },
+  {
+   "ref": "R4",
+   "kind": "resistor",
+   "value": "100k",
+   "pins": {
+    "1": "c18",
+    "2": "T-@20"
+   },
+   "note": "holds the relay off if U1 is out of its socket"
+  },
+  {
+   "ref": "R5",
+   "kind": "resistor",
+   "value": "10k",
+   "pins": {
+    "1": "e18",
+    "2": "f18"
+   },
+   "note": "stands across the centre gap"
+  },
+  {
+   "ref": "R6",
+   "kind": "resistor",
+   "value": "10k",
+   "pins": {
+    "1": "h18",
+    "2": "h21"
+   }
+  },
+  {
+   "ref": "R7",
+   "kind": "resistor",
+   "value": "10k",
+   "pins": {
+    "1": "j21",
+    "2": "B-@21"
+   }
+  },
+  {
+   "ref": "C1",
+   "kind": "cap",
+   "value": "100nF",
+   "pins": {
+    "1": "T+@9",
+    "2": "T-@9"
+   },
+   "label_at": [
+    0,
+    -30
+   ]
+  },
+  {
+   "ref": "C2",
+   "kind": "film",
+   "value": "4.7uF",
+   "marking": "475",
+   "pins": {
+    "1": "c8",
+    "2": "c10"
+   },
+   "label_at": [
+    0,
+    30
+   ],
+   "note": "5 mm leads; reaches pin 14 via the d8→d11 jumper"
+  },
+  {
+   "ref": "C3",
+   "kind": "elec",
+   "value": "100uF",
+   "pins": {
+    "+": "T+@27",
+    "-": "T-@27"
+   },
+   "label_at": [
+    30,
+    30
+   ]
+  }
+ ],
+ "jumpers": [
+  {
+   "from": "a9",
+   "to": "T+@8",
+   "color": "5v"
+  },
+  {
+   "from": "a14",
+   "to": "T-@14",
+   "color": "gnd"
+  },
+  {
+   "from": "a15",
+   "to": "T-@15",
+   "color": "gnd"
+  },
+  {
+   "from": "a16",
+   "to": "T+@16",
+   "color": "5v"
+  },
+  {
+   "from": "d8",
+   "to": "d11",
+   "color": "tim"
+  },
+  {
+   "from": "b12",
+   "to": "b18",
+   "color": "q"
+  },
+  {
+   "from": "T+@30",
+   "to": "B+@30",
+   "color": "5v"
+  },
+  {
+   "from": "T-@29",
+   "to": "B-@29",
+   "color": "gnd"
+  },
+  {
+   "from": "j2",
+   "to": "B+@2",
+   "color": "5v"
+  },
+  {
+   "from": "j3",
+   "to": "B-@3",
+   "color": "gnd"
+  },
+  {
+   "from": "h4",
+   "to": "h10",
+   "color": "hb"
+  },
+  {
+   "from": "i5",
+   "to": "i11",
+   "color": "per"
+  },
+  {
+   "from": "g6",
+   "to": "g18",
+   "color": "fb"
+  },
+  {
+   "from": "j9",
+   "to": "B-@9",
+   "color": "gnd"
+  },
+  {
+   "from": "j16",
+   "to": "B-@16",
+   "color": "gnd"
+  }
+ ],
+ "offboard": [
+  {
+   "pin": "K1.IN",
+   "hole": "a18",
+   "dir": "up"
+  },
+  {
+   "pin": "K1.5V",
+   "hole": "T+@23",
+   "dir": "up"
+  },
+  {
+   "pin": "K1.GND",
+   "hole": "T-@25",
+   "dir": "up"
+  }
+ ],
+ "notes": [
+  "Jumper colours: red +5V · black GND · orange HEARTBEAT · blue PERMIT · purple timing · magenta 1Q · green feedback.",
+  "Before inserting U1: power the board and check e9/e16 read 5 V and f9/f16 read 0 V."
+ ],
+ "circuit": "thermostat-circuit.json",
+ "board_id": "cutoff"
+}

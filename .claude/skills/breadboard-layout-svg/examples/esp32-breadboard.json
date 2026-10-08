@@ -1,0 +1,333 @@
+{
+ "title": "ESP32 main board on a half-size ElectroCookie solderable breadboard",
+ "subtitle": [
+  "Top view. ESP32-DevKitC (38-pin) on two 19-pin female headers in rows a and i, USB toward column 1.",
+  "The shaded outline is the raised ESP32. Dashed parts and wires go under it and are soldered first."
+ ],
+ "board": {
+  "cols": 30
+ },
+ "rails": {
+  "T+": {
+   "label": "3V3"
+  },
+  "T-": {
+   "label": "GND"
+  },
+  "B-": {
+   "label": "GND"
+  },
+  "B+": {
+   "label": "3V3"
+  }
+ },
+ "colors": {
+  "ssr": "#EA580C",
+  "per": "#2563EB",
+  "fb": "#059669"
+ },
+ "devices": {
+  "J1": {
+   "name": "cutoff board J1",
+   "color": "#DB2777"
+  },
+  "SSR": {
+   "name": "SSR input",
+   "color": "#EA580C"
+  },
+  "STONE": {
+   "name": "stone DS18B20 adapter",
+   "color": "#92400E"
+  },
+  "COOL": {
+   "name": "cool DS18B20 adapter",
+   "color": "#1D4ED8"
+  },
+  "SHT30": {
+   "name": "SHT30 probe",
+   "color": "#0891B2"
+  },
+  "OLED": {
+   "name": "SH1106 OLED",
+   "color": "#7C3AED"
+  },
+  "RJ45": {
+   "name": "RJ45 adapter (Cat6 to IR sensor)",
+   "color": "#0F766E"
+  }
+ },
+ "parts": [
+  {
+   "ref": "ESP",
+   "kind": "module",
+   "label": "ESP32-DevKitC",
+   "raised": true,
+   "rows": [
+    {
+     "row": "a",
+     "start_col": 19,
+     "step": -1,
+     "names": [
+      "3V3",
+      "EN",
+      "VP",
+      "VN",
+      "34",
+      "35",
+      "32",
+      "33",
+      "25",
+      "26",
+      "27",
+      "14",
+      "12",
+      "GND",
+      "13",
+      "D2",
+      "D3",
+      "CMD",
+      "5V"
+     ]
+    },
+    {
+     "row": "i",
+     "start_col": 19,
+     "step": -1,
+     "names": [
+      "GND",
+      "23",
+      "22",
+      "TX",
+      "RX",
+      "21",
+      "GND",
+      "19",
+      "18",
+      "5",
+      "17",
+      "16",
+      "4",
+      "0",
+      "2",
+      "15",
+      "D1",
+      "D0",
+      "CLK"
+     ]
+    }
+   ],
+   "outline": {
+    "cols": [
+     -1.1,
+     20.6
+    ]
+   },
+   "used": [
+    "3V3",
+    "34",
+    "25",
+    "26",
+    "GND",
+    "5V",
+    "23",
+    "22",
+    "21",
+    "16",
+    "4"
+   ]
+  },
+  {
+   "ref": "R8",
+   "kind": "resistor",
+   "value": "10k",
+   "pins": {
+    "1": "c10",
+    "2": "c6"
+   },
+   "under_module": true,
+   "label_at": [
+    0,
+    -18
+   ],
+   "note": "GPIO26 to the ESP32's left GND pin, lying flat"
+  }
+ ],
+ "jumpers": [
+  {
+   "from": "b19",
+   "to": "T+@21",
+   "color": "3v3",
+   "under": true
+  },
+  {
+   "from": "e10",
+   "to": "e22",
+   "color": "ssr",
+   "under": true
+  },
+  {
+   "from": "d11",
+   "to": "d25",
+   "color": "per",
+   "under": true
+  },
+  {
+   "from": "c15",
+   "to": "c27",
+   "color": "fb",
+   "under": true
+  },
+  {
+   "from": "g14",
+   "to": "g23",
+   "color": "sda",
+   "under": true
+  },
+  {
+   "from": "h17",
+   "to": "h24",
+   "color": "scl",
+   "under": true
+  },
+  {
+   "from": "j13",
+   "to": "B-@13",
+   "color": "gnd"
+  },
+  {
+   "from": "j19",
+   "to": "B-@19",
+   "color": "gnd"
+  },
+  {
+   "from": "f23",
+   "to": "f25",
+   "color": "sda"
+  },
+  {
+   "from": "i24",
+   "to": "i26",
+   "color": "scl"
+  },
+  {
+   "from": "T-@29",
+   "to": "B-@29",
+   "color": "gnd"
+  },
+  {
+   "from": "T+@30",
+   "to": "B+@30",
+   "color": "3v3"
+  }
+ ],
+ "offboard": [
+  {
+   "pin": "J1.5V",
+   "hole": "b1",
+   "dir": "left",
+   "under_module": true
+  },
+  {
+   "pin": "J1.GND",
+   "hole": "T-@23"
+  },
+  {
+   "pin": "J1.PERMIT",
+   "hole": "a25"
+  },
+  {
+   "pin": "J1.FB",
+   "hole": "a27"
+  },
+  {
+   "pin": "J1.HB",
+   "hole": "j18"
+  },
+  {
+   "pin": "SSR.IN+",
+   "hole": "a22"
+  },
+  {
+   "pin": "SSR.IN-",
+   "hole": "T-@20"
+  },
+  {
+   "pin": "STONE.VCC",
+   "hole": "B+@5"
+  },
+  {
+   "pin": "STONE.GND",
+   "hole": "B-@6"
+  },
+  {
+   "pin": "STONE.DAT",
+   "hole": "j7"
+  },
+  {
+   "pin": "COOL.DAT",
+   "hole": "j8"
+  },
+  {
+   "pin": "COOL.VCC",
+   "hole": "B+@9"
+  },
+  {
+   "pin": "COOL.GND",
+   "hole": "B-@10"
+  },
+  {
+   "pin": "SHT30.VCC",
+   "hole": "B+@12"
+  },
+  {
+   "pin": "SHT30.SDA",
+   "hole": "j14"
+  },
+  {
+   "pin": "SHT30.GND",
+   "hole": "B-@15"
+  },
+  {
+   "pin": "SHT30.SCL",
+   "hole": "j17"
+  },
+  {
+   "pin": "OLED.VCC",
+   "hole": "B+@20"
+  },
+  {
+   "pin": "OLED.GND",
+   "hole": "B-@21"
+  },
+  {
+   "pin": "OLED.SDA",
+   "hole": "j23"
+  },
+  {
+   "pin": "OLED.SCL",
+   "hole": "j24"
+  },
+  {
+   "pin": "RJ45.SDA",
+   "hole": "j25"
+  },
+  {
+   "pin": "RJ45.SCL",
+   "hole": "j26"
+  },
+  {
+   "pin": "RJ45.3V3",
+   "hole": "B+@27"
+  },
+  {
+   "pin": "RJ45.GND",
+   "hole": "B-@28"
+  }
+ ],
+ "notes": [
+  "Fit a 2.4 GHz U.FL antenna to the WROOM-32U before first power-up.",
+  "The DS18B20 adapters carry the 4.7k pull-ups; the OLED and IR boards supply the I2C pull-ups."
+ ],
+ "circuit": "thermostat-circuit.json",
+ "board_id": "esp32"
+}

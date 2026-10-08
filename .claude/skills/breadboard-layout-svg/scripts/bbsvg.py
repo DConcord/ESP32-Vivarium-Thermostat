@@ -15,7 +15,7 @@ Hole notation: "e9" = row e, column 9.  "T+@8" = top + rail hole at column 8.
 Exit status: 0 = netlist OK (warnings may still be printed), 1 = netlist or
 spec error. See ../SKILL.md and ../references/spec.md for the spec format.
 """
-import json, math, re, sys, html
+import json, math, os, re, sys, html
 
 # ---------------------------------------------------------------- geometry
 P = 30                                    # px per 0.1" hole pitch
@@ -80,8 +80,12 @@ def resistor_bands(value):
 
 # ---------------------------------------------------------------- model
 class Layout:
-    def __init__(self, spec):
+    def __init__(self, spec, base='.'):
         self.spec = spec
+        self.circuit = None
+        if spec.get('circuit'):
+            with open(os.path.join(base, spec['circuit'])) as fh:
+                self.circuit = json.load(fh)
         self.cols = spec.get('board', {}).get('cols', 30)
         self.rails = spec.get('rails', {})
         self.colors = dict(DEFAULT_COLORS, **spec.get('colors', {}))
@@ -129,6 +133,8 @@ class Layout:
                                  self.color(j.get('color', 'sig1')), j.get('under', False)))
         for o in self.spec.get('offboard', []):
             o = dict(o)
+            if 'pin' in o:                      # circuit pin, e.g. "J1.HB"
+                o['device'], o['signal'] = o['pin'].split('.', 1)
             o['hole'] = parse_hole(o['hole'])
             o.setdefault('dir', 'up' if o['hole'][0] in UPPER or o['hole'][0][0] == 'T' else 'down')
             self.offboard.append(o)
@@ -176,11 +182,13 @@ class Layout:
                     self.errors.append(f'internal_ties: unknown pin in {tie}')
                     continue
                 u(strip_of(pin_hole[tie[0]]), strip_of(pin_hole[a]))
+        exp = self.spec.get('expected_nets')
+        if exp is None and self.circuit is not None:
+            exp = self._nets_from_circuit(pin_hole, u, f)   # also applies the circuit's internal ties
         net = {k: f(strip_of(h)) for k, h in pin_hole.items()}
         groups = {}
         for k, v in net.items():
             groups.setdefault(v, set()).add(k)
-        exp = self.spec.get('expected_nets')
         if exp is None:
             self.warnings.append('no expected_nets given: connectivity NOT verified')
         else:
@@ -206,6 +214,32 @@ class Layout:
                     self.errors.append(f'pin {k} is not in expected_nets but connects to {sorted(groups[net[k]] - {k})}')
         self._geometry_checks()
         return not self.errors
+
+    def _nets_from_circuit(self, pin_hole, u, f):
+        """Expected nets = the circuit's nets restricted to pins on this board."""
+        cparts = self.circuit.get('parts', {})
+        present = set(pin_hole)
+        refs = {k.split('.', 1)[0] for k in present}
+        for ref in sorted(refs):
+            if ref not in cparts:
+                self.warnings.append(f'{ref} is on the layout but not in the circuit file')
+        board = self.spec.get('board_id')
+        if board:
+            placed = {p['ref'] for p in self.parts}
+            for ref, cp in cparts.items():
+                if cp.get('board') == board and ref not in placed:
+                    self.warnings.append(f'circuit part {ref} belongs on board "{board}" but is not placed')
+        for ref, cp in cparts.items():
+            for tie in cp.get('internal_ties', []):
+                keys = [f'{ref}.{t}' for t in tie if f'{ref}.{t}' in pin_hole]
+                for k in keys[1:]:
+                    u(strip_of(pin_hole[keys[0]]), strip_of(pin_hole[k]))
+        exp = {}
+        for name, members in self.circuit.get('nets', {}).items():
+            here = [m for m in members if m in present]
+            if here:
+                exp[name] = here
+        return exp
 
     def _segments(self):
         """Straight segments drawn on the board top: (p1, p2, owner, endpoints)."""
@@ -268,7 +302,8 @@ class Layout:
         self.bx0, self.bx1 = self.X(1) - 48, self.X(self.cols) + 48
         self.by0, self.by1 = self.RY['T+'] - 32, self.RY['B+'] + 34
         right = any(o['dir'] == 'right' for o in self.offboard)
-        self.W = max(1000, int(self.bx1 + (260 if right else 60)))
+        self.boxed = [d for d, v in self.devices.items() if v.get('box')]
+        self.W = max(1000, int(self.bx1 + (340 if self.boxed else (260 if right else 60))))
         self.board_bottom = self.by1 + (150 if down else 40)
 
     def X(self, c):
@@ -391,6 +426,7 @@ class Renderer:
         for o in L.offboard:
             if not o.get('under_module'):
                 self.offwire(o)
+        self.device_boxes()
         for p in L.parts:
             if L.label_box(p):
                 self.label(p)
@@ -547,8 +583,52 @@ class Renderer:
             above = h[0] == rows[-1]
             self.text(x, y - 13 if above else y + 20, name, 9, '#FDE68A' if u else '#D1D5DB', 'middle', 'bold' if u else 'normal')
 
+    def device_boxes(self):
+        """Draw boxed off-board devices to the right of the board. Wires are
+        routed in nested lanes ordered by pad column so they never cross."""
+        L = self.L
+        if not L.boxed:
+            return
+        bxl = L.bx1 + 70
+        y = L.by0 + 10
+        for d in L.boxed:
+            dev = L.devices[d]
+            col = dev.get('color', '#1D4ED8')
+            wires = [o for o in L.offboard if o['device'] == d]
+            ups = sorted([o for o in wires if o['dir'] == 'up'], key=lambda o: L.XY(o['hole'])[0])
+            downs = sorted([o for o in wires if o['dir'] == 'down'], key=lambda o: L.XY(o['hole'])[0])
+            lines = dev.get('lines', [])
+            rows = ups + downs
+            h = 56 + len(rows) * 26 + len(lines) * 15 + 16
+            self.a(f'<rect x="{bxl}" y="{y}" width="250" height="{h}" rx="10" fill="#F3F4F6" stroke="{col}" stroke-width="2"/>')
+            self.text(bxl + 125, y + 22, dev.get('name', d), 12, col, 'middle', 'bold')
+            if dev.get('warning'):
+                self.text(bxl + 125, y + 38, dev['warning'], 10, '#B91C1C', 'middle', 'bold')
+            ry = {id(o): y + 62 + i * 26 for i, o in enumerate(rows)}
+            for o in rows:
+                self.a(f'<circle cx="{bxl}" cy="{ry[id(o)]}" r="4.5" fill="{col}"/>')
+                self.text(bxl + 12, ry[id(o)] + 4, o['signal'], 11, INK, 'start', 'bold')
+            for i, line in enumerate(lines):
+                self.text(bxl + 12, y + 62 + len(rows) * 26 + i * 15, line, 10, MUTED)
+            n = len(rows)
+            for i, o in enumerate(ups):
+                x, py = L.XY(o['hole'])
+                lane = L.by0 - 16 - (len(ups) - 1) * 12 + i * 12
+                ex = bxl - 14 - i * 10
+                self.a(f'<path d="M{x},{py} L{x},{lane} L{ex},{lane} L{ex},{ry[id(o)]} L{bxl},{ry[id(o)]}" fill="none" stroke="{col}" stroke-width="3.5" stroke-linejoin="round"/>')
+                self.solder((x, py), col)
+            for j, o in enumerate(downs):
+                x, py = L.XY(o['hole'])
+                lane = L.by1 + 16 + (len(downs) - 1) * 12 - j * 12
+                ex = bxl - 14 - (len(ups) + j) * 10
+                self.a(f'<path d="M{x},{py} L{x},{lane} L{ex},{lane} L{ex},{ry[id(o)]} L{bxl},{ry[id(o)]}" fill="none" stroke="{col}" stroke-width="3.5" stroke-linejoin="round"/>')
+                self.solder((x, py), col)
+            y += h + 20
+
     def offwire(self, o):
         L = self.L
+        if o['device'] in L.boxed:
+            return
         dev = L.devices.get(o['device'], {})
         col = dev.get('color', '#DB2777')
         x, y = L.XY(o['hole'])
@@ -657,7 +737,7 @@ def main():
         sys.exit(2)
     spec = json.load(open(sys.argv[1]))
     try:
-        L = Layout(spec)
+        L = Layout(spec, os.path.dirname(os.path.abspath(sys.argv[1])))
         ok = L.check()
     except SpecError as e:
         print('SPEC ERROR:', e)
@@ -666,7 +746,8 @@ def main():
         print('WARNING:', w)
     for e in L.errors:
         print('ERROR:', e)
-    print('NETLIST OK' if ok and spec.get('expected_nets') is not None else ('NETLIST NOT CHECKED' if ok else 'NETLIST FAIL'))
+    checked = spec.get('expected_nets') is not None or spec.get('circuit')
+    print(('NETLIST OK' + (' (against circuit file)' if spec.get('circuit') else '')) if ok and checked else ('NETLIST NOT CHECKED' if ok else 'NETLIST FAIL'))
     if not ok:
         sys.exit(1)
     if '--check-only' not in sys.argv:

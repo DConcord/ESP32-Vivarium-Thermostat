@@ -15,12 +15,14 @@ The spec is one JSON object, rendered by `scripts/bbsvg.py`.
 
 | Field | Type | Meaning |
 |---|---|---|
+| `circuit` | path | Shared circuit file (see `circuit.md`); its nets, restricted to pins on this board, become the expected netlist, and its parts' `internal_ties` apply |
+| `board_id` | string | With `circuit`: warn about circuit parts whose `board` equals this but aren't placed |
 | `title` | string | Heading at the top of the drawing |
 | `subtitle` | string or list of strings | Grey lines under the title |
 | `board.cols` | int | Number of columns (half-size ElectroCookie = 30; full-size = 60+) |
 | `rails` | object | Per rail `T+`, `T-`, `B-`, `B+`: `label` (e.g. "+5V", "3V3", "GND") and optional `color` |
 | `colors` | object | Extra named colours for jumpers (`{"hb": "#D97706"}`); defaults include `5v`, `3v3`, `gnd`, `sda`, `scl`, `mains`, `sig1`–`sig5` |
-| `devices` | object | Off-board destinations: `{"OLED": {"name": "SH1106 OLED", "color": "#7C3AED"}}` |
+| `devices` | object | Off-board destinations: `{"OLED": {"name": "SH1106 OLED", "color": "#7C3AED"}}`. Add `"box": true` (plus optional `"warning"` and `"lines"`) to draw the device as a box beside the board with non-crossing routed wires instead of rotated edge labels |
 | `parts` | list | Components placed on the board |
 | `jumpers` | list | Wire links between holes |
 | `offboard` | list | Wires leaving the board to other devices |
@@ -61,7 +63,8 @@ module (dashed, built first).
 
 ## Off-board wires
 
-`{"device": "OLED", "signal": "SDA", "hole": "j23", "dir": "down"}`. `dir` is
+`{"pin": "OLED.SDA", "hole": "j23", "dir": "down"}` (or the older
+`{"device": "OLED", "signal": "SDA", ...}`). `dir` is
 `up`, `down`, `left` or `right` (default: up for the upper half and top rails, down
 otherwise). The wire is drawn straight to the board edge and labelled
 "DEVICE SIGNAL". It counts as pin `DEVICE.SIGNAL` in the netlist. `under_module: true`
@@ -69,7 +72,8 @@ draws it dashed (a wire soldered under a module and led out of its channel).
 
 ## Netlist
 
-`expected_nets` maps a net name to every pin on it, written `REF.PIN`
+With `circuit` set, the expected netlist comes from the circuit file and the
+fields below are unnecessary. Otherwise `expected_nets` maps a net name to every pin on it, written `REF.PIN`
 (`U1.p13`, `R4.1`, `ESP.GND_2`) or `DEVICE.SIGNAL` (`OLED.SDA`). The checker
 unions strips via jumpers and fails if any expected net is split, if extra pins are
 shorted onto it, or if a pin outside every expected net is connected to anything.

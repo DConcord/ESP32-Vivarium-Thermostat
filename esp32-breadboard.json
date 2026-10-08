@@ -27,7 +27,7 @@
   "fb": "#059669"
  },
  "devices": {
-  "CUT": {
+  "J1": {
    "name": "cutoff board J1",
    "color": "#DB2777"
   },
@@ -137,7 +137,7 @@
    ]
   },
   {
-   "ref": "R1",
+   "ref": "R8",
    "kind": "resistor",
    "value": "10k",
    "pins": {
@@ -222,206 +222,112 @@
  ],
  "offboard": [
   {
-   "device": "CUT",
-   "signal": "5V",
+   "pin": "J1.5V",
    "hole": "b1",
    "dir": "left",
    "under_module": true
   },
   {
-   "device": "CUT",
-   "signal": "GND",
+   "pin": "J1.GND",
    "hole": "T-@23"
   },
   {
-   "device": "CUT",
-   "signal": "PERMIT",
+   "pin": "J1.PERMIT",
    "hole": "a25"
   },
   {
-   "device": "CUT",
-   "signal": "FB",
+   "pin": "J1.FB",
    "hole": "a27"
   },
   {
-   "device": "CUT",
-   "signal": "HB",
+   "pin": "J1.HB",
    "hole": "j18"
   },
   {
-   "device": "SSR",
-   "signal": "+ (3)",
+   "pin": "SSR.IN+",
    "hole": "a22"
   },
   {
-   "device": "SSR",
-   "signal": "− (4)",
+   "pin": "SSR.IN-",
    "hole": "T-@20"
   },
   {
-   "device": "STONE",
-   "signal": "VCC",
+   "pin": "STONE.VCC",
    "hole": "B+@5"
   },
   {
-   "device": "STONE",
-   "signal": "GND",
+   "pin": "STONE.GND",
    "hole": "B-@6"
   },
   {
-   "device": "STONE",
-   "signal": "DAT",
+   "pin": "STONE.DAT",
    "hole": "j7"
   },
   {
-   "device": "COOL",
-   "signal": "DAT",
+   "pin": "COOL.DAT",
    "hole": "j8"
   },
   {
-   "device": "COOL",
-   "signal": "VCC",
+   "pin": "COOL.VCC",
    "hole": "B+@9"
   },
   {
-   "device": "COOL",
-   "signal": "GND",
+   "pin": "COOL.GND",
    "hole": "B-@10"
   },
   {
-   "device": "SHT30",
-   "signal": "VCC",
+   "pin": "SHT30.VCC",
    "hole": "B+@12"
   },
   {
-   "device": "SHT30",
-   "signal": "SDA",
+   "pin": "SHT30.SDA",
    "hole": "j14"
   },
   {
-   "device": "SHT30",
-   "signal": "GND",
+   "pin": "SHT30.GND",
    "hole": "B-@15"
   },
   {
-   "device": "SHT30",
-   "signal": "SCL",
+   "pin": "SHT30.SCL",
    "hole": "j17"
   },
   {
-   "device": "OLED",
-   "signal": "VCC",
+   "pin": "OLED.VCC",
    "hole": "B+@20"
   },
   {
-   "device": "OLED",
-   "signal": "GND",
+   "pin": "OLED.GND",
    "hole": "B-@21"
   },
   {
-   "device": "OLED",
-   "signal": "SDA",
+   "pin": "OLED.SDA",
    "hole": "j23"
   },
   {
-   "device": "OLED",
-   "signal": "SCL",
+   "pin": "OLED.SCL",
    "hole": "j24"
   },
   {
-   "device": "RJ45",
-   "signal": "SDA",
+   "pin": "RJ45.SDA",
    "hole": "j25"
   },
   {
-   "device": "RJ45",
-   "signal": "SCL",
+   "pin": "RJ45.SCL",
    "hole": "j26"
   },
   {
-   "device": "RJ45",
-   "signal": "3V3",
+   "pin": "RJ45.3V3",
    "hole": "B+@27"
   },
   {
-   "device": "RJ45",
-   "signal": "GND",
+   "pin": "RJ45.GND",
    "hole": "B-@28"
   }
  ],
- "internal_ties": [
-  [
-   "ESP.GND",
-   "ESP.GND_2",
-   "ESP.GND_3"
-  ]
- ],
- "expected_nets": {
-  "3V3": [
-   "ESP.3V3",
-   "OLED.VCC",
-   "RJ45.3V3",
-   "SHT30.VCC",
-   "STONE.VCC",
-   "COOL.VCC"
-  ],
-  "GND": [
-   "ESP.GND",
-   "ESP.GND_2",
-   "ESP.GND_3",
-   "R1.2",
-   "SSR.− (4)",
-   "CUT.GND",
-   "STONE.GND",
-   "COOL.GND",
-   "SHT30.GND",
-   "OLED.GND",
-   "RJ45.GND"
-  ],
-  "5V": [
-   "ESP.5V",
-   "CUT.5V"
-  ],
-  "IO26": [
-   "ESP.26",
-   "R1.1",
-   "SSR.+ (3)"
-  ],
-  "IO25": [
-   "ESP.25",
-   "CUT.PERMIT"
-  ],
-  "IO34": [
-   "ESP.34",
-   "CUT.FB"
-  ],
-  "IO23": [
-   "ESP.23",
-   "CUT.HB"
-  ],
-  "SDA": [
-   "ESP.21",
-   "SHT30.SDA",
-   "OLED.SDA",
-   "RJ45.SDA"
-  ],
-  "SCL": [
-   "ESP.22",
-   "SHT30.SCL",
-   "OLED.SCL",
-   "RJ45.SCL"
-  ],
-  "IO4": [
-   "ESP.4",
-   "STONE.DAT"
-  ],
-  "IO16": [
-   "ESP.16",
-   "COOL.DAT"
-  ]
- },
  "notes": [
   "Fit a 2.4 GHz U.FL antenna to the WROOM-32U before first power-up.",
   "The DS18B20 adapters carry the 4.7k pull-ups; the OLED and IR boards supply the I2C pull-ups."
- ]
+ ],
+ "circuit": "thermostat-circuit.json",
+ "board_id": "esp32"
 }

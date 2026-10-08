@@ -24,6 +24,9 @@ ESP32 · 2× DS18B20 (stone surface, cool side) · MLX90614ESF-DCI IR sensor (ov
 | `snake-thermostat-wiring.drawio` | Wiring diagrams: low-voltage and mains pages (open at diagrams.net) |
 | `BUILD.md` | Parts, wiring tables, sensor placement, heater cutoff and plausibility checks, bring-up checklist |
 | `ENTITIES.md` | Home Assistant entities and an example dashboard card |
+| `thermostat-circuit.json` | Every part and connection in the project; the source of truth for the diagrams below |
+| `heater-cutoff-wiring.svg`, `esp32-wiring.svg` | Schematics (sources: `*-schematic.json`) |
+| `heater-cutoff-breadboard.svg`, `esp32-breadboard.svg` | Hole-by-hole ElectroCookie layouts (sources: `*-breadboard.json`) |
 
 ## Quick start
 
@@ -37,3 +40,14 @@ ESP32 · 2× DS18B20 (stone surface, cool side) · MLX90614ESF-DCI IR sensor (ov
 ## Safety
 
 This project switches mains power to a heater near a live animal. Use a fused, grounded enclosure for mains wiring, have the mains side reviewed, and test every fault path before use. Use at your own risk.
+
+## Regenerating the diagrams
+
+The SVGs are generated, and each one is checked against `thermostat-circuit.json` before it's written. Edit the circuit file or a `*.json` spec, then:
+
+```sh
+python3 .claude/skills/schematic-svg/scripts/schsvg.py heater-cutoff-schematic.json heater-cutoff-wiring.svg
+python3 .claude/skills/schematic-svg/scripts/schsvg.py esp32-schematic.json esp32-wiring.svg
+python3 .claude/skills/breadboard-layout-svg/scripts/bbsvg.py heater-cutoff-breadboard.json heater-cutoff-breadboard.svg
+python3 .claude/skills/breadboard-layout-svg/scripts/bbsvg.py esp32-breadboard.json esp32-breadboard.svg
+```
