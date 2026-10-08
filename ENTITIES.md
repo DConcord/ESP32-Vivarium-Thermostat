@@ -8,7 +8,7 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 
 | Entity | Type | Description |
 |---|---|---|
-| `switch.snake_enclosure_heater_enable` | Switch | Master heat on/off (safety limits still apply when on) |
+| `switch.snake_enclosure_heater_enable` | Switch | Master heat on/off; off also opens the cutoff relay (safety limits still apply when on) |
 | `number.snake_enclosure_hot_zone_day_setpoint` | Number | Hot-zone target during the day (default 87°F) |
 | `number.snake_enclosure_hot_zone_night_setpoint` | Number | Hot-zone target at night (default 75°F) |
 | `number.snake_enclosure_night_start_hour` | Number | Hour night mode starts (0–23, default 21) |
@@ -39,6 +39,7 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 | `sensor.snake_enclosure_heater_status` | Text: Heating, Idle, Disabled, or "Fault: reason" |
 | `binary_sensor.snake_enclosure_heater_fault` | On when heat is forced off by a fault |
 | `binary_sensor.snake_enclosure_heater_active` | On while the heater is pulsing |
+| `binary_sensor.snake_enclosure_cutoff_relay_closed` | On while the series cutoff relay is closed (heating allowed) |
 | `binary_sensor.snake_enclosure_night_mode` | On during night hours |
 | `binary_sensor.snake_enclosure_cool_side_low` | On when cool side is below its alert threshold |
 | `binary_sensor.snake_enclosure_humidity_out_of_range` | On when humidity is outside its alert range |

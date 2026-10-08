@@ -1,6 +1,6 @@
 # Build Guide
 
-ESPHome-based thermostat and monitor for a 4×2×2 ft bioactive corn snake enclosure. The ESP32 pulse-controls an 80 W radiant heat panel (RHP) through an SSR, monitors hot/cool/humidity, and reports to Home Assistant. A Z-Wave smart plug acts as an independent failsafe.
+ESPHome-based thermostat and monitor for a 4×2×2 ft bioactive corn snake enclosure. The ESP32 pulse-controls an 80 W radiant heat panel (RHP) through an SSR, monitors hot/cool/humidity, and reports to Home Assistant. A mechanical cutoff relay in series with the SSR opens on any fault, so a shorted SSR can't overheat the enclosure. An upstream Z-Wave plug failsafe is optional.
 
 See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
 
@@ -11,9 +11,11 @@ See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
 - **Control runs locally on the ESP32.** PID and safety logic never depend on Home Assistant or Wi-Fi.
 - **Control input = max(stone DS18B20, MLX90614 IR).** The thermostat regulates on whichever hot-zone reading is hottest.
 - **Fail off.** Any NaN, stale (>60 s), implausible, or >92°F hot-zone reading forces the heater off. The heater also boots off and enables only once sensors are valid.
-- **Independent failsafe upstream.** The ZEN04 plug can cut the whole heater circuit regardless of ESP32 or SSR state.
+- **Two switches in series.** The SSR pulses the heat; a mechanical relay (SRD-05VDC-SL-C relay shield) is closed only while heating is allowed. Any fault, over-limit reading, Heater Enable off, ESP32 reboot, or ESP32 power loss opens it, so a shorted SSR is still cut off. This matches or exceeds a standalone reptile thermostat.
+- **Known limit: one controller.** The relay and SSR share the ESP32's sensors and firmware. A sensor that reads low but plausible (e.g. a stone probe that has come loose) or a bad config change can hold both closed. Mount the probes securely and keep the IR sensor aimed; the control input uses the hotter of the two. For protection against that too, add the optional upstream failsafe.
+- **Optional failsafe upstream.** A ZEN04 plug (via Home Assistant) or a plug-in thermostat such as an Inkbird ITC-308 with its own probe can cut the whole heater circuit independently of the ESP32.
 - **Settings persist locally.** Setpoints, the day/night schedule, alert limits, and Heater Enable are stored in the ESP32's flash and restored on boot, so control continues unchanged if Home Assistant is offline.
-- **ESP32 powered separately.** It runs on its own USB supply on a different outlet, so monitoring and alerts survive a failsafe trip.
+- **ESP32 powered separately.** It runs on its own USB supply on a different outlet, so monitoring and alerts survive an upstream failsafe trip.
 - **No mains wiring inside the enclosure.** Only low-voltage sensor cables and the panel's own cord enter the tank.
 
 ## Target temperatures (corn snake)
@@ -25,7 +27,7 @@ See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
 | Night | Upper 60s ambient OK (default night setpoint 75°F) |
 | Humidity | ~40% (30s tolerated) |
 | Software hard limit | 92°F, heater forced off (re-enables below 90°F) |
-| Failsafe trip (HA) | ~95°F |
+| Optional upstream failsafe trip | ~95°F |
 
 ---
 
@@ -42,9 +44,10 @@ See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
 | Cat6 stranded patch cable (cut in half) | 1 | $5–8 | Any; solid-core bulk cable not recommended |
 | RJ45 jack for the main board | 1 | $1–2 | Through-hole RJ45 or a second screw adapter |
 | RJ45 screw-terminal adapter (sensor end) | 1 | $10–15 | XUGERIP 4-pack [Amazon B0FQJTKCZZ](https://www.amazon.com/dp/B0FQJTKCZZ) or [SchmalzTech mini](https://www.robotshop.com/products/schmalztech-rj45-mini-screw-terminal-breakout-board) |
-| 10k resistor (GPIO26 pull-down), 100 nF capacitors | few | $1 | Any |
+| 10k resistors (GPIO26/GPIO27 pull-downs), 100 nF capacitors | few | $1 | Any |
 | Inkbird SSR-40DA (budget) **or** genuine Crydom D2410 | 1 | $10 / $48–57 | Inkbird [Amazon B00HV974KC](https://www.amazon.com/dp/B00HV974KC); Crydom via [Digi-Key](https://www.digikey.com/en/products/result?keywords=Crydom%20D2410) |
-| Zooz ZEN04 Z-Wave plug (failsafe) | 1 | $35–40 | [getzooz.com](https://www.getzooz.com) |
+| Wemos D1 mini relay shield (SRD-05VDC-SL-C, 5V coil, 10A) | 1 | $3–5 | Amazon "D1 mini relay shield"; cutoff relay in series with the SSR |
+| *Optional:* Zooz ZEN04 Z-Wave plug **or** Inkbird ITC-308 | 1 | $35–40 | Independent upstream failsafe; [getzooz.com](https://www.getzooz.com) |
 | C14 fused inlet, 5×20 mm (no switch) | 1 | $8–10 | [Amazon search](https://www.amazon.com/s?k=IEC+C14+inlet+fuse+holder+panel+mount) |
 | 2A slow-blow 5×20 mm fuses | 1 pack | $6 | [Amazon search](https://www.amazon.com/s?k=2A+250V+slow+blow+5x20mm+fuse) |
 | C13 power cord, 18 AWG, 3-prong | 1 | $7 | Any computer cord |
@@ -73,6 +76,7 @@ All sensors on **3V3**, never 5V/VIN.
 | SH1106 OLED | 0x3C | SDA GPIO21 / SCL GPIO22 | Header: GND VCC SCL SDA |
 | GY-906-DCI (MLX90614) | 0x5A | SDA GPIO21 / SCL GPIO22 | Via Cat6 + RJ45 (map below) |
 | SSR input | — | GPIO26 → terminal 3 (+), GND → terminal 4 (−) | **10k pull-down GPIO26 → GND** |
+| Cutoff relay shield | — | GPIO27 → shield **D1**, ESP32 5V/VIN → shield **5V**, GND → shield **GND** | **10k pull-down GPIO27 → GND**. Coil is 5V (~70–90 mA from USB); 3.3V logic drives the shield's transistor |
 
 **Cat6 (T568B) pair map to the GY-906**
 
@@ -87,23 +91,25 @@ Notes:
 - Each DS18B20 has its own GPIO because the adapter boards have built-in pull-ups. The OLED and GY-906 boards supply I2C pull-ups, so don't add more unless the I2C scan fails.
 - I2C runs at 50 kHz for the Cat6 run. Add a 100 nF capacitor across VIN/GND at the sensor-end adapter.
 - If the SSR triggers unreliably at 3.3V, drive it from 5V through an NPN transistor (1k base resistor) or a logic-level MOSFET (100 Ω gate, 10k pull-down).
-- For a possible second channel: GPIO17/18 (DS18B20s), GPIO32/33 (second I2C bus for a second MLX), SHT30 at 0x45, GPIO27 (second SSR). Avoid GPIO0, 2, 12, 15 and 34–39.
+- For a possible second channel: GPIO17/18 (DS18B20s), GPIO32/33 (second I2C bus for a second MLX), SHT30 at 0x45, GPIO25 (second SSR), GPIO14 (second cutoff relay). Avoid GPIO0, 2, 12, 15 and 34–39.
 
 ## Mains-side wiring
 
-Path: wall outlet → **ZEN04** → C13 cord → **C14 fused inlet (2A)** → SSR → pigtail outlet → RHP.
+Path: wall outlet → *(optional ZEN04 / ITC-308)* → C13 cord → **C14 fused inlet (2A)** → cutoff relay → SSR → pigtail outlet → RHP.
 
 | From | To | Conductor |
 |---|---|---|
-| C14 L (fused) | SSR terminal 1 | Hot |
+| C14 L (fused) | Relay **COM** (middle screw terminal) | Hot |
+| Relay **NO** (screw terminal marked NO) | SSR terminal 1 | Hot |
 | SSR terminal 2 | Outlet black lead | Hot |
 | C14 N | Outlet white lead | Neutral |
 | C14 E | Outlet green ring lug (+ box chassis if metal) | Ground |
 
-- Only hot passes through the SSR.
+- Only hot passes through the relay and SSR. Leave the relay's NC terminal empty.
 - Use slow-blow fuses and insulated quick-connects with heat shrink.
-- The inlet has no switch. Use the ZEN04 (or unplug) to cut power for maintenance.
+- The inlet has no switch. Unplug it for maintenance; turning off Heater Enable opens the relay but leaves the inlet, relay, and SSR terminals live.
 - Keep SSR mains terminals physically separated from the ESP32 and low-voltage wiring.
+- The relay shield carries mains on the same small PCB as its logic pins. Mount it in the mains compartment on standoffs, insulate it from the ESP32 side, and run only its 5V/GND/D1 jumpers across. Don't stack it on a D1 mini or the ESP32 board.
 
 ---
 
@@ -123,14 +129,23 @@ Path: wall outlet → **ZEN04** → C13 cord → **C14 fused inlet (2A)** → SS
 - Control sensor "Hot Zone (Control)" = max(stone, IR), NaN if either is invalid.
 - Day/night setpoints and schedule hours are number entities (persisted in flash). The active setpoint is pushed to the thermostat every 30 s and on any change. Time comes from SNTP, then Home Assistant; with no valid time, the day setpoint is used.
 - Safety loop (2 s): forces heat off on any fault, clears once readings are valid and below 90°F, and only heats while **Heater Enable** is on. The 92°F hard limit is fixed in firmware.
+- Cutoff relay (GPIO27) is closed only while the safety loop allows heat, and boots open. If the SSR shorts, the hot zone reaches the 92°F limit, the relay opens, and it recloses below 90°F. The heater then cycles on the relay around 90–92°F until you replace the SSR, and **Heater Fault** toggles on each trip.
 - MLX emissivity set to 0.95 for stone.
 - OLED shows Hot / Cool / RH / heater % / setpoint, shifts pixels every few minutes, and turns off during night hours.
 - After autotune, paste the suggested `kp/ki/kd` from the logs into `control_parameters`.
 - Full entity list: `ENTITIES.md`.
 
-## Failsafe (Home Assistant + ZEN04)
+## Alerts (Home Assistant)
 
-The automation turns off the ZEN04 and sends a phone alert when any of these fire:
+Set up a phone alert on `Heater Fault` turning on. A fault that recurs every few minutes while the duty is low points to a shorted SSR.
+
+## Optional upstream failsafe
+
+Not required: the cutoff relay already covers a shorted SSR. Add one only to also cover a sensor or firmware mistake on the ESP32.
+
+**Inkbird ITC-308 (no HA dependency):** plug it in upstream, put its probe at the basking surface, and set the heating setpoint to ~95°F. It cuts power only if the ESP32's own sensors are wrong.
+
+**ZEN04 (via HA):** an automation turns off the ZEN04 and sends a phone alert when any of these fire:
 
 1. Either hot-zone reading > ~95°F (catches a stuck SSR).
 2. ESP32 `Status` offline for more than a few minutes (catches a crash).
@@ -138,7 +153,7 @@ The automation turns off the ZEN04 and sends a phone alert when any of these fir
 
 Optional: alert if `Heater Duty` > 0 for several minutes but the ZEN04 reads ~0 W (fuse blown, plug off).
 
-Accepted trade-off: the failsafe depends on HA being up. A 4 ft gradient gives the snake room to retreat.
+The ZEN04 failsafe depends on HA being up. A 4 ft gradient gives the snake room to retreat.
 
 ---
 
@@ -149,12 +164,15 @@ Accepted trade-off: the failsafe depends on HA being up. A 4 ft gradient gives t
 - [ ] Unplug a probe: Heater Fault turns on and heater duty goes to 0.
 - [ ] Multimeter: ground continuity from the plug's ground pin to the outlet ground (unplugged).
 - [ ] Lamp in the outlet: ESP32 pulses it; lamp stays off during boot and flashing.
-- [ ] Each ZEN04 trigger kills the lamp (heat the stone probe, unplug the ESP32, force a stuck-on condition).
+- [ ] Relay clicks closed once sensors are valid and `Cutoff Relay Closed` turns on; it opens (lamp off) when you turn off Heater Enable, unplug a probe, or unplug the ESP32's USB.
+- [ ] Simulate a shorted SSR: jumper SSR terminals 1–2 (unplugged first), power up, warm the stone probe past 92°F; the relay must open and the lamp go off. Remove the jumper afterwards.
+- [ ] If fitted: each upstream failsafe trigger kills the lamp.
 - [ ] RHP connected: run autotune with the stone installed (1–2 hr), update PID values, then watch a full day/night cycle, including the night setpoint switch.
 - [ ] Cool side holds ≥ 72°F in the enclosure's room for a week before the animal moves in.
 - [ ] Transfer from breadboard to the ElectroCookie protoboard for permanent install.
 
 ## Open items
 
-- [ ] Home Assistant automation for the three ZEN04 triggers
-- [ ] Confirm Z-Wave and Wi-Fi reach the enclosure location
+- [ ] Home Assistant alert on `Heater Fault`
+- [ ] Confirm Wi-Fi reaches the enclosure location
+- [ ] Optional: upstream failsafe (ITC-308, or ZEN04 + HA automation)

@@ -15,7 +15,11 @@
 #   - Heater forced OFF on NaN, stale (>60 s), implausible, or over-limit
 #     reading. The hard limit (33.3°C / 92°F) is fixed in firmware.
 #   - Heater boots OFF; heat is enabled only once sensors are valid.
-#   - Use an independent upstream failsafe (see BUILD.md).
+#   - Two switches in series on the heater hot lead: the SSR pulses the
+#     heat, and a mechanical cutoff relay (GPIO27) opens on any fault,
+#     over-limit reading, or Heater Enable off. A shorted SSR is still
+#     cut off by the relay.
+#   - Optional upstream Z-Wave plug failsafe via Home Assistant (BUILD.md).
 # =====================================================================
 
 substitutions:
@@ -33,6 +37,7 @@ esphome:
       - climate.control:
           id: pid_heat
           mode: "OFF"
+      - output.turn_off: cutoff_relay
       - script.execute: apply_setpoint
 
 esp32:
@@ -107,6 +112,9 @@ globals:
   - id: display_on
     type: bool
     initial_value: "true"
+  - id: relay_closed
+    type: bool
+    initial_value: "false"
 
 # ---------------------------------------------------------------------
 # User settings (Home Assistant controls; persisted in flash)
@@ -350,6 +358,11 @@ binary_sensor:
       return !isnan(d) && d > 0.5f;
 
   - platform: template
+    name: "Cutoff Relay Closed"
+    icon: mdi:electric-switch-closed
+    lambda: return id(relay_closed);
+
+  - platform: template
     name: "Night Mode"
     icon: mdi:weather-night
     lambda: return id(night_active);
@@ -386,14 +399,19 @@ button:
     name: "Restart"
 
 # ---------------------------------------------------------------------
-# Heater output: pulse (slow PWM) to the SSR on GPIO26
-# (10k pull-down on the board keeps it off during boot/flash)
+# Heater outputs (in series on the heater hot lead):
+#   - SSR on GPIO26: pulse (slow PWM) heat control
+#   - Cutoff relay on GPIO27: closed only while heating is allowed
+# (10k pull-downs on both pins keep them off during boot/flash)
 # ---------------------------------------------------------------------
 output:
   - platform: slow_pwm
     id: heater_pwm
     pin: GPIO26
     period: 15s
+  - platform: gpio
+    id: cutoff_relay
+    pin: GPIO27
 
 # Target temperature is driven by the setpoint numbers above; changing it
 # directly on this entity is overwritten within 30 s.
@@ -463,6 +481,12 @@ interval:
             call.perform();
           }
           if (!want_heat) id(heater_pwm).set_level(0.0f);
+          if (want_heat != id(relay_closed)) {
+            if (want_heat) id(cutoff_relay).turn_on();
+            else id(cutoff_relay).turn_off();
+            id(relay_closed) = want_heat;
+            ESP_LOGI("safety", "Cutoff relay %s", want_heat ? "closed" : "open");
+          }
 
   # Schedule + display power — every 30 s
   - interval: 30s
