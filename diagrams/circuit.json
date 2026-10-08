@@ -1,0 +1,257 @@
+{
+ "name": "ESP32 vivarium thermostat",
+ "notes": "Single source of truth for parts and connections; the schematic and breadboard layout are checked against it.",
+ "parts": {
+  "ESP": {
+   "type": "ESP32 dev board (WROOM-32)",
+   "board": "esp32",
+   "table": false,
+   "internal_ties": [
+    [
+     "GND",
+     "GND_2"
+    ]
+   ],
+   "pin_names": {
+    "26": "GPIO26",
+    "27": "GPIO27",
+    "21": "GPIO21",
+    "22": "GPIO22",
+    "4": "GPIO4",
+    "16": "GPIO16",
+    "5V": "5V / VIN",
+    "GND_2": "GND"
+   }
+  },
+  "R1": {
+   "type": "10k",
+   "identify": "brown-black-orange",
+   "board": "esp32",
+   "connects": "GPIO26 to GND (SSR off at boot)"
+  },
+  "R2": {
+   "type": "10k",
+   "identify": "brown-black-orange",
+   "board": "esp32",
+   "connects": "GPIO27 to GND (relay off at boot)"
+  },
+  "C1": {
+   "type": "100 nF ceramic",
+   "identify": "marked 104",
+   "board": "offboard",
+   "connects": "VIN to GND at the GY-906 end of the Cat6"
+  },
+  "SSR": {
+   "type": "Inkbird SSR-40DA",
+   "identify": "or Crydom D2410",
+   "board": "offboard",
+   "connects": "IN ← GPIO26 · AC in series after K1"
+  },
+  "K1": {
+   "type": "Relay shield, SRD-05VDC-SL-C",
+   "identify": "D1 mini shield, 5 V coil",
+   "board": "offboard",
+   "connects": "D1 ← GPIO27 · 5V · GND · COM/NO mains",
+   "pin_names": {
+    "D1": "D1 (signal)"
+   }
+  },
+  "STONE": {
+   "type": "Stone DS18B20 adapter",
+   "board": "offboard",
+   "table": false
+  },
+  "COOL": {
+   "type": "Cool-side DS18B20 adapter",
+   "board": "offboard",
+   "table": false
+  },
+  "SHT30": {
+   "type": "SHT30 probe",
+   "board": "offboard",
+   "table": false
+  },
+  "OLED": {
+   "type": "SH1106 OLED",
+   "board": "offboard",
+   "table": false
+  },
+  "RJ45": {
+   "type": "RJ45 jack, board end (Cat6 to GY-906)",
+   "board": "offboard",
+   "table": false
+  },
+  "IR": {
+   "type": "GY-906-DCI (MLX90614)",
+   "board": "offboard",
+   "table": false
+  },
+  "C14": {
+   "type": "C14 fused inlet",
+   "board": "offboard",
+   "table": false
+  },
+  "OUT": {
+   "type": "5-15R pigtail outlet to heat panel",
+   "board": "offboard",
+   "table": false
+  }
+ },
+ "nets": {
+  "+5V": [
+   "ESP.5V",
+   "K1.5V"
+  ],
+  "3V3": [
+   "ESP.3V3",
+   "OLED.VCC",
+   "SHT30.VCC",
+   "STONE.VCC",
+   "COOL.VCC",
+   "RJ45.3V3",
+   "IR.VIN",
+   "C1.1"
+  ],
+  "GND": [
+   "ESP.GND",
+   "ESP.GND_2",
+   "R1.2",
+   "R2.2",
+   "SSR.IN-",
+   "K1.GND",
+   "OLED.GND",
+   "SHT30.GND",
+   "STONE.GND",
+   "COOL.GND",
+   "RJ45.GND",
+   "IR.GND",
+   "C1.2"
+  ],
+  "SSR_SIG": [
+   "ESP.26",
+   "R1.1",
+   "SSR.IN+"
+  ],
+  "RELAY_SIG": [
+   "ESP.27",
+   "R2.1",
+   "K1.D1"
+  ],
+  "SDA": [
+   "ESP.21",
+   "OLED.SDA",
+   "SHT30.SDA",
+   "RJ45.SDA",
+   "IR.SDA"
+  ],
+  "SCL": [
+   "ESP.22",
+   "OLED.SCL",
+   "SHT30.SCL",
+   "RJ45.SCL",
+   "IR.SCL"
+  ],
+  "IO4": [
+   "ESP.4",
+   "STONE.DAT"
+  ],
+  "IO16": [
+   "ESP.16",
+   "COOL.DAT"
+  ],
+  "L_FUSED": [
+   "C14.L",
+   "K1.COM"
+  ],
+  "L_ENABLED": [
+   "K1.NO",
+   "SSR.AC1"
+  ],
+  "L_HEATER": [
+   "SSR.AC2",
+   "OUT.L"
+  ],
+  "NEUTRAL": [
+   "C14.N",
+   "OUT.N"
+  ],
+  "EARTH": [
+   "C14.E",
+   "OUT.E"
+  ]
+ },
+ "net_styles": {
+  "+5V": {
+   "color": "#DC2626",
+   "fill": "#FEE2E2",
+   "label": "+5V",
+   "tag_note": "= ESP32 5V/VIN pin (USB 5 V)"
+  },
+  "3V3": {
+   "color": "#DC2626",
+   "fill": "#FEE2E2",
+   "label": "3V3",
+   "tag_note": "= ESP32 3V3 pin"
+  },
+  "GND": {
+   "color": "#374151",
+   "fill": "#E5E7EB",
+   "label": "GND",
+   "tag_note": "= any ESP32 GND"
+  },
+  "SSR_SIG": {
+   "color": "#EA580C",
+   "label": "GPIO26 · SSR pulse"
+  },
+  "RELAY_SIG": {
+   "color": "#C026D3",
+   "label": "GPIO27 · cutoff relay"
+  },
+  "SDA": {
+   "color": "#0284C7",
+   "fill": "#E0F2FE",
+   "label": "SDA (GPIO21)",
+   "tag_note": "= GPIO21 (I2C data)"
+  },
+  "SCL": {
+   "color": "#4D7C0F",
+   "fill": "#ECFCCB",
+   "label": "SCL (GPIO22)",
+   "tag_note": "= GPIO22 (I2C clock)"
+  },
+  "IO4": {
+   "color": "#92400E",
+   "fill": "#FEF3C7",
+   "label": "GPIO4",
+   "tag_label": "GPIO4",
+   "tag_note": "= stone DS18B20 data"
+  },
+  "IO16": {
+   "color": "#1D4ED8",
+   "fill": "#DBEAFE",
+   "label": "GPIO16",
+   "tag_label": "GPIO16",
+   "tag_note": "= cool DS18B20 data"
+  },
+  "L_FUSED": {
+   "color": "#B91C1C",
+   "label": "Mains hot"
+  },
+  "L_ENABLED": {
+   "color": "#B91C1C",
+   "label": "Mains hot"
+  },
+  "L_HEATER": {
+   "color": "#B91C1C",
+   "label": "Mains hot"
+  },
+  "NEUTRAL": {
+   "color": "#2563EB",
+   "label": "Neutral"
+  },
+  "EARTH": {
+   "color": "#639922",
+   "label": "Earth"
+  }
+ }
+}

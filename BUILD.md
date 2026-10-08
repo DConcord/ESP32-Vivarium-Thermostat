@@ -66,6 +66,8 @@ See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
 
 ## Low-voltage wiring
 
+Full schematic: [`diagrams/schematic.svg`](diagrams/schematic.svg).
+
 All sensors on **3V3**, never 5V/VIN.
 
 | Device | Address | ESP32 pin | Wire colors / pins |

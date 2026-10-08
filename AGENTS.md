@@ -10,10 +10,12 @@ ESPHome firmware and build docs for an ESP32 reptile-enclosure thermostat. It pu
 | `BUILD.md` | Parts, wiring tables, safety design, alerts, bring-up checklist |
 | `ENTITIES.md` | Home Assistant entities and example dashboard card |
 | `README.md` | Project overview |
-| `snake-thermostat-wiring.drawio` | Wiring diagrams (low-voltage and mains pages) |
+| `diagrams/circuit.json` | Parts and nets: single source of truth for the schematic (and breadboard layout) |
+| `diagrams/schematic.json`, `diagrams/schematic.svg` | Schematic sheet and rendered SVG, machine-checked against `circuit.json` (schematic-svg skill) |
+| `snake-thermostat-wiring.drawio` | Older hand-drawn wiring diagrams (low-voltage and mains pages) |
 | `secrets.example.yaml` | Template for `secrets.yaml` (never commit the real one) |
 
-When firmware behavior or wiring changes, keep `BUILD.md`, `ENTITIES.md`, and the diagram in sync.
+When firmware behavior or wiring changes, keep `BUILD.md`, `ENTITIES.md`, `diagrams/circuit.json` (then re-render the schematic), and the drawio diagram in sync.
 
 This controls mains heat near a live animal. Don't weaken the fail-off safety logic (hard limit, sensor-fault cutoff, relay boot state) without being asked.
 

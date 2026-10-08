@@ -1,0 +1,790 @@
+{
+ "circuit": "circuit.json",
+ "title": "ESP32 vivarium thermostat: complete wiring",
+ "subtitle": [
+  "Tags with the same name are one connection. The cutoff relay (K1) and the SSR switch the heater hot lead in series:",
+  "K1 is closed only while the firmware allows heat, so a shorted SSR is still cut off."
+ ],
+ "canvas": {
+  "w": 1500
+ },
+ "panels": [
+  {
+   "rect": [
+    30,
+    90,
+    1140,
+    990
+   ],
+   "label": "LOW VOLTAGE · ESP32 protoboard and sensors"
+  },
+  {
+   "rect": [
+    1180,
+    90,
+    290,
+    630
+   ],
+   "label": "MAINS 120 V AC",
+   "sub": [
+    "separate compartment,",
+    "≥ 6 mm from low voltage"
+   ],
+   "style": "mains"
+  }
+ ],
+ "symbols": [
+  {
+   "ref": "ESP",
+   "kind": "block",
+   "style": "module",
+   "at": [
+    600,
+    190
+   ],
+   "w": 180,
+   "left": [
+    "3V3",
+    "GND",
+    "21",
+    "22",
+    "4",
+    "16"
+   ],
+   "right": [
+    "5V",
+    "GND_2",
+    null,
+    "26",
+    null,
+    null,
+    "27"
+   ],
+   "title": "ESP32 dev board",
+   "sub": [
+    "WROOM-32 · USB 5 V on",
+    "its own outlet",
+    "pin order varies by board"
+   ],
+   "title_y": 510,
+   "pad_top": 40,
+   "h": 380
+  },
+  {
+   "kind": "block",
+   "style": "device",
+   "w": 220,
+   "pad_top": 46,
+   "pitch": 26,
+   "pad_bottom": 20,
+   "ref": "OLED",
+   "at": [
+    150,
+    140
+   ],
+   "right": [
+    "GND",
+    "VCC",
+    "SCL",
+    "SDA"
+   ],
+   "title": "SH1106 OLED · 0x3C",
+   "sub": [
+    "4-pin header: GND VCC SCL SDA"
+   ]
+  },
+  {
+   "kind": "block",
+   "style": "device",
+   "w": 220,
+   "pad_top": 46,
+   "pitch": 26,
+   "pad_bottom": 20,
+   "ref": "SHT30",
+   "at": [
+    150,
+    300
+   ],
+   "right": [
+    "VCC",
+    "GND",
+    "SDA",
+    "SCL"
+   ],
+   "title": "SHT30 probe · 0x44",
+   "sub": [
+    "yellow/white = SDA/SCL: check listing"
+   ],
+   "labels": {
+    "VCC": "VCC (red)",
+    "GND": "GND (black)"
+   }
+  },
+  {
+   "kind": "block",
+   "style": "amber",
+   "w": 220,
+   "pad_top": 46,
+   "pitch": 26,
+   "pad_bottom": 20,
+   "ref": "STONE",
+   "at": [
+    150,
+    460
+   ],
+   "right": [
+    "DAT",
+    "VCC",
+    "GND"
+   ],
+   "title": "Stone DS18B20 adapter",
+   "sub": [
+    "4.7k pull-up on adapter"
+   ]
+  },
+  {
+   "kind": "block",
+   "style": "blue",
+   "w": 220,
+   "pad_top": 46,
+   "pitch": 26,
+   "pad_bottom": 20,
+   "ref": "COOL",
+   "at": [
+    150,
+    595
+   ],
+   "right": [
+    "DAT",
+    "VCC",
+    "GND"
+   ],
+   "title": "Cool DS18B20 adapter",
+   "sub": [
+    "4.7k pull-up on adapter"
+   ]
+  },
+  {
+   "kind": "block",
+   "style": "purple",
+   "w": 220,
+   "pad_top": 46,
+   "pitch": 26,
+   "pad_bottom": 20,
+   "ref": "RJ45",
+   "at": [
+    150,
+    730
+   ],
+   "right": [
+    "SDA",
+    "SCL",
+    "3V3",
+    "GND"
+   ],
+   "title": "RJ45 jack (board end)",
+   "sub": [
+    "Cat6, T568B"
+   ],
+   "labels": {
+    "SDA": "SDA (pin 2)",
+    "SCL": "SCL (pin 6)",
+    "3V3": "3V3 (pin 4)",
+    "GND": "GND (1,3,5,7,8)"
+   }
+  },
+  {
+   "kind": "block",
+   "style": "device",
+   "w": 220,
+   "pad_top": 46,
+   "pitch": 26,
+   "pad_bottom": 30,
+   "ref": "IR",
+   "at": [
+    150,
+    930
+   ],
+   "left": [
+    "SDA",
+    "SCL"
+   ],
+   "right": [
+    "VIN",
+    "GND"
+   ],
+   "title": "GY-906-DCI (MLX90614) · 0x5A",
+   "sub": [
+    "RJ45 screw adapter at sensor end"
+   ]
+  },
+  {
+   "ref": "C1",
+   "kind": "cap",
+   "at": [
+    450,
+    976
+   ],
+   "dir": "down",
+   "len": 60,
+   "value": "100 nF"
+  },
+  {
+   "ref": "SSR",
+   "kind": "block",
+   "style": "red",
+   "at": [
+    940,
+    310
+   ],
+   "w": 200,
+   "h": 90,
+   "left": [
+    {
+     "pin": "IN+",
+     "y": 40
+    },
+    {
+     "pin": "IN-",
+     "y": 80
+    }
+   ],
+   "labels": {
+    "IN+": "3 (+)",
+    "IN-": "4 (−)"
+   },
+   "title": "SSR (input side)",
+   "sub": [
+    "pulses the heat"
+   ]
+  },
+  {
+   "ref": "R1",
+   "kind": "resistor",
+   "at": [
+    850,
+    350
+   ],
+   "dir": "down",
+   "len": 50,
+   "label_side": "left"
+  },
+  {
+   "ref": "K1",
+   "kind": "block",
+   "style": "blue",
+   "at": [
+    940,
+    410
+   ],
+   "w": 200,
+   "h": 170,
+   "left": [
+    {
+     "pin": "D1",
+     "y": 60
+    },
+    {
+     "pin": "5V",
+     "y": 100
+    },
+    {
+     "pin": "GND",
+     "y": 140
+    }
+   ],
+   "title": "K1 cutoff relay shield",
+   "sub": [
+    "SRD-05VDC-SL-C · coil side"
+   ]
+  },
+  {
+   "ref": "R2",
+   "kind": "resistor",
+   "at": [
+    850,
+    470
+   ],
+   "dir": "down",
+   "len": 50,
+   "label_side": "left"
+  },
+  {
+   "ref": "C14",
+   "kind": "block",
+   "style": "grey",
+   "at": [
+    1200,
+    170
+   ],
+   "w": 160,
+   "h": 36,
+   "title": "C14 inlet (fused L)",
+   "title_y": 193,
+   "bottom": [
+    {
+     "pin": "L",
+     "x": 20
+    }
+   ],
+   "stub": 24,
+   "hide_pin_labels": true
+  },
+  {
+   "ref": "K1",
+   "kind": "switch",
+   "at": [
+    1220,
+    330
+   ],
+   "title": ""
+  },
+  {
+   "ref": "SSR",
+   "kind": "block",
+   "style": "red",
+   "at": [
+    1200,
+    450
+   ],
+   "w": 160,
+   "h": 70,
+   "title": "SSR (AC side)",
+   "sub": [
+    "1 ← K1 NO · 2 → outlet"
+   ],
+   "top": [
+    {
+     "pin": "AC1",
+     "x": 130
+    }
+   ],
+   "bottom": [
+    {
+     "pin": "AC2",
+     "x": 75
+    }
+   ],
+   "hide_pin_labels": true
+  },
+  {
+   "ref": "OUT",
+   "kind": "block",
+   "style": "grey",
+   "at": [
+    1210,
+    610
+   ],
+   "w": 140,
+   "h": 40,
+   "title": "outlet hot (black)",
+   "title_y": 635,
+   "top": [
+    {
+     "pin": "L",
+     "x": 65
+    }
+   ],
+   "hide_pin_labels": true
+  }
+ ],
+ "wires": [
+  {
+   "from": "ESP.26",
+   "to": "SSR.IN+",
+   "label": "GPIO26 · SSR",
+   "label_at": [
+    890,
+    342
+   ]
+  },
+  {
+   "from": "ESP.27",
+   "to": "K1.D1",
+   "label": "GPIO27 · RELAY",
+   "label_at": [
+    890,
+    462
+   ]
+  },
+  {
+   "from": "IR.VIN",
+   "to": "C1.1"
+  },
+  {
+   "from": "C1.2",
+   "to": "IR.GND",
+   "via": [
+    [
+     420,
+     1036
+    ],
+    [
+     420,
+     1002
+    ]
+   ]
+  },
+  {
+   "from": "C14.L",
+   "to": "K1.COM",
+   "w": 3
+  },
+  {
+   "from": "K1.NO",
+   "to": "SSR.AC1",
+   "via": [
+    [
+     1330,
+     300
+    ]
+   ],
+   "w": 3
+  },
+  {
+   "from": "SSR.AC2",
+   "to": "OUT.L",
+   "w": 3
+  }
+ ],
+ "tags": [
+  {
+   "pin": "ESP.3V3",
+   "net": "3V3",
+   "side": "left",
+   "len": 40
+  },
+  {
+   "pin": "ESP.GND",
+   "net": "GND",
+   "side": "left",
+   "len": 40
+  },
+  {
+   "pin": "ESP.21",
+   "net": "SDA",
+   "side": "left",
+   "len": 40
+  },
+  {
+   "pin": "ESP.22",
+   "net": "SCL",
+   "side": "left",
+   "len": 40
+  },
+  {
+   "pin": "ESP.4",
+   "net": "IO4",
+   "side": "left",
+   "len": 40
+  },
+  {
+   "pin": "ESP.16",
+   "net": "IO16",
+   "side": "left",
+   "len": 40
+  },
+  {
+   "pin": "ESP.5V",
+   "net": "+5V",
+   "side": "right",
+   "len": 30
+  },
+  {
+   "pin": "ESP.GND_2",
+   "net": "GND",
+   "side": "right",
+   "len": 30
+  },
+  {
+   "pin": "OLED.GND",
+   "net": "GND",
+   "side": "right",
+   "len": 0
+  },
+  {
+   "pin": "OLED.VCC",
+   "net": "3V3",
+   "side": "right",
+   "len": 0
+  },
+  {
+   "pin": "OLED.SCL",
+   "net": "SCL",
+   "side": "right",
+   "len": 0
+  },
+  {
+   "pin": "OLED.SDA",
+   "net": "SDA",
+   "side": "right",
+   "len": 0
+  },
+  {
+   "pin": "SHT30.VCC",
+   "net": "3V3",
+   "side": "right",
+   "len": 0
+  },
+  {
+   "pin": "SHT30.GND",
+   "net": "GND",
+   "side": "right",
+   "len": 0
+  },
+  {
+   "pin": "SHT30.SDA",
+   "net": "SDA",
+   "side": "right",
+   "len": 0
+  },
+  {
+   "pin": "SHT30.SCL",
+   "net": "SCL",
+   "side": "right",
+   "len": 0
+  },
+  {
+   "pin": "STONE.DAT",
+   "net": "IO4",
+   "side": "right",
+   "len": 0
+  },
+  {
+   "pin": "STONE.VCC",
+   "net": "3V3",
+   "side": "right",
+   "len": 0
+  },
+  {
+   "pin": "STONE.GND",
+   "net": "GND",
+   "side": "right",
+   "len": 0
+  },
+  {
+   "pin": "COOL.DAT",
+   "net": "IO16",
+   "side": "right",
+   "len": 0
+  },
+  {
+   "pin": "COOL.VCC",
+   "net": "3V3",
+   "side": "right",
+   "len": 0
+  },
+  {
+   "pin": "COOL.GND",
+   "net": "GND",
+   "side": "right",
+   "len": 0
+  },
+  {
+   "pin": "RJ45.SDA",
+   "net": "SDA",
+   "side": "right",
+   "len": 0
+  },
+  {
+   "pin": "RJ45.SCL",
+   "net": "SCL",
+   "side": "right",
+   "len": 0
+  },
+  {
+   "pin": "RJ45.3V3",
+   "net": "3V3",
+   "side": "right",
+   "len": 0
+  },
+  {
+   "pin": "RJ45.GND",
+   "net": "GND",
+   "side": "right",
+   "len": 0
+  },
+  {
+   "pin": "IR.SDA",
+   "net": "SDA",
+   "side": "left",
+   "len": 0
+  },
+  {
+   "pin": "IR.SCL",
+   "net": "SCL",
+   "side": "left",
+   "len": 0
+  },
+  {
+   "at": [
+    450,
+    976
+   ],
+   "net": "3V3",
+   "side": "right"
+  },
+  {
+   "pin": "R1.2",
+   "net": "GND",
+   "side": "down",
+   "len": 0
+  },
+  {
+   "pin": "R2.2",
+   "net": "GND",
+   "side": "down",
+   "len": 0
+  },
+  {
+   "pin": "SSR.IN-",
+   "net": "GND",
+   "side": "left",
+   "len": 0
+  },
+  {
+   "pin": "K1.5V",
+   "net": "+5V",
+   "side": "left",
+   "len": 0
+  },
+  {
+   "pin": "K1.GND",
+   "net": "GND",
+   "side": "left",
+   "len": 0
+  },
+  {
+   "pin": "C1.2",
+   "net": "GND",
+   "side": "down",
+   "len": 0
+  }
+ ],
+ "decor": [
+  {
+   "line": [
+    [
+     1140,
+     500
+    ],
+    [
+     1160,
+     500
+    ],
+    [
+     1160,
+     330
+    ],
+    [
+     1214,
+     330
+    ]
+   ],
+   "color": "#1D4ED8",
+   "dash": true
+  },
+  {
+   "line": [
+    [
+     260,
+     874
+    ],
+    [
+     260,
+     910
+    ]
+   ],
+   "color": "#7F77DD",
+   "w": 3,
+   "dash": true
+  }
+ ],
+ "texts": [
+  {
+   "at": [
+    272,
+    896
+   ],
+   "text": "Cat6 patch, ~1.5 m",
+   "size": 10,
+   "color": "#534AB7",
+   "weight": "bold"
+  },
+  {
+   "at": [
+    1166,
+    322
+   ],
+   "text": "coil",
+   "size": 10,
+   "color": "#1D4ED8",
+   "anchor": "middle"
+  },
+  {
+   "at": [
+    1325,
+    680
+   ],
+   "text": "Neutral and ground run straight",
+   "size": 10,
+   "anchor": "middle"
+  },
+  {
+   "at": [
+    1325,
+    694
+   ],
+   "text": "from C14 to the outlet",
+   "size": 10,
+   "anchor": "middle"
+  },
+  {
+   "at": [
+    1040,
+    606
+   ],
+   "text": "R1, R2 keep SSR and relay off while the ESP32 boots",
+   "size": 10,
+   "anchor": "middle"
+  },
+  {
+   "at": [
+    1255,
+    400
+   ],
+   "text": "K1 screw terminal",
+   "size": 9,
+   "anchor": "middle"
+  },
+  {
+   "at": [
+    1255,
+    413
+   ],
+   "text": "COM = middle screw",
+   "size": 9,
+   "anchor": "middle"
+  }
+ ],
+ "parts_table": [
+  "K1",
+  "SSR",
+  "R1",
+  "R2",
+  "C1"
+ ],
+ "parts_table_x": 330,
+ "checklist": [
+  "Relay shield: power 5V/GND, touch D1 to 3V3: it should click and its LED light.",
+  "Meter COM–NO: open with the shield unpowered, closed when D1 is high. Do this before any mains wiring.",
+  "SSR input polarity: 3 (+) to GPIO26, 4 (−) to GND.",
+  "Mains (C14, K1 terminals, SSR AC side) never on the protoboard.",
+  "Sensors on 3V3 only, never 5V.",
+  "Bench test with a lamp before the heat panel."
+ ],
+ "notes": [
+  "SDA/SCL are shared by the OLED, SHT30 and IR sensor (I2C at 50 kHz); their boards supply the pull-ups. The DS18B20 adapters carry their own 4.7k pull-ups.",
+  "An optional upstream failsafe (ZEN04 or ITC-308) plugs in between the wall and the C14 cord; see BUILD.md."
+ ]
+}

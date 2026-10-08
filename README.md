@@ -21,6 +21,7 @@ ESP32 · 2× DS18B20 (stone surface, cool side) · MLX90614ESF-DCI IR sensor (ov
 |---|---|
 | `snake-thermostat.yaml` | ESPHome firmware config |
 | `secrets.example.yaml` | Template for `secrets.yaml` (Wi-Fi, API, OTA) |
+| `diagrams/schematic.svg` | Complete schematic, checked against `diagrams/circuit.json` |
 | `snake-thermostat-wiring.drawio` | Wiring diagrams: low-voltage and mains pages (open at diagrams.net) |
 | `BUILD.md` | Parts, wiring tables, sensor placement, failsafe design, bring-up checklist |
 | `ENTITIES.md` | Home Assistant entities and an example dashboard card |
