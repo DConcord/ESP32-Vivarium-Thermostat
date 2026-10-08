@@ -4,14 +4,14 @@
 // -Y wall = BACK (inlet, outlet, cable grommets). +Y wall = FRONT (OLED window).
 include <BOSL2/std.scad>
 $fa = 1; $fs = 0.2;
-part = "base";                  // "base" | "lid" | "assembly"
+part = "base";                  // "base" | "lid" (print); "assembly" | "mockup" | "mockup_open" | "empty" (preview)
 eps = 0.01;
 
 // ---- parameters ----
 wall = 3;  floor_t = 3;
-mains_w = 90;                   // mains bay interior width (X)
+mains_w = 100;                  // mains bay interior width (X): SSR + cutoff relay
 div_t = 2;                      // divider thickness
-lv_w = 92;                      // low-voltage bay interior width (X)
+lv_w = 98;                      // low-voltage bay interior width (X): CircuitSetup board
 in_y = 90;  in_h = 45;          // interior depth (Y) and height (Z)
 corner_r = 4;                   // outer vertical-edge rounding
 
@@ -23,7 +23,14 @@ m3_clear = 3.4;  m3_head_d = 6.2;  m3_head_depth = 1.5;
 // Inkbird SSR-40DA: 62.5 x 45 body, M4 holes 47.6 apart along the long axis
 ssr_size = [62.5, 45];  ssr_hole_pitch = 47.6;
 ssr_boss_d = 10;  ssr_boss_h = 8;  m4_insert_d = 5.1;  m4_insert_depth = 9.5;  // M4 x 8 inserts
-ssr_center_y = 66;              // SSR sits in the back half of the mains bay
+ssr_cx = 37.25;  ssr_center_y = 62;  // front-left of the mains bay, clear of the corner boss
+// Cutoff relay: Wemos D1 mini relay shield (SRD-05VDC-SL-C), no mounting holes.
+// It drops onto 4 corner posts (L-shaped, open sides for wiring); header pins hang below.
+// Screw terminals face the back (inlet/outlet), pin row with 5V/GND/D1 faces the divider.
+relay_pcb = [25.6, 34.2, 1.6];  // X, Y, thickness (verify)
+relay_lift = 14;                // PCB underside above the floor: room for header pins + dupont
+relay_cy = 69;  relay_gap = 1.5;  // relay center Y; clearance from the divider
+relay_clr = 0.25;  relay_post = 4;  relay_post_t = 1.6;  relay_ledge = 2.5;  relay_locate_h = 2;
 
 // C14 fused inlet (screw-ear type): panel cutout and ear holes
 c14_cut = [28, 32];  c14_hole_pitch = 40;  c14_x = 31;
@@ -41,11 +48,14 @@ grommet_panel_t = 1.6;          // grommet groove width; wall is thinned to this
 grommet_z = 19;  grommet_pitch = 36;  grommet_slot_w = 8;  // slot passes Cat6 (~6 mm)
 grommet_pocket_d = grommet_flange_d + 3;
 lid_tab_clr = 0.3;
-pb_size = [84, 53];             // ElectroCookie full board (verify)
-pb_hole_pitch = 73.7;           // 2 centerline mounting holes, ~29 rows x 2.54 (verify)
-pb_center_y = 55;
+// CircuitSetup Project Box Breadboard (measured from photo via 2.54 mm hole pitch; verify)
+pb_size = [95, 56];  pb_hole_pitch = [87, 47.7];  // 4 corner M3 holes
+pb_center_y = 55;  pb_edge_gap = 1.5;          // USB end of the board this far from the +X wall
+// ESP32-DevKitC 38-pin on 8.5 mm female headers; micro-USB at the column-30 end, faces +X wall
+esp_hdr_h = 8.5;  usb_in = 9.5;  usb_y_off = 0;  // port mouth inside board edge; Y offset from board center
+usb_open = [15, 11];            // opening in +X wall for the plug overmold (Y, Z)
 standoff_d = 8.5;  standoff_h = 6;  pb_insert_depth = 6.5;  // M3 x 5 inserts
-div_notch = [10, 8];            // wire pass-through at floor (Y width, Z height)
+div_notch = [10, 8];  div_notch_y = 42;  // wire pass-through at floor (Y width, Z height), center Y
 
 // Lid
 lid_t = 3;  lip_h = 3;  lip_t = 1.6;  lip_clr = 0.2;
@@ -64,6 +74,11 @@ div_x = wall + mains_w;                       // divider left face
 lv_x0 = div_x + div_t;                        // LV bay interior start
 lv_cx = lv_x0 + lv_w/2;
 mains_cx = wall + mains_w/2;
+relay_cx = div_x - relay_gap - relay_post_t - relay_clr - relay_pcb.x/2;
+relay_in = [relay_pcb.x + 2*relay_clr, relay_pcb.y + 2*relay_clr];
+pb_cx = outer.x - wall - pb_edge_gap - pb_size.x/2;
+pb_top_z = floor_t + standoff_h + 1.6;
+usb_z = pb_top_z + esp_hdr_h + 1.6 + 1.5;
 mid_z = floor_t + in_h/2;
 boss_off = wall + boss_d/2 - 1;               // boss centers from outer edges
 boss_pts = [for (x=[boss_off, outer.x-boss_off], y=[boss_off, outer.y-boss_off]) [x,y]];
@@ -82,13 +97,24 @@ assert(standoff_d - 4.5 >= 3.5, "standoff wall too thin around insert");
 assert(c14_x - c14_hole_pitch/2 - 4 > wall, "C14 ears hit left wall");
 assert(outlet_x + outlet_pocket.x/2 < div_x, "outlet pocket crosses divider");
 assert(c14_x + c14_hole_pitch/2 + 4 < outlet_x - outlet_pocket.x/2, "C14 and outlet overlap");
-assert(mains_cx + ssr_size.x/2 < div_x && mains_cx - ssr_size.x/2 > wall, "SSR does not fit");
+assert(ssr_cx - ssr_size.x/2 > wall + 2, "SSR hits left wall");
+assert(ssr_cx + ssr_size.x/2 + 3 < relay_cx - relay_in.x/2 - relay_post_t, "SSR hits relay posts");
+assert(ssr_center_y + ssr_size.y/2 < outer.y - boss_off - boss_d/2, "SSR hits front-left boss");
+assert(relay_cy - relay_in.y/2 - relay_post_t > div_notch_y + div_notch.x/2, "relay posts block divider notch");
+assert(relay_cy + relay_in.y/2 + relay_post_t < outer.y - wall, "relay hits front wall");
 assert(grommet_pitch/2 + grommet_pocket_d/2 + boss_d < lv_w/2, "grommet pocket hits corner boss");
 assert(grommet_pitch > grommet_pocket_d, "grommet pockets overlap");
 assert(grommet_z - grommet_flange_d/2 > floor_t, "grommet flange hits floor");
 assert(oled_rail_top <= outer.z - lip_h - 0.3, "OLED rails hit lid lip");
 assert(pb_center_y + pb_size.y/2 < oled_y_back - 1, "protoboard hits OLED rails");
-assert(pb_size.x < lv_w && pb_center_y + pb_size.y/2 < wall + in_y && pb_center_y - pb_size.y/2 > wall + 14, "protoboard does not fit");
+assert(pb_cx - pb_size.x/2 > lv_x0 + 0.5, "protoboard does not fit the LV bay");
+assert(pb_center_y + pb_size.y/2 < outer.y - boss_off - boss_d/2, "protoboard hits front bosses");
+
+// axis-aligned box between two opposite corners (any order)
+module box_between(p1, p2) {
+  translate([min(p1.x,p2.x), min(p1.y,p2.y), min(p1.z,p2.z)])
+    cube([abs(p2.x-p1.x), abs(p2.y-p1.y), abs(p2.z-p1.z)]);
+}
 
 // ---- geometry: base ----
 module base() {
@@ -104,11 +130,18 @@ module base() {
       // divider
       translate([div_x, wall-eps, 0]) cube([div_t, in_y+2*eps, outer.z]);
       // SSR bosses
-      for (s=[-1,1]) translate([mains_cx + s*ssr_hole_pitch/2, ssr_center_y, 0])
+      for (s=[-1,1]) translate([ssr_cx + s*ssr_hole_pitch/2, ssr_center_y, 0])
         cyl(d=ssr_boss_d, h=floor_t+ssr_boss_h, anchor=BOT);
       // protoboard standoffs
-      for (sx=[-1,1]) translate([lv_cx + sx*pb_hole_pitch/2, pb_center_y, 0])
+      for (sx=[-1,1], sy=[-1,1]) translate([pb_cx + sx*pb_hole_pitch.x/2, pb_center_y + sy*pb_hole_pitch.y/2, 0])
         cyl(d=standoff_d, h=floor_t+standoff_h, anchor=BOT);
+      // relay shield corner posts: solid up to the ledge, L-walls above to locate the PCB
+      post_h = floor_t + relay_lift + relay_pcb.z + relay_locate_h;
+      for (sx=[-1,1], sy=[-1,1]) translate([relay_cx + sx*relay_in.x/2, relay_cy + sy*relay_in.y/2, 0]) {
+        box_between([-sx*relay_ledge, -sy*relay_ledge, 0], [0, 0, floor_t + relay_lift]);           // ledge
+        box_between([0, -sy*relay_post, 0], [sx*relay_post_t, sy*relay_post_t, post_h]);           // wall beyond X edge
+        box_between([-sx*relay_post, 0, 0], [sx*relay_post_t, sy*relay_post_t, post_h]);           // wall beyond Y edge
+      }
       // C14 ear pads (inverted teardrop: no overhang underneath)
       for (s=[-1,1]) translate([c14_x + s*c14_hole_pitch/2, wall + c14_pad_t/2 - eps, mid_z])
         mirror([0,0,1]) teardrop(h=c14_pad_t + 2*eps, d=c14_pad_d);
@@ -128,13 +161,16 @@ module base() {
     for (p = boss_pts) translate([p.x, p.y, outer.z - m3_insert_depth])
       cyl(d=m3_insert_d, h=m3_insert_depth+eps, anchor=BOT);
     // SSR inserts
-    for (s=[-1,1]) translate([mains_cx + s*ssr_hole_pitch/2, ssr_center_y, floor_t+ssr_boss_h-m4_insert_depth])
+    for (s=[-1,1]) translate([ssr_cx + s*ssr_hole_pitch/2, ssr_center_y, floor_t+ssr_boss_h-m4_insert_depth])
       cyl(d=m4_insert_d, h=m4_insert_depth+eps, anchor=BOT);
     // protoboard inserts
-    for (sx=[-1,1]) translate([lv_cx + sx*pb_hole_pitch/2, pb_center_y, floor_t+standoff_h-pb_insert_depth])
+    for (sx=[-1,1], sy=[-1,1]) translate([pb_cx + sx*pb_hole_pitch.x/2, pb_center_y + sy*pb_hole_pitch.y/2, floor_t+standoff_h-pb_insert_depth])
       cyl(d=m3_insert_d, h=pb_insert_depth+eps, anchor=BOT);
+    // USB opening in the +X wall for the ESP32's micro-USB plug
+    translate([outer.x - wall/2, pb_center_y + usb_y_off, usb_z])
+      cuboid([wall + 2*eps, usb_open.x, usb_open.y], rounding=2, edges="X");
     // divider wire notch
-    translate([div_x-eps, outer.y/2 - div_notch.x/2, floor_t-eps]) cube([div_t+2*eps, div_notch.x, div_notch.y]);
+    translate([div_x-eps, div_notch_y - div_notch.x/2, floor_t-eps]) cube([div_t+2*eps, div_notch.x, div_notch.y]);
     // C14 inlet cutout + ear holes (-Y wall)
     translate([c14_x, wall/2, mid_z]) cube([c14_cut.x, wall+2*eps, c14_cut.y], center=true);
     for (s=[-1,1]) translate([c14_x + s*c14_hole_pitch/2, -eps, mid_z])
@@ -204,8 +240,17 @@ else if (part == "assembly") {
 module components() {
   ssr_z = floor_t + ssr_boss_h;
   // SSR-40DA
-  color("Gainsboro") translate([mains_cx, ssr_center_y, ssr_z]) cuboid([ssr_size.x, ssr_size.y, 23], anchor=BOT);
-  color("Silver") for (sx=[-1,1], sy=[-1,1]) translate([mains_cx + sx*20, ssr_center_y + sy*11, ssr_z + 23]) cyl(d=7, h=2, anchor=BOT);
+  color("Gainsboro") translate([ssr_cx, ssr_center_y, ssr_z]) cuboid([ssr_size.x, ssr_size.y, 23], anchor=BOT);
+  color("Silver") for (sx=[-1,1], sy=[-1,1]) translate([ssr_cx + sx*20, ssr_center_y + sy*11, ssr_z + 23]) cyl(d=7, h=2, anchor=BOT);
+  // cutoff relay shield on its corner posts: relay toward the front, terminals toward the back
+  rz = floor_t + relay_lift;
+  translate([relay_cx, relay_cy, rz]) {
+    color("#1e3a8a") cuboid([relay_pcb.x, relay_pcb.y, relay_pcb.z], anchor=BOT);
+    color("#2563eb") translate([0, 4, relay_pcb.z]) cuboid([15.5, 19, 15.3], anchor=BOT);
+    color("#3b82f6") translate([0, -relay_pcb.y/2 + 4.5, relay_pcb.z]) cuboid([16, 7.5, 9], anchor=BOT);
+    color("#222") for (sx=[-1,1]) translate([sx*(relay_pcb.x/2 - 1.6), 0, 0]) cuboid([2.5, 20.3, 2.5], anchor=TOP);
+    color("Silver") for (sx=[-1,1], k=[0:7]) translate([sx*(relay_pcb.x/2 - 1.6), -8.9 + k*2.54, 0]) cuboid([0.64, 0.64, 8.5], anchor=TOP);
+  }
   // C14 inlet: flange outside, body inside
   color("#222") translate([c14_x, 0, mid_z]) {
     translate([0, -3, 0]) cuboid([c14_hole_pitch + 8, 3, c14_cut.y + 2], rounding=2, edges="Y", anchor=FRONT);
@@ -218,12 +263,21 @@ module components() {
   color("#111") translate([outlet_x, -0.6, mid_z]) cuboid([outlet_cut.x + 2, 0.6, outlet_cut.y + 2], anchor=FRONT);
   // heat panel plug in the outlet
   color("#ddd") translate([outlet_x, -0.6, mid_z]) cuboid([22, 26, 24], rounding=3, anchor=BACK);
-  // protoboard + ESP32 on female headers
+  // CircuitSetup board + ESP32-DevKitC on female headers (rows a and i, 0.9" apart), USB toward +X
   pb_z = floor_t + standoff_h;
-  color("#111") translate([lv_cx, pb_center_y, pb_z]) cuboid([pb_size.x, pb_size.y, 1.6], rounding=3, edges="Z", anchor=BOT);
-  color("#333") for (sy=[-1,1]) translate([lv_cx, pb_center_y + sy*12.7, pb_z + 1.6]) cuboid([48, 2.5, 8.5], anchor=BOT);
-  color("#1a1a1a") translate([lv_cx, pb_center_y, pb_z + 10.1]) cuboid([55, 28, 1.6], anchor=BOT);
-  color("Silver") translate([lv_cx + 14, pb_center_y, pb_z + 11.7]) cuboid([18, 25, 3], anchor=BOT);
+  esp_x1 = pb_cx + pb_size.x/2 - usb_in;   // USB end of the ESP32 board
+  esp_cx = esp_x1 - 55/2;
+  color("#111") translate([pb_cx, pb_center_y, pb_z]) cuboid([pb_size.x, pb_size.y, 1.6], rounding=3, edges="Z", anchor=BOT);
+  color("#333") for (sy=[-1,1]) translate([esp_cx + 2, pb_center_y + sy*22.86/2, pb_top_z]) cuboid([48.3, 2.5, esp_hdr_h], anchor=BOT);
+  color("#1a1a1a") translate([esp_cx, pb_center_y, pb_top_z + esp_hdr_h]) cuboid([55, 28, 1.6], anchor=BOT);
+  color("Silver") translate([esp_x1 - 55 + 9, pb_center_y, pb_top_z + esp_hdr_h + 1.6]) cuboid([18, 25.5, 3], anchor=BOT);
+  color("Silver") translate([esp_x1, pb_center_y + usb_y_off, usb_z]) cuboid([5.5, 7.5, 3], anchor=RIGHT);
+  // micro-USB plug through the side wall
+  color("#222") translate([esp_x1, pb_center_y + usb_y_off, usb_z]) {
+    cuboid([6, 7, 2], anchor=LEFT);
+    translate([6, 0, 0]) cuboid([16, 11, 8], rounding=2, edges="X", anchor=LEFT);
+    translate([21, 0, 0]) cyl(d=3.5, h=25, orient=RIGHT, anchor=BOT);
+  }
   // OLED module in its grooves
   oy = oled_y_in - oled_glass_t - oled_clr;
   color("#1565c0") translate([lv_cx, oy, oled_z0]) cuboid([oled_pcb.x, oled_pcb.z, oled_pcb.y], anchor=BACK+BOT);
@@ -238,7 +292,7 @@ module components() {
       cyl(d=12.7, h=10);
     }
   }
-  cab = [[-1, [[-2.5, 1.5, 6.0, "#3a7bd5"], [3.5, -2, 3.5, "#111"]]],        // Cat6 + USB
+  cab = [[-1, [[0, 0, 6.0, "#3a7bd5"]]],                                     // Cat6 (IR sensor)
          [ 1, [[-2.6, -1.5, 4.0, "#111"], [2.6, -1.5, 4.0, "#111"], [0, 2.6, 4.5, "#111"]]]]; // DS18B20 x2 + SHT30
   for (g = cab) for (c = g[1]) color(c[3])
     translate([lv_cx + g[0]*grommet_pitch/2 + c[0], -40, grommet_z + c[1]]) cyl(d=c[2], h=40 + 20, orient=BACK, anchor=BOT);
