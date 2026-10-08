@@ -12,9 +12,9 @@
 <polyline points="1140,500 1160,500 1160,330 1214,330" fill="none" stroke="#1D4ED8" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="6,5"/>
 <polyline points="260,874 260,910" fill="none" stroke="#7F77DD" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="6,5"/>
 <polyline points="800,350 920,350" fill="none" stroke="#EA580C" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-<text x="890.0" y="342.0" font-size="10.5" fill="#EA580C" text-anchor="middle" font-weight="bold">GPIO26 · SSR</text>
+<text x="890.0" y="342.0" font-size="10.5" fill="#EA580C" text-anchor="middle" font-weight="bold">GPIO19 · SSR</text>
 <polyline points="800,470 920,470" fill="none" stroke="#C026D3" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-<text x="890.0" y="462.0" font-size="10.5" fill="#C026D3" text-anchor="middle" font-weight="bold">GPIO27 · RELAY</text>
+<text x="890.0" y="462.0" font-size="10.5" fill="#C026D3" text-anchor="middle" font-weight="bold">GPIO18 · RELAY</text>
 <polyline points="390,976 450,976" fill="none" stroke="#DC2626" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
 <polyline points="450,1036 420,1036 420,1002 390,1002" fill="none" stroke="#374151" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
 <polyline points="1220,230 1220,330" fill="none" stroke="#B91C1C" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
@@ -38,9 +38,9 @@
 <polyline points="780,270 800,270" fill="none" stroke="#1F2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
 <text x="772.0" y="274.0" font-size="11" fill="#FDE68A" text-anchor="end" font-weight="bold">GND</text>
 <polyline points="780,350 800,350" fill="none" stroke="#1F2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<text x="772.0" y="354.0" font-size="11" fill="#FDE68A" text-anchor="end" font-weight="bold">GPIO26</text>
+<text x="772.0" y="354.0" font-size="11" fill="#FDE68A" text-anchor="end" font-weight="bold">GPIO19</text>
 <polyline points="780,470 800,470" fill="none" stroke="#1F2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<text x="772.0" y="474.0" font-size="11" fill="#FDE68A" text-anchor="end" font-weight="bold">GPIO27</text>
+<text x="772.0" y="474.0" font-size="11" fill="#FDE68A" text-anchor="end" font-weight="bold">GPIO18</text>
 <text x="690.0" y="510.0" font-size="13" fill="#F9FAFB" text-anchor="middle" font-weight="bold">ESP32 dev board</text>
 <text x="690.0" y="526.0" font-size="10" fill="#D1D5DB" text-anchor="middle" font-weight="normal">DevKitC 38-pin · WROOM-32U</text>
 <text x="690.0" y="540.0" font-size="10" fill="#D1D5DB" text-anchor="middle" font-weight="normal">(external U.FL antenna)</text>
@@ -244,9 +244,9 @@
 <text x="1255.0" y="413.0" font-size="9" fill="#6B7280" text-anchor="middle" font-weight="normal">COM = middle screw</text>
 <text x="40.0" y="1140.0" font-size="13" fill="#1F2937" text-anchor="start" font-weight="bold">Wire colours</text>
 <polyline points="40,1158 70,1158" fill="none" stroke="#EA580C" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-<text x="80.0" y="1162.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">GPIO26 · SSR pulse</text>
+<text x="80.0" y="1162.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">GPIO19 · SSR pulse</text>
 <polyline points="40,1178 70,1178" fill="none" stroke="#C026D3" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-<text x="80.0" y="1182.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">GPIO27 · cutoff relay</text>
+<text x="80.0" y="1182.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">GPIO18 · cutoff relay</text>
 <polyline points="40,1198 70,1198" fill="none" stroke="#DC2626" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
 <text x="80.0" y="1202.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">3V3</text>
 <polyline points="40,1218 70,1218" fill="none" stroke="#374151" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
@@ -284,20 +284,20 @@
 <text x="330.0" y="1184.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">K1</text>
 <text x="400.0" y="1184.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">Relay shield, SRD-05VDC-SL-C</text>
 <text x="630.0" y="1184.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">D1 mini shield, 5 V coil</text>
-<text x="850.0" y="1184.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">D1 ← GPIO27 · 5V · GND · COM/NO mains</text>
+<text x="850.0" y="1184.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">D1 ← GPIO18 · 5V · GND · COM/NO mains</text>
 <text x="330.0" y="1202.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">SSR</text>
 <text x="400.0" y="1202.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">Inkbird SSR-40DA</text>
 <text x="630.0" y="1202.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">or Crydom D2410</text>
-<text x="850.0" y="1202.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">IN ← GPIO26 · AC in series after K1</text>
+<text x="850.0" y="1202.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">IN ← GPIO19 · AC in series after K1</text>
 <rect x="326" y="1207" width="788" height="18" fill="#F3F4F6"/>
 <text x="330.0" y="1220.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">R1</text>
 <text x="400.0" y="1220.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">10k</text>
 <text x="630.0" y="1220.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">brown-black-orange</text>
-<text x="850.0" y="1220.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">GPIO26 to GND (SSR off at boot)</text>
+<text x="850.0" y="1220.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">GPIO19 to GND (SSR off at boot)</text>
 <text x="330.0" y="1238.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">R2</text>
 <text x="400.0" y="1238.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">10k</text>
 <text x="630.0" y="1238.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">brown-black-orange</text>
-<text x="850.0" y="1238.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">GPIO27 to GND (relay off at boot)</text>
+<text x="850.0" y="1238.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">GPIO18 to GND (relay off at boot)</text>
 <rect x="326" y="1243" width="788" height="18" fill="#F3F4F6"/>
 <text x="330.0" y="1256.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">C1</text>
 <text x="400.0" y="1256.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">100 nF ceramic</text>
@@ -309,7 +309,7 @@
 <text x="1120.0" y="1196.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">Meter COM–NO: open with the shield unpowered,</text>
 <text x="1120.0" y="1213.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">  closed when D1 is high. Do this before any</text>
 <text x="1120.0" y="1230.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">  mains wiring.</text>
-<text x="1120.0" y="1247.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">SSR input polarity: 3 (+) to GPIO26, 4 (−) to</text>
+<text x="1120.0" y="1247.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">SSR input polarity: 3 (+) to GPIO19, 4 (−) to</text>
 <text x="1120.0" y="1264.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">  GND.</text>
 <text x="1120.0" y="1281.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">Mains (C14, K1 terminals, SSR AC side) never</text>
 <text x="1120.0" y="1298.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">  on the protoboard.</text>

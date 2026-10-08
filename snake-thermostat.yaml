@@ -16,7 +16,7 @@
 #     reading. The hard limit (33.3°C / 92°F) is fixed in firmware.
 #   - Heater boots OFF; heat is enabled only once sensors are valid.
 #   - Two switches in series on the heater hot lead: the SSR pulses the
-#     heat, and a mechanical cutoff relay (GPIO27) opens on any fault,
+#     heat, and a mechanical cutoff relay (GPIO18) opens on any fault,
 #     over-limit reading, or Heater Enable off. A shorted SSR is still
 #     cut off by the relay.
 #   - "Alarm" latches on any over-temperature trip, a sensor fault lasting
@@ -439,18 +439,18 @@ button:
 
 # ---------------------------------------------------------------------
 # Heater outputs (in series on the heater hot lead):
-#   - SSR on GPIO26: pulse (slow PWM) heat control
-#   - Cutoff relay on GPIO27: closed only while heating is allowed
+#   - SSR on GPIO19: pulse (slow PWM) heat control
+#   - Cutoff relay on GPIO18: closed only while heating is allowed
 # (10k pull-downs on both pins keep them off during boot/flash)
 # ---------------------------------------------------------------------
 output:
   - platform: slow_pwm
     id: heater_pwm
-    pin: GPIO26
+    pin: GPIO19
     period: 15s
   - platform: gpio
     id: cutoff_relay
-    pin: GPIO27
+    pin: GPIO18
 
 # Target temperature is driven by the setpoint numbers above; changing it
 # directly on this entity is overwritten within 30 s.

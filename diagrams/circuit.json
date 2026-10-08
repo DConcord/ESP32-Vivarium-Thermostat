@@ -9,31 +9,32 @@
    "internal_ties": [
     [
      "GND",
-     "GND_2"
+     "GND_2",
+     "GND_3"
     ]
    ],
    "pin_names": {
-    "26": "GPIO26",
-    "27": "GPIO27",
     "21": "GPIO21",
     "22": "GPIO22",
     "4": "GPIO4",
     "16": "GPIO16",
     "5V": "5V / VIN",
-    "GND_2": "GND"
+    "GND_2": "GND",
+    "19": "GPIO19",
+    "18": "GPIO18"
    }
   },
   "R1": {
    "type": "10k",
    "identify": "brown-black-orange",
    "board": "esp32",
-   "connects": "GPIO26 to GND (SSR off at boot)"
+   "connects": "GPIO19 to GND (SSR off at boot)"
   },
   "R2": {
    "type": "10k",
    "identify": "brown-black-orange",
    "board": "esp32",
-   "connects": "GPIO27 to GND (relay off at boot)"
+   "connects": "GPIO18 to GND (relay off at boot)"
   },
   "C1": {
    "type": "100 nF ceramic",
@@ -45,13 +46,13 @@
    "type": "Inkbird SSR-40DA",
    "identify": "or Crydom D2410",
    "board": "offboard",
-   "connects": "IN ← GPIO26 · AC in series after K1"
+   "connects": "IN ← GPIO19 · AC in series after K1"
   },
   "K1": {
    "type": "Relay shield, SRD-05VDC-SL-C",
    "identify": "D1 mini shield, 5 V coil",
    "board": "offboard",
-   "connects": "D1 ← GPIO27 · 5V · GND · COM/NO mains",
+   "connects": "D1 ← GPIO18 · 5V · GND · COM/NO mains",
    "pin_names": {
     "D1": "D1 (signal)"
    }
@@ -115,6 +116,7 @@
   "GND": [
    "ESP.GND",
    "ESP.GND_2",
+   "ESP.GND_3",
    "R1.2",
    "R2.2",
    "SSR.IN-",
@@ -128,12 +130,12 @@
    "C1.2"
   ],
   "SSR_SIG": [
-   "ESP.26",
+   "ESP.19",
    "R1.1",
    "SSR.IN+"
   ],
   "RELAY_SIG": [
-   "ESP.27",
+   "ESP.18",
    "R2.1",
    "K1.D1"
   ],
@@ -201,11 +203,11 @@
   },
   "SSR_SIG": {
    "color": "#EA580C",
-   "label": "GPIO26 · SSR pulse"
+   "label": "GPIO19 · SSR pulse"
   },
   "RELAY_SIG": {
    "color": "#C026D3",
-   "label": "GPIO27 · cutoff relay"
+   "label": "GPIO18 · cutoff relay"
   },
   "SDA": {
    "color": "#0284C7",

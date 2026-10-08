@@ -46,7 +46,7 @@ See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
 | Cat6 stranded patch cable (cut in half) | 1 | $5–8 | Any; solid-core bulk cable not recommended |
 | RJ45 jack for the main board | 1 | $1–2 | Through-hole RJ45 or a second screw adapter |
 | RJ45 screw-terminal adapter (sensor end) | 1 | $10–15 | XUGERIP 4-pack [Amazon B0FQJTKCZZ](https://www.amazon.com/dp/B0FQJTKCZZ) or [SchmalzTech mini](https://www.robotshop.com/products/schmalztech-rj45-mini-screw-terminal-breakout-board) |
-| 10k resistors (GPIO26/GPIO27 pull-downs), 100 nF capacitors | few | $1 | Any |
+| 10k resistors (GPIO19/GPIO18 pull-downs), 100 nF capacitors | few | $1 | Any |
 | Inkbird SSR-40DA (budget) **or** genuine Crydom D2410 | 1 | $10 / $48–57 | Inkbird [Amazon B00HV974KC](https://www.amazon.com/dp/B00HV974KC); Crydom via [Digi-Key](https://www.digikey.com/en/products/result?keywords=Crydom%20D2410) |
 | Wemos D1 mini relay shield (SRD-05VDC-SL-C, 5V coil, 10A) | 1 | $3–5 | Amazon "D1 mini relay shield"; cutoff relay in series with the SSR |
 | *Optional:* Zooz ZEN04 Z-Wave plug **or** Inkbird ITC-308 | 1 | $35–40 | Independent upstream failsafe; [getzooz.com](https://www.getzooz.com) |
@@ -79,8 +79,8 @@ All sensors on **3V3**, never 5V/VIN.
 | SHT30 probe | 0x44 | SDA GPIO21 / SCL GPIO22 | Red VCC, black GND, yellow/white = SDA/SCL (verify) |
 | SH1106 OLED | 0x3C | SDA GPIO21 / SCL GPIO22 | Header: GND VCC SCL SDA |
 | GY-906-DCI (MLX90614) | 0x5A | SDA GPIO21 / SCL GPIO22 | Via Cat6 + RJ45 (map below) |
-| SSR input | — | GPIO26 → terminal 3 (+), GND → terminal 4 (−) | **10k pull-down GPIO26 → GND** |
-| Cutoff relay shield | — | GPIO27 → shield **D1**, ESP32 5V/VIN → shield **5V**, GND → shield **GND** | **10k pull-down GPIO27 → GND**. Coil is 5V (~70–90 mA from USB); 3.3V logic drives the shield's transistor |
+| SSR input | — | GPIO19 → terminal 3 (+), GND → terminal 4 (−) | **10k pull-down GPIO19 → GND** |
+| Cutoff relay shield | — | GPIO18 → shield **D1**, ESP32 5V/VIN → shield **5V**, GND → shield **GND** | **10k pull-down GPIO18 → GND**. Coil is 5V (~70–90 mA from USB); 3.3V logic drives the shield's transistor |
 
 **Cat6 (T568B) pair map to the GY-906**
 
@@ -95,7 +95,7 @@ Notes:
 - Each DS18B20 has its own GPIO because the adapter boards have built-in pull-ups. The OLED and GY-906 boards supply I2C pull-ups, so don't add more unless the I2C scan fails.
 - I2C runs at 50 kHz for the Cat6 run. Add a 100 nF capacitor across VIN/GND at the sensor-end adapter.
 - If the SSR triggers unreliably at 3.3V, drive it from 5V through an NPN transistor (1k base resistor) or a logic-level MOSFET (100 Ω gate, 10k pull-down).
-- For a possible second channel: GPIO17/18 (DS18B20s), GPIO32/33 (second I2C bus for a second MLX), SHT30 at 0x45, GPIO25 (second SSR), GPIO14 (second cutoff relay). Avoid GPIO0, 2, 12, 15 and 34–39.
+- For a possible second channel: GPIO17/23 (DS18B20s), GPIO32/33 (second I2C bus for a second MLX), SHT30 at 0x45, GPIO26 (second SSR), GPIO27 (second cutoff relay). Avoid GPIO0, 2, 12, 15 and 34–39.
 
 ## Mains-side wiring
 
@@ -129,11 +129,11 @@ Path: wall outlet → *(optional ZEN04 / ITC-308)* → C13 cord → **C14 fused 
 
 ## ESPHome config summary (`snake-thermostat.yaml`)
 
-- `slow_pwm` output on GPIO26 (15 s period) driven by a `pid` climate entity.
+- `slow_pwm` output on GPIO19 (15 s period) driven by a `pid` climate entity.
 - Control sensor "Hot Zone (Control)" = max(stone, IR), NaN if either is invalid.
 - Day/night setpoints and schedule hours are number entities (persisted in flash). The active setpoint is pushed to the thermostat every 30 s and on any change. Time comes from SNTP, then Home Assistant; with no valid time, the day setpoint is used.
 - Safety loop (2 s): forces heat off on any fault, clears once readings are valid and below 90°F, and only heats while **Heater Enable** is on. The 92°F hard limit is fixed in firmware.
-- Cutoff relay (GPIO27) is closed only while the safety loop allows heat, and boots open. If the SSR shorts, the hot zone reaches the 92°F limit, the relay opens, and it recloses below 90°F. The heater then cycles on the relay around 90–92°F until you replace the SSR. The first trip latches the **Alarm**.
+- Cutoff relay (GPIO18) is closed only while the safety loop allows heat, and boots open. If the SSR shorts, the hot zone reaches the 92°F limit, the relay opens, and it recloses below 90°F. The heater then cycles on the relay around 90–92°F until you replace the SSR. The first trip latches the **Alarm**.
 - MLX emissivity set to 0.95 for stone.
 - OLED shows Hot / Cool / RH / heater % / setpoint, shifts pixels every few minutes, and turns off during night hours.
 - After autotune, paste the suggested `kp/ki/kd` from the logs into `control_parameters`.
@@ -189,7 +189,7 @@ The ZEN04 failsafe depends on HA being up. A 4 ft gradient gives the snake room 
 - [ ] If fitted: each upstream failsafe trigger kills the lamp.
 - [ ] RHP connected: run autotune with the stone installed (1–2 hr), update PID values, then watch a full day/night cycle, including the night setpoint switch.
 - [ ] Cool side holds ≥ 72°F in the enclosure's room for a week before the animal moves in.
-- [ ] Transfer to the CircuitSetup protoboard per [`diagrams/breadboard.svg`](diagrams/breadboard.svg). Dry-fit the ESP32 headers in rows b and i first.
+- [ ] Transfer to the CircuitSetup protoboard per [`diagrams/breadboard.svg`](diagrams/breadboard.svg). The ESP32 headers go in rows a and i, columns 11–29 (dry-fit confirmed).
 
 ## Open items
 

@@ -55,10 +55,10 @@
     "5V",
     "GND_2",
     null,
-    "26",
+    "19",
     null,
     null,
-    "27"
+    "18"
    ],
    "title": "ESP32 dev board",
    "sub": [
@@ -390,18 +390,18 @@
  ],
  "wires": [
   {
-   "from": "ESP.26",
+   "from": "ESP.19",
    "to": "SSR.IN+",
-   "label": "GPIO26 · SSR",
+   "label": "GPIO19 · SSR",
    "label_at": [
     890,
     342
    ]
   },
   {
-   "from": "ESP.27",
+   "from": "ESP.18",
    "to": "K1.D1",
-   "label": "GPIO27 · RELAY",
+   "label": "GPIO18 · RELAY",
    "label_at": [
     890,
     462
@@ -778,7 +778,7 @@
  "checklist": [
   "Relay shield: power 5V/GND, touch D1 to 3V3: it should click and its LED light.",
   "Meter COM–NO: open with the shield unpowered, closed when D1 is high. Do this before any mains wiring.",
-  "SSR input polarity: 3 (+) to GPIO26, 4 (−) to GND.",
+  "SSR input polarity: 3 (+) to GPIO19, 4 (−) to GND.",
   "Mains (C14, K1 terminals, SSR AC side) never on the protoboard.",
   "Sensors on 3V3 only, never 5V.",
   "Bench test with a lamp before the heat panel."
