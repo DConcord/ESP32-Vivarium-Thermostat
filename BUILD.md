@@ -69,6 +69,8 @@ See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
 
 ## Low-voltage wiring
 
+Component-level diagrams for the ESP32 board (DevKitC 38-pin, WROOM-32U): [`esp32-wiring.svg`](esp32-wiring.svg) and the hole-by-hole ElectroCookie layout [`esp32-breadboard.svg`](esp32-breadboard.svg). The WROOM-32U has no antenna of its own: fit a 2.4 GHz U.FL antenna.
+
 All sensors on **3V3**, never 5V/VIN. Only the heater cutoff (U1, K1) runs on 5V.
 
 | Device | Address | ESP32 pin | Wire colors / pins |
