@@ -1,0 +1,65 @@
+{
+  "title": "Heater cutoff on a half-size ElectroCookie solderable breadboard",
+  "subtitle": "Top (component side) view. Rows a–e are joined in each column, as are f–j. No tracks need cutting.",
+  "board": {"cols": 30},
+  "rails": {
+    "T+": {"label": "+5V"}, "T-": {"label": "GND"},
+    "B-": {"label": "GND"}, "B+": {"label": "+5V"}
+  },
+  "colors": {"hb": "#D97706", "per": "#2563EB", "tim": "#7C3AED", "q": "#C026D3", "fb": "#059669"},
+  "devices": {
+    "K1": {"name": "relay shield (mount separately)", "color": "#1D4ED8"}
+  },
+  "parts": [
+    {"ref": "U1", "kind": "dip", "pin_count": 16, "col": 9, "value": "CD74HCT123E"},
+    {"ref": "J1", "kind": "header", "pins": {"5V": "f2", "GND": "f3", "HB": "f4", "PERMIT": "f5", "FB": "f6"}},
+    {"ref": "R1", "kind": "resistor", "value": "10k", "pins": {"1": "j10", "2": "B-@10"}, "label_at": [14, 4]},
+    {"ref": "R2", "kind": "resistor", "value": "10k", "pins": {"1": "j11", "2": "B-@11"}, "label_at": [30, 20]},
+    {"ref": "R3", "kind": "resistor", "value": "1M", "pins": {"1": "a10", "2": "T+@10"}},
+    {"ref": "R4", "kind": "resistor", "value": "100k", "pins": {"1": "c18", "2": "T-@20"}, "note": "holds the relay off if U1 is out of its socket"},
+    {"ref": "R5", "kind": "resistor", "value": "10k", "pins": {"1": "e18", "2": "f18"}, "note": "stands across the centre gap"},
+    {"ref": "R6", "kind": "resistor", "value": "10k", "pins": {"1": "h18", "2": "h21"}},
+    {"ref": "R7", "kind": "resistor", "value": "10k", "pins": {"1": "j21", "2": "B-@21"}},
+    {"ref": "C1", "kind": "cap", "value": "100nF", "pins": {"1": "T+@9", "2": "T-@9"}, "label_at": [0, -30]},
+    {"ref": "C2", "kind": "film", "value": "4.7uF", "marking": "475", "pins": {"1": "c8", "2": "c10"}, "label_at": [0, 30], "note": "5 mm leads; reaches pin 14 via the d8→d11 jumper"},
+    {"ref": "C3", "kind": "elec", "value": "100uF", "pins": {"+": "T+@27", "-": "T-@27"}, "label_at": [30, 30]}
+  ],
+  "jumpers": [
+    {"from": "a9", "to": "T+@8", "color": "5v"},
+    {"from": "a14", "to": "T-@14", "color": "gnd"},
+    {"from": "a15", "to": "T-@15", "color": "gnd"},
+    {"from": "a16", "to": "T+@16", "color": "5v"},
+    {"from": "d8", "to": "d11", "color": "tim"},
+    {"from": "b12", "to": "b18", "color": "q"},
+    {"from": "T+@30", "to": "B+@30", "color": "5v"},
+    {"from": "T-@29", "to": "B-@29", "color": "gnd"},
+    {"from": "j2", "to": "B+@2", "color": "5v"},
+    {"from": "j3", "to": "B-@3", "color": "gnd"},
+    {"from": "h4", "to": "h10", "color": "hb"},
+    {"from": "i5", "to": "i11", "color": "per"},
+    {"from": "g6", "to": "g18", "color": "fb"},
+    {"from": "j9", "to": "B-@9", "color": "gnd"},
+    {"from": "j16", "to": "B-@16", "color": "gnd"}
+  ],
+  "offboard": [
+    {"device": "K1", "signal": "IN (D1)", "hole": "a18", "dir": "up"},
+    {"device": "K1", "signal": "5V", "hole": "T+@23", "dir": "up"},
+    {"device": "K1", "signal": "GND", "hole": "T-@25", "dir": "up"}
+  ],
+  "expected_nets": {
+    "5V": ["J1.5V", "C1.1", "U1.p16", "U1.p9", "R3.2", "C3.+", "K1.5V"],
+    "GND": ["J1.GND", "U1.p1", "U1.p8", "U1.p10", "U1.p11", "C1.2", "R1.2", "R2.2", "R4.2", "R7.2", "C3.-", "K1.GND"],
+    "HB": ["J1.HB", "U1.p2", "R1.1"],
+    "PERMIT": ["J1.PERMIT", "U1.p3", "R2.1"],
+    "T15": ["U1.p15", "R3.1", "C2.2"],
+    "T14": ["U1.p14", "C2.1"],
+    "Q": ["U1.p13", "R4.1", "R5.1", "K1.IN (D1)"],
+    "FB": ["R5.2", "R6.1", "J1.FB"],
+    "MID": ["R6.2", "R7.1"],
+    "NC": ["U1.p4"], "NC5": ["U1.p5"], "NC6": ["U1.p6"], "NC7": ["U1.p7"], "NC12": ["U1.p12"]
+  },
+  "notes": [
+    "Jumper colours: red +5V · black GND · orange HEARTBEAT · blue PERMIT · purple timing · magenta 1Q · green feedback.",
+    "Before inserting U1: power the board and check e9/e16 read 5 V and f9/f16 read 0 V."
+  ]
+}
