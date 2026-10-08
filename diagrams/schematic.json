@@ -62,9 +62,9 @@
    ],
    "title": "ESP32 dev board",
    "sub": [
-    "WROOM-32 · USB 5 V on",
-    "its own outlet",
-    "pin order varies by board"
+    "DevKitC 38-pin · WROOM-32U",
+    "(external U.FL antenna)",
+    "only used pins shown"
    ],
    "title_y": 510,
    "pad_top": 40,

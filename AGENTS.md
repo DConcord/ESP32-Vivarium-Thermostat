@@ -12,6 +12,7 @@ ESPHome firmware and build docs for an ESP32 reptile-enclosure thermostat. It pu
 | `README.md` | Project overview |
 | `diagrams/circuit.json` | Parts and nets: single source of truth for the schematic (and breadboard layout) |
 | `diagrams/schematic.json`, `diagrams/schematic.svg` | Schematic sheet and rendered SVG, machine-checked against `circuit.json` (schematic-svg skill) |
+| `diagrams/breadboard.json`, `diagrams/breadboard.svg` | Protoboard layout, checked against `circuit.json`. Render with `python3 diagrams/tools/bbsvg.py diagrams/breadboard.json diagrams/breadboard.svg` (patched copy of the breadboard-layout-svg skill script: mirrored column numbering and per-rail polarity labels for the CircuitSetup board) |
 | `snake-thermostat-wiring.drawio` | Older hand-drawn wiring diagrams (low-voltage and mains pages) |
 | `secrets.example.yaml` | Template for `secrets.yaml` (never commit the real one) |
 

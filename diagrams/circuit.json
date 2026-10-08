@@ -3,7 +3,7 @@
  "notes": "Single source of truth for parts and connections; the schematic and breadboard layout are checked against it.",
  "parts": {
   "ESP": {
-   "type": "ESP32 dev board (WROOM-32)",
+   "type": "ESP32-DevKitC (38-pin, WROOM-32U)",
    "board": "esp32",
    "table": false,
    "internal_ties": [

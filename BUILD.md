@@ -35,8 +35,10 @@ See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
 
 | Part | Qty | ~Price | Source / notes |
 |---|---|---|---|
-| ESP32 dev board (WROOM-32) | 1 | $8 | Check pin-row spacing fits the protoboard |
-| ElectroCookie solderable protoboard (5 + 1 mini) | 1 pack | $12–15 | Amazon; mount the ESP32 on female headers |
+| ESP32-DevKitC, 38-pin, **WROOM-32U** | 1 | $8–10 | Pin rows 0.9" apart; the -32U has no built-in antenna |
+| 2.4 GHz antenna with U.FL (IPEX) pigtail | 1 | $5 | Required for the WROOM-32U |
+| CircuitSetup Project Box Breadboard | 1 | $10 | 30-row solderable breadboard; layout in `diagrams/breadboard.svg` |
+| 19-pin female headers (0.1") | 2 | $2 | The ESP32 plugs into these |
 | DROK DS18B20 waterproof probe 2-pack (adapter boards, 4.7k resistors) | 1–2 | $10–12/pack | [Amazon B0FLDQJ71M](https://www.amazon.com/dp/B0FLDQJ71M) |
 | GY-906-DCI (MLX90614ESF-DCI) IR sensor, 5° FOV | 1 | $30–40 | [Amazon B0B63N57CS](https://www.amazon.com/dp/B0B63N57CS) |
 | SHT30 enclosed probe, 2 m cable | 1 | $8–12 | Amazon "SHT30 probe waterproof" |
@@ -66,7 +68,7 @@ See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
 
 ## Low-voltage wiring
 
-Full schematic: [`diagrams/schematic.svg`](diagrams/schematic.svg).
+Full schematic: [`diagrams/schematic.svg`](diagrams/schematic.svg). Hole-by-hole protoboard layout: [`diagrams/breadboard.svg`](diagrams/breadboard.svg).
 
 All sensors on **3V3**, never 5V/VIN.
 
@@ -176,7 +178,7 @@ The ZEN04 failsafe depends on HA being up. A 4 ft gradient gives the snake room 
 
 ## Bring-up and test checklist
 
-- [ ] Flash the ESP32 over USB; confirm the I2C scan in logs shows 0x3C, 0x44, 0x5A.
+- [ ] Fit the U.FL antenna, then flash the ESP32 over USB; confirm the I2C scan in logs shows 0x3C, 0x44, 0x5A.
 - [ ] Both DS18B20s read sensibly; compare to a reference thermometer.
 - [ ] Unplug a probe: Heater Fault turns on and heater duty goes to 0; after 2 min, Alarm turns on with `Sensor fault: …`. Reconnect, press Clear Alarm.
 - [ ] Both HA notifications fire (Alarm on; ESP32 USB unplugged for 5 min).
@@ -187,7 +189,7 @@ The ZEN04 failsafe depends on HA being up. A 4 ft gradient gives the snake room 
 - [ ] If fitted: each upstream failsafe trigger kills the lamp.
 - [ ] RHP connected: run autotune with the stone installed (1–2 hr), update PID values, then watch a full day/night cycle, including the night setpoint switch.
 - [ ] Cool side holds ≥ 72°F in the enclosure's room for a week before the animal moves in.
-- [ ] Transfer from breadboard to the ElectroCookie protoboard for permanent install.
+- [ ] Transfer to the CircuitSetup protoboard per [`diagrams/breadboard.svg`](diagrams/breadboard.svg). Dry-fit the ESP32 headers in rows b and i first.
 
 ## Open items
 
