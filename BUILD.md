@@ -46,11 +46,9 @@ See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
 | Inkbird SSR-40DA (budget) **or** genuine Crydom D2410 | 1 | $10 / $48–57 | Inkbird [Amazon B00HV974KC](https://www.amazon.com/dp/B00HV974KC); Crydom via [Digi-Key](https://www.digikey.com/en/products/result?keywords=Crydom%20D2410) |
 | **Heater cutoff** (see "Heater cutoff" below) | | | |
 | CD74HCT123E retriggerable one-shot, DIP-16 (+ socket) | 1 | $1 | [Digi-Key](https://www.digikey.com/en/products/detail/texas-instruments/CD74HCT123E/38252). Must be **HCT**, not HC (3.3 V inputs) |
-| Omron G5LE-1-E DC5 relay (5 V coil, 10 A contacts) | 1 | $3 | [Digi-Key](https://www.digikey.com/en/products/detail/omron-electronics-inc-emc-div/G5LE-1-E-DC5/1277875). Use COM and NO |
-| STP36NF06L logic-level MOSFET, TO-220 | 1 | $3 | [Digi-Key](https://www.digikey.com/en/products/detail/stmicroelectronics/STP36NF06L/1039545). Any N-MOSFET with R<sub>DS(on)</sub> specified at 4.5 V works |
+| K1: D1 mini relay shield with Songle SRD-05VDC-SL-C (5 V coil, 10 A contacts) | 1 | $2–4 | Has its own transistor, flyback diode and LED; driven from its D1 pin. Use COM and NO. An Omron G5LE-1-E DC5 with its own driver is the higher-margin alternative |
 | 1 MΩ 1% resistor + 4.7 µF low-leakage film capacitor | 1 each | $2 | Watchdog timing (~2.1 s) |
-| 1N4007 diode | 1 | — | Relay coil flyback |
-| Resistors: 10k ×5, 1k, 100k; capacitors: 100 nF, 100 µF | — | $1 | 10k: 2 pull-downs + 3 for the feedback divider (1 top, 2 in series bottom); 1k gate; 100k gate pull-down; decoupling |
+| Resistors: 10k ×5, 100k; capacitors: 100 nF, 100 µF | — | $1 | 10k: 2 pull-downs + 3 for the feedback divider (1 top, 2 in series bottom); 100k holds the relay input low; decoupling |
 | C14 fused inlet, 5×20 mm (no switch) | 1 | $8–10 | [Amazon search](https://www.amazon.com/s?k=IEC+C14+inlet+fuse+holder+panel+mount) |
 | 2A slow-blow 5×20 mm fuses | 1 pack | $6 | [Amazon search](https://www.amazon.com/s?k=2A+250V+slow+blow+5x20mm+fuse) |
 | C13 power cord, 18 AWG, 3-prong | 1 | $7 | Any computer cord |
@@ -71,7 +69,7 @@ See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
 
 Component-level diagrams for the ESP32 board (DevKitC 38-pin, WROOM-32U): [`esp32-wiring.svg`](esp32-wiring.svg) and the hole-by-hole ElectroCookie layout [`esp32-breadboard.svg`](esp32-breadboard.svg). The WROOM-32U has no antenna of its own: fit a 2.4 GHz U.FL antenna.
 
-All sensors on **3V3**, never 5V/VIN. Only the heater cutoff (U1, K1) runs on 5V.
+All sensors on **3V3**, never 5V/VIN. Only the heater cutoff (U1 and the K1 relay shield) runs on 5V.
 
 | Device | Address | ESP32 pin | Wire colors / pins |
 |---|---|---|---|
@@ -84,7 +82,7 @@ All sensors on **3V3**, never 5V/VIN. Only the heater cutoff (U1, K1) runs on 5V
 | Cutoff PERMIT | — | GPIO25 → U1 pin 3 (1/CLR) | **10k pull-down GPIO25 → GND** |
 | Cutoff HEARTBEAT | — | GPIO23 → U1 pin 2 (1B) | **10k pull-down GPIO23 → GND** |
 | Cutoff feedback | — | GPIO34 ← U1 pin 13 (1Q) via divider | 10k from 1Q to GPIO34, 2×10k (20k) GPIO34 → GND (5 V → 3.3 V) |
-| Cutoff board power | — | ESP32 **5V/VIN** pin and GND | U1, relay coil. The only 5 V parts on the board |
+| Cutoff board power | — | ESP32 **5V/VIN** pin and GND | U1 and the relay shield. The only 5 V parts |
 
 **Cat6 (T568B) pair map to the GY-906**
 
@@ -116,7 +114,7 @@ Path: wall outlet → C13 cord → **C14 fused inlet (2A)** → **K1 (COM → NO
 - Only hot passes through K1 and the SSR. K1's NC contact is unused.
 - Use slow-blow fuses and insulated quick-connects with heat shrink.
 - The inlet has no switch. **Heater Enable** off opens K1, but unplug the cord before touching mains wiring.
-- Keep SSR and K1 mains terminals physically separated from the ESP32 and low-voltage wiring. Put K1 on its own small board, or a section of protoboard with the strips cut, at least 6 mm (¼") from any low-voltage copper. Solder 18 AWG directly to the contact pins, heat-shrink them, and strain-relieve the wires. Have the mains side reviewed before it carries the heater.
+- Keep SSR and K1 mains terminals physically separated from the ESP32 and low-voltage wiring. Mount the relay shield on its own (standoffs or a small carrier), at least 6 mm (¼") from any other board, with nothing touching its underside. Only the mains wires go in its screw terminal; strain-relieve them. Don't plug the shield onto the cutoff breadboard: its relay pins and terminal would sit over the 5 V copper. Have the mains side reviewed before it carries the heater.
 
 ---
 
@@ -145,13 +143,13 @@ Path: wall outlet → C13 cord → **C14 fused inlet (2A)** → **K1 (COM → NO
 
 ## Heater cutoff (watchdog relay)
 
-A second, independent actuator in series with the SSR. Full component-level wiring: [`heater-cutoff-wiring.svg`](heater-cutoff-wiring.svg). Hole-by-hole layout for a half-size ElectroCookie board, with K1 on its own small board: [`heater-cutoff-breadboard.svg`](heater-cutoff-breadboard.svg). The SSR still does all the regulating. K1 stays closed during normal operation and opens only on a fault.
+A second, independent actuator in series with the SSR. Full component-level wiring: [`heater-cutoff-wiring.svg`](heater-cutoff-wiring.svg). Hole-by-hole layout for a half-size ElectroCookie board, with the K1 relay shield mounted separately: [`heater-cutoff-breadboard.svg`](heater-cutoff-breadboard.svg). The SSR still does all the regulating. K1 stays closed during normal operation and opens only on a fault.
 
 ```text
 Fused L ──> K1 COM/NO ──> SSR ──> outlet ──> heat panel
 
 GPIO25 PERMIT ────> U1 1/CLR ┐
-GPIO23 HEARTBEAT ─> U1 1B    ├─> U1 1Q ──> Q1 gate ──> K1 coil
+GPIO23 HEARTBEAT ─> U1 1B    ├─> U1 1Q ──> relay shield IN (D1) ──> K1 coil
                    U1 1A=GND ┘         └─> divider ──> GPIO34 (feedback)
 ```
 
@@ -175,7 +173,7 @@ GPIO23 HEARTBEAT ─> U1 1B    ├─> U1 1Q ──> Q1 gate ──> K1 coil
 | 1 | 1A | GND |
 | 2 | 1B | HEARTBEAT (GPIO23), 10k to GND |
 | 3 | 1/CLR | PERMIT (GPIO25), 10k to GND |
-| 13 | 1Q | 1k to Q1 gate; 10k to GPIO34 (GPIO34 has 20k to GND) |
+| 13 | 1Q | relay shield IN (D1 pin); 100k to GND; 10k to GPIO34 (GPIO34 has 20k to GND) |
 | 14 | 1Cext | 4.7 µF film capacitor to pin 15 |
 | 15 | 1Rext/Cext | 4.7 µF to pin 14; 1 MΩ to 5V |
 | 16 | VCC | 5V, 100 nF to GND at the pin |
@@ -183,7 +181,7 @@ GPIO23 HEARTBEAT ─> U1 1B    ├─> U1 1Q ──> Q1 gate ──> K1 coil
 | 9, 10, 11 | 2A, 2B, 2/CLR | 9 to 5V; 10 and 11 to GND (unused channel held cleared) |
 | 4, 5, 6, 7, 12 | | No connection |
 
-**Relay driver.** Q1 source to GND, drain to K1 coil (−), coil (+) to 5V. 100k from gate to source. 1N4007 across the coil, cathode to 5V. 100 µF across 5V/GND near the relay. Keep relay current returns away from the timing components.
+**Relay shield.** Three wires: shield D1 pin ← U1 pin 13, shield 5V ← +5V, shield GND ← GND. The shield's own transistor, flyback diode and LED drive the coil. 100k from pin 13 to GND keeps the relay off if U1 is out of its socket. 100 µF across 5V/GND where the shield wires leave the board. Before wiring it, power the shield's 5V/GND and touch D1 to 5V: the relay should click and its LED light (some shields let you move the control pin with a solder jumper; it must be D1).
 
 **Notes**
 - Timeout ≈ 0.45 × R × C = 0.45 × 1 MΩ × 4.7 µF ≈ 2.1 s. Tolerance and capacitor leakage shift it, so measure it (see checklist). Use a film capacitor; a leaky electrolytic lengthens or breaks the timer.

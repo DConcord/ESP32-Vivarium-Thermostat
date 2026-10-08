@@ -552,9 +552,6 @@
 <path d="M450,266 Q540.0,251.6 630,266" fill="none" stroke="#C026D3" stroke-width="5" stroke-linecap="round" opacity="0.95"/>
 <circle cx="450" cy="266" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
 <circle cx="630" cy="266" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
-<line x1="810" y1="236" x2="810" y2="188" stroke="#111827" stroke-width="5" stroke-linecap="round"/>
-<circle cx="810" cy="236" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
-<circle cx="810" cy="188" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
 <path d="M990,160 Q972.0,386.0 990,612" fill="none" stroke="#DC2626" stroke-width="5" stroke-linecap="round" opacity="0.95"/>
 <circle cx="990" cy="160" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
 <circle cx="990" cy="612" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
@@ -656,24 +653,15 @@
 </g>
 <circle cx="390" cy="236" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
 <circle cx="390" cy="160" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
-<line x1="630" y1="296" x2="750" y2="266" stroke="#9CA3AF" stroke-width="3" stroke-linecap="round"/>
-<g transform="translate(690.0,281.0) rotate(-14.036243467926479)"><rect x="-20.0" y="-5.5" width="40" height="11" rx="5.0" fill="#E8D3A9" stroke="#8D6E4A" stroke-width="1.2"/>
-<rect x="-13.0" y="-5.5" width="3.5" height="11" fill="#8B4513"/>
-<rect x="-7.0" y="-5.5" width="3.5" height="11" fill="#111"/>
-<rect x="-1.0" y="-5.5" width="3.5" height="11" fill="#DC2626"/>
-<rect x="10.0" y="-5.5" width="3.5" height="11" fill="#C9A227"/>
-</g>
-<circle cx="630" cy="296" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
-<circle cx="750" cy="266" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
-<line x1="750" y1="236" x2="720" y2="188" stroke="#9CA3AF" stroke-width="3" stroke-linecap="round"/>
-<g transform="translate(735.0,212.0) rotate(-122.0053832080835)"><rect x="-20.0" y="-5.5" width="40" height="11" rx="5.0" fill="#E8D3A9" stroke="#8D6E4A" stroke-width="1.2"/>
+<line x1="630" y1="296" x2="690" y2="188" stroke="#9CA3AF" stroke-width="3" stroke-linecap="round"/>
+<g transform="translate(660.0,242.0) rotate(-60.94539590092286)"><rect x="-20.0" y="-5.5" width="40" height="11" rx="5.0" fill="#E8D3A9" stroke="#8D6E4A" stroke-width="1.2"/>
 <rect x="-13.0" y="-5.5" width="3.5" height="11" fill="#8B4513"/>
 <rect x="-7.0" y="-5.5" width="3.5" height="11" fill="#111"/>
 <rect x="-1.0" y="-5.5" width="3.5" height="11" fill="#EAB308"/>
 <rect x="10.0" y="-5.5" width="3.5" height="11" fill="#C9A227"/>
 </g>
-<circle cx="750" cy="236" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
-<circle cx="720" cy="188" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
+<circle cx="630" cy="296" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
+<circle cx="690" cy="188" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
 <line x1="630" y1="356" x2="630" y2="416" stroke="#9CA3AF" stroke-width="3" stroke-linecap="round"/>
 <g transform="translate(630.0,386.0) rotate(90.0)"><rect x="-20.0" y="-5.5" width="40" height="11" rx="5.0" fill="#E8D3A9" stroke="#8D6E4A" stroke-width="1.2"/>
 <rect x="-13.0" y="-5.5" width="3.5" height="11" fill="#8B4513"/>
@@ -715,73 +703,55 @@
 <circle cx="900.0" cy="174.0" r="14" fill="#1E3A8A" stroke="#0F172A" stroke-width="1.5" opacity="0.92"/>
 <path d="M893.0,186.0 A14,14 0 0,0 907.0,186.0" fill="none" stroke="#CBD5E1" stroke-width="4"/>
 <text x="900.0" y="172.0" font-size="12" fill="#FCA5A5" text-anchor="middle" font-weight="bold">+</text>
-<line x1="780" y1="236" x2="780" y2="160" stroke="#9CA3AF" stroke-width="3" stroke-linecap="round"/>
-<g transform="translate(780.0,198.0) rotate(-90.0)"><rect x="-13.0" y="-5.5" width="26" height="11" rx="5.0" fill="#111827" stroke="#000" stroke-width="1.2"/>
-<rect x="7" y="-5.5" width="4" height="11" fill="#D1D5DB"/>
-</g>
-<circle cx="780" cy="236" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
-<circle cx="780" cy="160" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
-<circle cx="750" cy="296" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
-<circle cx="780" cy="296" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
-<circle cx="810" cy="296" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
-<rect x="734" y="287" width="92" height="16" fill="#111827"/>
-<rect x="734" y="303" width="92" height="7" fill="#9CA3AF" stroke="#4B5563"/>
-<text x="750" y="300" font-size="10" fill="#FFFFFF" text-anchor="middle" font-weight="bold">G</text>
-<text x="780" y="300" font-size="10" fill="#FFFFFF" text-anchor="middle" font-weight="bold">D</text>
-<text x="810" y="300" font-size="10" fill="#FFFFFF" text-anchor="middle" font-weight="bold">S</text>
-<text x="832" y="310" font-size="9" fill="#E5E7EB" text-anchor="start" font-weight="normal">tab</text>
 <rect x="402" y="552" width="28" height="16" rx="4" fill="#FFFFFF" opacity="0.92"/>
 <text x="408" y="564" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">R1</text>
 <rect x="432" y="566" width="28" height="16" rx="4" fill="#FFFFFF" opacity="0.92"/>
 <text x="438" y="578" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">R2</text>
 <rect x="400" y="198" width="28" height="16" rx="4" fill="#FFFFFF" opacity="0.92"/>
 <text x="406" y="210" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">R3</text>
-<rect x="676" y="310" width="28" height="16" rx="4" fill="#FFFFFF" opacity="0.92"/>
-<text x="690" y="322" font-size="11" fill="#1F2937" text-anchor="middle" font-weight="bold">R4</text>
-<rect x="672" y="218" width="28" height="16" rx="4" fill="#FFFFFF" opacity="0.92"/>
-<text x="686" y="230" font-size="11" fill="#1F2937" text-anchor="middle" font-weight="bold">R5</text>
+<rect x="672" y="258" width="28" height="16" rx="4" fill="#FFFFFF" opacity="0.92"/>
+<text x="686" y="270" font-size="11" fill="#1F2937" text-anchor="middle" font-weight="bold">R4</text>
 <rect x="644" y="374" width="28" height="16" rx="4" fill="#FFFFFF" opacity="0.92"/>
-<text x="658" y="386" font-size="11" fill="#1F2937" text-anchor="middle" font-weight="bold">R6</text>
+<text x="658" y="386" font-size="11" fill="#1F2937" text-anchor="middle" font-weight="bold">R5</text>
 <rect x="661.0" y="452" width="28" height="16" rx="4" fill="#FFFFFF" opacity="0.92"/>
-<text x="675.0" y="464" font-size="11" fill="#1F2937" text-anchor="middle" font-weight="bold">R7</text>
+<text x="675.0" y="464" font-size="11" fill="#1F2937" text-anchor="middle" font-weight="bold">R6</text>
 <rect x="732" y="546" width="28" height="16" rx="4" fill="#FFFFFF" opacity="0.92"/>
-<text x="738" y="558" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">R8</text>
+<text x="738" y="558" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">R7</text>
 <rect x="346" y="132" width="28" height="16" rx="4" fill="#FFFFFF" opacity="0.92"/>
 <text x="360" y="144" font-size="11" fill="#1F2937" text-anchor="middle" font-weight="bold">C1</text>
 <rect x="346" y="312" width="28" height="16" rx="4" fill="#FFFFFF" opacity="0.92"/>
 <text x="360" y="324" font-size="11" fill="#1F2937" text-anchor="middle" font-weight="bold">C2</text>
 <rect x="916" y="206" width="28" height="16" rx="4" fill="#FFFFFF" opacity="0.92"/>
 <text x="922" y="218" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">C3</text>
-<rect x="790" y="220" width="28" height="16" rx="4" fill="#FFFFFF" opacity="0.92"/>
-<text x="796" y="232" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">D1</text>
-<rect x="766" y="260" width="28" height="16" rx="4" fill="#FFFFFF" opacity="0.92"/>
-<text x="780" y="272" font-size="11" fill="#1F2937" text-anchor="middle" font-weight="bold">Q1</text>
-<circle cx="870" cy="160" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
-<path d="M870,160 L870,100 L1060,100 L1060,275 L1105,275" fill="none" stroke="#DC2626" stroke-width="4" stroke-linejoin="round"/>
-<text x="1110" y="279" font-size="9" fill="#F9FAFB" text-anchor="start" font-weight="bold">coil +</text>
-<circle cx="780" cy="266" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
-<path d="M780,266 L780,112 L1072,112 L1072,305 L1105,305" fill="none" stroke="#92400E" stroke-width="4" stroke-linejoin="round"/>
-<text x="1110" y="309" font-size="9" fill="#F9FAFB" text-anchor="start" font-weight="bold">coil −</text>
-<rect x="1080" y="190" width="250" height="260" rx="10" fill="#E5E7EB" stroke="#6B7280" stroke-width="1.5"/>
-<text x="1205" y="212" font-size="12" fill="#1F2937" text-anchor="middle" font-weight="bold">Separate small board for K1</text>
-<text x="1205" y="228" font-size="10" fill="#B91C1C" text-anchor="middle" font-weight="bold">≥ 6 mm from any 5 V copper</text>
-<rect x="1105" y="245" width="110" height="140" rx="4" fill="#1F2937"/>
-<text x="1160" y="310" font-size="16" fill="#F9FAFB" text-anchor="middle" font-weight="bold">K1</text>
-<text x="1160" y="328" font-size="10" fill="#D1D5DB" text-anchor="middle" font-weight="normal">G5LE-1-E</text>
-<text x="1160" y="342" font-size="10" fill="#D1D5DB" text-anchor="middle" font-weight="normal">DC5</text>
-<text x="1160" y="395" font-size="9" fill="#6B7280" text-anchor="middle" font-weight="normal">coil pins: either way round</text>
-<line x1="1215" y1="275" x2="1240" y2="275" stroke="#B91C1C" stroke-width="4"/>
-<text x="1244" y="279" font-size="10" fill="#B91C1C" text-anchor="start" font-weight="bold">COM</text>
-<text x="1244" y="291" font-size="9" fill="#B91C1C" text-anchor="start" font-weight="normal">← fused L (C14)</text>
-<line x1="1215" y1="340" x2="1240" y2="340" stroke="#B91C1C" stroke-width="4"/>
-<text x="1244" y="344" font-size="10" fill="#B91C1C" text-anchor="start" font-weight="bold">NO</text>
-<text x="1244" y="356" font-size="9" fill="#B91C1C" text-anchor="start" font-weight="normal">→ SSR terminal 1</text>
-<line x1="1215" y1="370" x2="1240" y2="370" stroke="#6B7280" stroke-width="4"/>
-<text x="1244" y="374" font-size="10" fill="#6B7280" text-anchor="start" font-weight="bold">NC:</text>
-<text x="1244" y="386" font-size="9" fill="#6B7280" text-anchor="start" font-weight="normal">leave empty</text>
-<text x="1205" y="430" font-size="9" fill="#6B7280" text-anchor="middle" font-weight="normal">Solder 18 AWG mains wires straight to the</text>
-<text x="1205" y="442" font-size="9" fill="#6B7280" text-anchor="middle" font-weight="normal">relay pins and cover each joint in heat-shrink.</text>
-<text x="1205" y="408" font-size="9" fill="#6B7280" text-anchor="middle" font-weight="normal">Match pins to the G5LE datasheet or relay label.</text>
+<circle cx="630" cy="236" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
+<path d="M630,236 L630,96 L1070,96 L1070,340 L1098,340" fill="none" stroke="#C026D3" stroke-width="4" stroke-linejoin="round"/>
+<circle cx="780" cy="160" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
+<path d="M780,160 L780,108 L1060,108 L1060,358 L1098,358" fill="none" stroke="#DC2626" stroke-width="4" stroke-linejoin="round"/>
+<circle cx="840" cy="188" r="4.2" fill="#D1D5DB" stroke="#6B7280" stroke-width="1"/>
+<path d="M840,188 L840,120 L1050,120 L1050,376 L1098,376" fill="none" stroke="#111827" stroke-width="4" stroke-linejoin="round"/>
+<rect x="1080" y="190" width="250" height="300" rx="10" fill="#E5E7EB" stroke="#6B7280" stroke-width="1.5"/>
+<text x="1205" y="212" font-size="12" fill="#1F2937" text-anchor="middle" font-weight="bold">Relay shield, mounted on its own</text>
+<text x="1205" y="228" font-size="10" fill="#B91C1C" text-anchor="middle" font-weight="bold">≥ 6 mm from any other board</text>
+<rect x="1098" y="245" width="125" height="210" rx="6" fill="#1D4ED8" stroke="#1E3A8A"/>
+<rect x="1110" y="256" width="100" height="70" rx="4" fill="#3B82F6" stroke="#1E40AF"/>
+<text x="1160" y="284" font-size="11" fill="#F9FAFB" text-anchor="middle" font-weight="bold">SONGLE</text>
+<text x="1160" y="300" font-size="8" fill="#E0E7FF" text-anchor="middle" font-weight="normal">SRD-05VDC-SL-C</text>
+<text x="1104" y="344" font-size="9" fill="#F9FAFB" text-anchor="start" font-weight="bold">IN = D1 pin</text>
+<text x="1104" y="362" font-size="9" fill="#F9FAFB" text-anchor="start" font-weight="bold">5V</text>
+<text x="1104" y="380" font-size="9" fill="#F9FAFB" text-anchor="start" font-weight="bold">GND</text>
+<text x="1104" y="408" font-size="8" fill="#E0E7FF" text-anchor="start" font-weight="normal">solder the 3 wires to</text>
+<text x="1104" y="419" font-size="8" fill="#E0E7FF" text-anchor="start" font-weight="normal">shield pins D1, 5V, GND</text>
+<rect x="1223" y="350" width="26" height="100" rx="3" fill="#1E40AF" stroke="#172554"/>
+<circle cx="1236" cy="366" r="7" fill="#D1D5DB" stroke="#4B5563"/>
+<text x="1254" y="363" font-size="10" fill="#B91C1C" text-anchor="start" font-weight="bold">NO</text>
+<text x="1254" y="375" font-size="8" fill="#B91C1C" text-anchor="start" font-weight="normal">→ SSR terminal 1</text>
+<circle cx="1236" cy="400" r="7" fill="#D1D5DB" stroke="#4B5563"/>
+<text x="1254" y="397" font-size="10" fill="#B91C1C" text-anchor="start" font-weight="bold">COM</text>
+<text x="1254" y="409" font-size="8" fill="#B91C1C" text-anchor="start" font-weight="normal">← fused L (C14)</text>
+<circle cx="1236" cy="434" r="7" fill="#D1D5DB" stroke="#4B5563"/>
+<text x="1254" y="431" font-size="10" fill="#6B7280" text-anchor="start" font-weight="bold">NC</text>
+<text x="1254" y="443" font-size="8" fill="#6B7280" text-anchor="start" font-weight="normal">leave empty</text>
+<text x="1205" y="474" font-size="9" fill="#6B7280" text-anchor="middle" font-weight="normal">terminal: NO · COM (middle) · NC</text>
 <text x="136" y="484" font-size="9" fill="#1F2937" text-anchor="start" font-weight="normal"></text>
 <text x="40" y="690" font-size="13" fill="#1F2937" text-anchor="start" font-weight="bold">Build list (hole = row + column, e.g. e9 = row e, column 9; rail holes are given by the column they line up with)</text>
 <text x="40" y="716" font-size="11" fill="#6B7280" text-anchor="start" font-weight="bold">Step</text>
@@ -814,7 +784,7 @@
 <text x="820" y="816" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">from J1 to U1 / divider</text>
 <text x="40" y="835" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold"></text>
 <text x="72" y="835" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold"></text>
-<text x="300" y="835" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">d8 → d11 (C2 to pin 14); b12 → b18 (1Q to R4/R6); a24 → GND @ 24 (Q1 source)</text>
+<text x="300" y="835" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">d8 → d11 (C2 to pin 14); b12 → b18 (1Q to relay IN, R4, R5)</text>
 <text x="820" y="835" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal"></text>
 <rect x="36" y="840" width="1308" height="19" fill="#F3F4F6"/>
 <text x="40" y="854" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold"></text>
@@ -836,58 +806,45 @@
 <text x="820" y="911" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal"></text>
 <rect x="36" y="916" width="1308" height="19" fill="#F3F4F6"/>
 <text x="40" y="930" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">4</text>
-<text x="72" y="930" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">R4  1k resistor</text>
-<text x="300" y="930" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">c18 ↔ b22</text>
-<text x="820" y="930" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal"></text>
+<text x="72" y="930" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">R4  100k resistor</text>
+<text x="300" y="930" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">c18 ↔ top GND rail @ 20</text>
+<text x="820" y="930" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">holds the relay off if U1 is out of its socket</text>
 <text x="40" y="949" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">4</text>
-<text x="72" y="949" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">R5  100k resistor</text>
-<text x="300" y="949" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">a22 ↔ top GND rail @ 21</text>
-<text x="820" y="949" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal"></text>
+<text x="72" y="949" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">R5  10k resistor</text>
+<text x="300" y="949" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">e18 ↔ f18</text>
+<text x="820" y="949" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">stands across the centre gap</text>
 <rect x="36" y="954" width="1308" height="19" fill="#F3F4F6"/>
 <text x="40" y="968" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">4</text>
 <text x="72" y="968" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">R6  10k resistor</text>
-<text x="300" y="968" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">e18 ↔ f18</text>
-<text x="820" y="968" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">stands across the centre gap</text>
+<text x="300" y="968" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">h18 ↔ h21</text>
+<text x="820" y="968" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal"></text>
 <text x="40" y="987" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">4</text>
 <text x="72" y="987" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">R7  10k resistor</text>
-<text x="300" y="987" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">h18 ↔ h21</text>
+<text x="300" y="987" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">j21 ↔ bottom GND rail @ 21</text>
 <text x="820" y="987" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal"></text>
 <rect x="36" y="992" width="1308" height="19" fill="#F3F4F6"/>
 <text x="40" y="1006" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">4</text>
-<text x="72" y="1006" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">R8  10k resistor</text>
-<text x="300" y="1006" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">j21 ↔ bottom GND rail @ 21</text>
+<text x="72" y="1006" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">C1  100nF ceramic cap</text>
+<text x="300" y="1006" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">top +5V rail @ 9 ↔ top GND rail @ 9</text>
 <text x="820" y="1006" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal"></text>
 <text x="40" y="1025" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">4</text>
-<text x="72" y="1025" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">C1  100nF ceramic cap</text>
-<text x="300" y="1025" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">top +5V rail @ 9 ↔ top GND rail @ 9</text>
-<text x="820" y="1025" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal"></text>
+<text x="72" y="1025" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">C2  4.7uF film cap (5 mm leads)</text>
+<text x="300" y="1025" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">c8 ↔ c10</text>
+<text x="820" y="1025" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">pins 15 &amp; 14 via d8→d11 jumper</text>
 <rect x="36" y="1030" width="1308" height="19" fill="#F3F4F6"/>
 <text x="40" y="1044" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">4</text>
-<text x="72" y="1044" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">C2  4.7uF film cap (5 mm leads)</text>
-<text x="300" y="1044" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">c8 ↔ c10</text>
-<text x="820" y="1044" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">pins 15 &amp; 14 via d8→d11 jumper</text>
-<text x="40" y="1063" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">4</text>
-<text x="72" y="1063" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">C3  100uF electrolytic</text>
-<text x="300" y="1063" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">top +5V rail @ 27 ↔ top GND rail @ 27</text>
-<text x="820" y="1063" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">+ lead in +5V rail, stripe in GND rail</text>
+<text x="72" y="1044" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">C3  100uF electrolytic</text>
+<text x="300" y="1044" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">top +5V rail @ 27 ↔ top GND rail @ 27</text>
+<text x="820" y="1044" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">+ lead in +5V rail, stripe in GND rail</text>
+<text x="40" y="1063" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">6</text>
+<text x="72" y="1063" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">J1 5-pin header</text>
+<text x="300" y="1063" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">f2 5V · f3 GND · f4 HB (GPIO23) · f5 PERMIT (GPIO25) · f6 FB (GPIO34)</text>
+<text x="820" y="1063" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">or solder the 5 wires straight in</text>
 <rect x="36" y="1068" width="1308" height="19" fill="#F3F4F6"/>
-<text x="40" y="1082" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">4</text>
-<text x="72" y="1082" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">D1  1N4007 diode</text>
-<text x="300" y="1082" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">a23 ↔ top +5V rail @ 23</text>
-<text x="820" y="1082" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">band (cathode) in the +5V rail</text>
-<text x="40" y="1101" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">5</text>
-<text x="72" y="1101" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">Q1 STP36NF06L</text>
-<text x="300" y="1101" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">G c22, D c23, S c24 (standing, metal tab toward row e / centre gap)</text>
-<text x="820" y="1101" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">tab is the drain: nothing may touch it</text>
-<rect x="36" y="1106" width="1308" height="19" fill="#F3F4F6"/>
-<text x="40" y="1120" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">6</text>
-<text x="72" y="1120" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">J1 5-pin header</text>
-<text x="300" y="1120" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">f2 5V · f3 GND · f4 HB (GPIO23) · f5 PERMIT (GPIO25) · f6 FB (GPIO34)</text>
-<text x="820" y="1120" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">or solder the 5 wires straight in</text>
-<text x="40" y="1139" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">7</text>
-<text x="72" y="1139" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">K1 coil wires</text>
-<text x="300" y="1139" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">+ from top +5V rail @ 25; − from b23 (Q1 drain)</text>
-<text x="820" y="1139" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">to the separate K1 board</text>
-<text x="40" y="1172" font-size="11" fill="#6B7280" text-anchor="start" font-weight="normal">Jumper colours: red +5V · black GND · orange HEARTBEAT · blue PERMIT · purple timing · magenta 1Q · green feedback. Use insulated wire for any jumper that passes over other holes.</text>
-<text x="40" y="1190" font-size="11" fill="#6B7280" text-anchor="start" font-weight="normal">Before inserting U1: power the board from 5 V and check e9/e16 read 5 V and f9/f16 read 0 V. Then fit U1 with the notch toward column 1.</text>
+<text x="40" y="1082" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">7</text>
+<text x="72" y="1082" font-size="11" fill="#1F2937" text-anchor="start" font-weight="bold">Relay shield wires</text>
+<text x="300" y="1082" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">IN: a18 → shield D1 pin · 5V: top +5V rail @ 23 · GND: top GND rail @ 25</text>
+<text x="820" y="1082" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">3 wires to the separately mounted shield</text>
+<text x="40" y="1115" font-size="11" fill="#6B7280" text-anchor="start" font-weight="normal">Jumper colours: red +5V · black GND · orange HEARTBEAT · blue PERMIT · purple timing · magenta 1Q · green feedback. Use insulated wire for any jumper that passes over other holes.</text>
+<text x="40" y="1133" font-size="11" fill="#6B7280" text-anchor="start" font-weight="normal">Before inserting U1: power the board from 5 V and check e9/e16 read 5 V and f9/f16 read 0 V. Then fit U1 with the notch toward column 1.</text>
 </svg>
