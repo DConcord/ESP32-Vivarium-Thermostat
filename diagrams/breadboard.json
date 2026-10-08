@@ -1,0 +1,337 @@
+{
+ "title": "ESP32 main board on the CircuitSetup Project Box Breadboard",
+ "subtitle": [
+  "Top (component side) view, oriented as the board is printed: row a at the top, column 1 on the right (screw-terminal end).",
+  "ESP32-DevKitC (38-pin) raised on two 19-pin female headers in rows a and i, columns 11–29, USB toward column 30. Dashed parts go under it and are soldered first."
+ ],
+ "circuit": "circuit.json",
+ "board_id": "esp32",
+ "board": {
+  "cols": 30,
+  "mirror": true
+ },
+ "rails": {
+  "T+": {
+   "label": "3V3",
+   "sym": "+",
+   "color": "#DC2626"
+  },
+  "T-": {
+   "label": "GND",
+   "sym": "−",
+   "color": "#2563EB"
+  },
+  "B-": {
+   "label": "3V3",
+   "sym": "+",
+   "color": "#DC2626"
+  },
+  "B+": {
+   "label": "GND",
+   "sym": "−",
+   "color": "#2563EB"
+  }
+ },
+ "colors": {
+  "ssr": "#EA580C",
+  "rly": "#C026D3"
+ },
+ "devices": {
+  "K1": {
+   "name": "K1 relay shield (D1, 5V, GND pins)",
+   "color": "#C026D3"
+  },
+  "SSR": {
+   "name": "SSR input",
+   "color": "#EA580C"
+  },
+  "OLED": {
+   "name": "SH1106 OLED",
+   "color": "#7C3AED"
+  },
+  "SHT30": {
+   "name": "SHT30 probe",
+   "color": "#0891B2"
+  },
+  "STONE": {
+   "name": "stone DS18B20 adapter",
+   "color": "#92400E"
+  },
+  "COOL": {
+   "name": "cool DS18B20 adapter",
+   "color": "#1D4ED8"
+  },
+  "RJ45": {
+   "name": "RJ45 jack (Cat6 to IR sensor)",
+   "color": "#0F766E"
+  }
+ },
+ "parts": [
+  {
+   "ref": "ESP",
+   "kind": "module",
+   "label": "ESP32-DevKitC",
+   "raised": true,
+   "rows": [
+    {
+     "row": "a",
+     "start_col": 11,
+     "step": 1,
+     "names": [
+      "3V3",
+      "EN",
+      "VP",
+      "VN",
+      "34",
+      "35",
+      "32",
+      "33",
+      "25",
+      "26",
+      "27",
+      "14",
+      "12",
+      "GND",
+      "13",
+      "D2",
+      "D3",
+      "CMD",
+      "5V"
+     ]
+    },
+    {
+     "row": "i",
+     "start_col": 11,
+     "step": 1,
+     "names": [
+      "GND",
+      "23",
+      "22",
+      "TX",
+      "RX",
+      "21",
+      "GND",
+      "19",
+      "18",
+      "5",
+      "17",
+      "16",
+      "4",
+      "0",
+      "2",
+      "15",
+      "D1",
+      "D0",
+      "CLK"
+     ]
+    }
+   ],
+   "outline": {
+    "cols": [
+     9.9,
+     30.4
+    ],
+    "pad": 24
+   },
+   "used": [
+    "3V3",
+    "5V",
+    "GND",
+    "22",
+    "21",
+    "19",
+    "18",
+    "16",
+    "4"
+   ]
+  },
+  {
+   "ref": "R1",
+   "kind": "resistor",
+   "value": "10k",
+   "pins": {
+    "1": "g18",
+    "2": "g17"
+   },
+   "under_module": true,
+   "label_at": [
+    0,
+    22
+   ],
+   "note": "GPIO19 pull-down; stand it up (1-hole span)"
+  },
+  {
+   "ref": "R2",
+   "kind": "resistor",
+   "value": "10k",
+   "pins": {
+    "1": "f19",
+    "2": "f17"
+   },
+   "under_module": true,
+   "label_at": [
+    0,
+    -18
+   ],
+   "note": "GPIO18 pull-down; stand it up"
+  }
+ ],
+ "jumpers": [
+  {
+   "from": "d11",
+   "to": "d10",
+   "color": "3v3",
+   "under": true
+  },
+  {
+   "from": "b29",
+   "to": "b30",
+   "color": "5v",
+   "under": true
+  },
+  {
+   "from": "g16",
+   "to": "g8",
+   "color": "sda",
+   "under": true
+  },
+  {
+   "from": "h13",
+   "to": "h9",
+   "color": "scl",
+   "under": true
+  },
+  {
+   "from": "a10",
+   "to": "T+@10",
+   "color": "3v3"
+  },
+  {
+   "from": "j11",
+   "to": "B+@11",
+   "color": "gnd"
+  },
+  {
+   "from": "f8",
+   "to": "e8",
+   "color": "sda"
+  },
+  {
+   "from": "f9",
+   "to": "e9",
+   "color": "scl"
+  },
+  {
+   "from": "T+@1",
+   "to": "B-@1",
+   "color": "3v3"
+  },
+  {
+   "from": "T-@2",
+   "to": "B+@2",
+   "color": "gnd"
+  }
+ ],
+ "offboard": [
+  {
+   "pin": "SHT30.VCC",
+   "hole": "T+@6"
+  },
+  {
+   "pin": "SHT30.GND",
+   "hole": "T-@7"
+  },
+  {
+   "pin": "SHT30.SDA",
+   "hole": "a8"
+  },
+  {
+   "pin": "SHT30.SCL",
+   "hole": "a9"
+  },
+  {
+   "pin": "K1.5V",
+   "hole": "a30"
+  },
+  {
+   "pin": "RJ45.3V3",
+   "hole": "B-@6"
+  },
+  {
+   "pin": "RJ45.GND",
+   "hole": "B+@7"
+  },
+  {
+   "pin": "RJ45.SDA",
+   "hole": "j8"
+  },
+  {
+   "pin": "RJ45.SCL",
+   "hole": "j9"
+  },
+  {
+   "pin": "OLED.SCL",
+   "hole": "j13"
+  },
+  {
+   "pin": "OLED.VCC",
+   "hole": "B-@14"
+  },
+  {
+   "pin": "OLED.GND",
+   "hole": "B+@15"
+  },
+  {
+   "pin": "OLED.SDA",
+   "hole": "j16"
+  },
+  {
+   "pin": "SSR.IN+",
+   "hole": "j18"
+  },
+  {
+   "pin": "K1.D1",
+   "hole": "j19"
+  },
+  {
+   "pin": "SSR.IN-",
+   "hole": "B+@20"
+  },
+  {
+   "pin": "K1.GND",
+   "hole": "B+@21"
+  },
+  {
+   "pin": "COOL.DAT",
+   "hole": "j22"
+  },
+  {
+   "pin": "STONE.DAT",
+   "hole": "j23"
+  },
+  {
+   "pin": "COOL.VCC",
+   "hole": "B-@24"
+  },
+  {
+   "pin": "COOL.GND",
+   "hole": "B+@25"
+  },
+  {
+   "pin": "STONE.VCC",
+   "hole": "B-@26"
+  },
+  {
+   "pin": "STONE.GND",
+   "hole": "B+@27"
+  }
+ ],
+ "notes": [
+  "Dry-fit confirmed: the ESP32's headers sit in rows a and i, columns 11–29 (pin rows 0.9\" apart; this board's centre gap is 0.2\").",
+  "This board's rails are not mirror images: on the a side the inner rail is − and the outer +, on the j side the inner rail is + and the outer −. Both + rails carry 3V3 here; only 5V goes straight to the relay.",
+  "Rail holes are drawn at their column; use the nearest hole in that column. Ignore the half-columns of extra rail holes, the centre-gap pads, and the screw terminal.",
+  "Row j and the b–h holes between the headers are under the raised ESP32; wires soldered at j leave sideways under the module's edge, and a30 sits under the USB end.",
+  "Fit the 2.4 GHz U.FL antenna to the WROOM-32U before first power-up: it has no antenna of its own.",
+  "The relay shield, SSR and all mains wiring stay off this board, in the mains compartment."
+ ]
+}
