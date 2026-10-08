@@ -129,7 +129,7 @@ Path: wall outlet → *(optional ZEN04 / ITC-308)* → C13 cord → **C14 fused 
 - Control sensor "Hot Zone (Control)" = max(stone, IR), NaN if either is invalid.
 - Day/night setpoints and schedule hours are number entities (persisted in flash). The active setpoint is pushed to the thermostat every 30 s and on any change. Time comes from SNTP, then Home Assistant; with no valid time, the day setpoint is used.
 - Safety loop (2 s): forces heat off on any fault, clears once readings are valid and below 90°F, and only heats while **Heater Enable** is on. The 92°F hard limit is fixed in firmware.
-- Cutoff relay (GPIO27) is closed only while the safety loop allows heat, and boots open. If the SSR shorts, the hot zone reaches the 92°F limit, the relay opens, and it recloses below 90°F. The heater then cycles on the relay around 90–92°F until you replace the SSR, and **Heater Fault** toggles on each trip.
+- Cutoff relay (GPIO27) is closed only while the safety loop allows heat, and boots open. If the SSR shorts, the hot zone reaches the 92°F limit, the relay opens, and it recloses below 90°F. The heater then cycles on the relay around 90–92°F until you replace the SSR. The first trip latches the **Alarm**.
 - MLX emissivity set to 0.95 for stone.
 - OLED shows Hot / Cool / RH / heater % / setpoint, shifts pixels every few minutes, and turns off during night hours.
 - After autotune, paste the suggested `kp/ki/kd` from the logs into `control_parameters`.
@@ -137,7 +137,22 @@ Path: wall outlet → *(optional ZEN04 / ITC-308)* → C13 cord → **C14 fused 
 
 ## Alerts (Home Assistant)
 
-Set up a phone alert on `Heater Fault` turning on. A fault that recurs every few minutes while the duty is low points to a shorted SSR.
+The ESP32 exposes a latched **Alarm** (`binary_sensor.snake_enclosure_alarm`, device class *problem*) with the cause in **Alarm Reason**. It turns on when:
+
+| Cause | Alarm Reason |
+|---|---|
+| Hot zone hits the 92°F hard limit | `Over temperature limit` (adds `; SSR may be stuck on` if the PID was asking for <10% heat) |
+| Any sensor fault (no reading, stale, implausible) lasting >2 min | `Sensor fault: <reason>` |
+| Hot zone above 95°F while the relay is open | `Hot zone above 95F with heater cut off` (relay or external heat problem) |
+
+It stays on, including through reboots, until you press **Clear Alarm**. If the condition still holds, it re-raises. The OLED shows `ALARM` while it's latched.
+
+Set up two Home Assistant notifications:
+
+1. `binary_sensor.snake_enclosure_alarm` turns **on** → phone alert, including the state of `sensor.snake_enclosure_alarm_reason`.
+2. `binary_sensor.snake_enclosure_status` is **off** for 5 min → "thermostat offline" alert. The ESP32 can't report its own crash or power loss, so this one has to come from HA. The heater is already off in that case, because the relay opens.
+
+`Cool Side Low` and `Humidity Out of Range` are separate, non-latching warnings for husbandry alerts.
 
 ## Optional upstream failsafe
 
@@ -161,11 +176,12 @@ The ZEN04 failsafe depends on HA being up. A 4 ft gradient gives the snake room 
 
 - [ ] Flash the ESP32 over USB; confirm the I2C scan in logs shows 0x3C, 0x44, 0x5A.
 - [ ] Both DS18B20s read sensibly; compare to a reference thermometer.
-- [ ] Unplug a probe: Heater Fault turns on and heater duty goes to 0.
+- [ ] Unplug a probe: Heater Fault turns on and heater duty goes to 0; after 2 min, Alarm turns on with `Sensor fault: …`. Reconnect, press Clear Alarm.
+- [ ] Both HA notifications fire (Alarm on; ESP32 USB unplugged for 5 min).
 - [ ] Multimeter: ground continuity from the plug's ground pin to the outlet ground (unplugged).
 - [ ] Lamp in the outlet: ESP32 pulses it; lamp stays off during boot and flashing.
 - [ ] Relay clicks closed once sensors are valid and `Cutoff Relay Closed` turns on; it opens (lamp off) when you turn off Heater Enable, unplug a probe, or unplug the ESP32's USB.
-- [ ] Simulate a shorted SSR: jumper SSR terminals 1–2 (unplugged first), power up, warm the stone probe past 92°F; the relay must open and the lamp go off. Remove the jumper afterwards.
+- [ ] Simulate a shorted SSR: jumper SSR terminals 1–2 (unplugged first), power up, warm the stone probe past 92°F; the relay must open, the lamp go off, and Alarm turn on. Remove the jumper afterwards.
 - [ ] If fitted: each upstream failsafe trigger kills the lamp.
 - [ ] RHP connected: run autotune with the stone installed (1–2 hr), update PID values, then watch a full day/night cycle, including the night setpoint switch.
 - [ ] Cool side holds ≥ 72°F in the enclosure's room for a week before the animal moves in.
@@ -173,6 +189,6 @@ The ZEN04 failsafe depends on HA being up. A 4 ft gradient gives the snake room 
 
 ## Open items
 
-- [ ] Home Assistant alert on `Heater Fault`
+- [ ] Home Assistant notifications on `Alarm` and `Status` offline
 - [ ] Confirm Wi-Fi reaches the enclosure location
 - [ ] Optional: upstream failsafe (ITC-308, or ZEN04 + HA automation)

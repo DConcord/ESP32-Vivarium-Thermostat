@@ -37,7 +37,9 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 | Entity | Description |
 |---|---|
 | `sensor.snake_enclosure_heater_status` | Text: Heating, Idle, Disabled, or "Fault: reason" |
-| `binary_sensor.snake_enclosure_heater_fault` | On when heat is forced off by a fault |
+| `binary_sensor.snake_enclosure_alarm` | **Alert on this.** Latched safety alarm: over-temperature trip, sensor fault >2 min, or >95°F with the heater cut off. Stays on (through reboots) until Clear Alarm |
+| `sensor.snake_enclosure_alarm_reason` | Text: what raised the alarm, or `None` |
+| `binary_sensor.snake_enclosure_heater_fault` | On while heat is forced off by a fault (live, not latched; includes startup) |
 | `binary_sensor.snake_enclosure_heater_active` | On while the heater is pulsing |
 | `binary_sensor.snake_enclosure_cutoff_relay_closed` | On while the series cutoff relay is closed (heating allowed) |
 | `binary_sensor.snake_enclosure_night_mode` | On during night hours |
@@ -53,6 +55,7 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 | `sensor.snake_enclosure_uptime` | Seconds since boot |
 | `button.snake_enclosure_pid_autotune` | Start PID autotune (results appear in device logs) |
 | `button.snake_enclosure_pid_reset_integral` | Clear the PID integral term |
+| `button.snake_enclosure_clear_alarm` | Reset the latched alarm (re-raises if the cause persists) |
 | `button.snake_enclosure_restart` | Reboot the ESP32 |
 
 ## Example dashboard card
@@ -84,6 +87,9 @@ cards:
   - type: entities
     title: Alerts
     entities:
+      - binary_sensor.snake_enclosure_alarm
+      - sensor.snake_enclosure_alarm_reason
+      - button.snake_enclosure_clear_alarm
       - binary_sensor.snake_enclosure_heater_fault
       - binary_sensor.snake_enclosure_cool_side_low
       - binary_sensor.snake_enclosure_humidity_out_of_range
