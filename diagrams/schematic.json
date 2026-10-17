@@ -49,7 +49,9 @@
     "21",
     "22",
     "4",
-    "16"
+    "16",
+    "34",
+    "35"
    ],
    "right": [
     "5V",
@@ -66,9 +68,9 @@
     "(external U.FL antenna)",
     "only used pins shown"
    ],
-   "title_y": 510,
+   "title_y": 550,
    "pad_top": 40,
-   "h": 380
+   "h": 440
   },
   {
    "kind": "block",
@@ -386,6 +388,64 @@
     }
    ],
    "hide_pin_labels": true
+  },
+  {
+   "ref": "SOIL1",
+   "kind": "block",
+   "style": "device",
+   "at": [
+    930,
+    650
+   ],
+   "w": 200,
+   "h": 90,
+   "pad_top": 46,
+   "left": [
+    "AOUT"
+   ],
+   "bottom": [
+    {
+     "pin": "VCC",
+     "x": 60
+    },
+    {
+     "pin": "GND",
+     "x": 140
+    }
+   ],
+   "title": "Soil moisture 1 (cool side)",
+   "sub": [
+    "capacitive, analog out"
+   ]
+  },
+  {
+   "ref": "SOIL2",
+   "kind": "block",
+   "style": "device",
+   "at": [
+    930,
+    810
+   ],
+   "w": 200,
+   "h": 90,
+   "pad_top": 46,
+   "left": [
+    "AOUT"
+   ],
+   "bottom": [
+    {
+     "pin": "VCC",
+     "x": 60
+    },
+    {
+     "pin": "GND",
+     "x": 140
+    }
+   ],
+   "title": "Soil moisture 2 (warm side)",
+   "sub": [
+    "capacitive, analog out"
+   ]
   }
  ],
  "wires": [
@@ -659,6 +719,54 @@
    "net": "GND",
    "side": "down",
    "len": 0
+  },
+  {
+   "pin": "SOIL1.VCC",
+   "net": "3V3",
+   "side": "down",
+   "len": 0
+  },
+  {
+   "pin": "SOIL1.GND",
+   "net": "GND",
+   "side": "down",
+   "len": 0
+  },
+  {
+   "pin": "SOIL2.VCC",
+   "net": "3V3",
+   "side": "down",
+   "len": 0
+  },
+  {
+   "pin": "SOIL2.GND",
+   "net": "GND",
+   "side": "down",
+   "len": 0
+  },
+  {
+   "pin": "ESP.34",
+   "net": "IO34",
+   "side": "left",
+   "len": 40
+  },
+  {
+   "pin": "ESP.35",
+   "net": "IO35",
+   "side": "left",
+   "len": 40
+  },
+  {
+   "pin": "SOIL1.AOUT",
+   "net": "IO34",
+   "side": "left",
+   "len": 0
+  },
+  {
+   "pin": "SOIL2.AOUT",
+   "net": "IO35",
+   "side": "left",
+   "len": 0
   }
  ],
  "decor": [
@@ -772,7 +880,9 @@
   "SSR",
   "R1",
   "R2",
-  "C1"
+  "C1",
+  "SOIL1",
+  "SOIL2"
  ],
  "parts_table_x": 330,
  "checklist": [
@@ -781,7 +891,8 @@
   "SSR input polarity: 3 (+) to GPIO19, 4 (−) to GND.",
   "Mains (C14, K1 terminals, SSR AC side) never on the protoboard.",
   "Sensors on 3V3 only, never 5V.",
-  "Bench test with a lamp before the heat panel."
+  "Bench test with a lamp before the heat panel.",
+  "Soil probes on 3V3 only: at 5V their output can exceed the ESP32's 3.3 V input."
  ],
  "notes": [
   "SDA/SCL are shared by the OLED, SHT30 and IR sensor (I2C at 50 kHz); their boards supply the pull-ups. The DS18B20 adapters carry their own 4.7k pull-ups.",

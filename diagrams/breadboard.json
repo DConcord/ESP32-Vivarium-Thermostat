@@ -34,7 +34,9 @@
  },
  "colors": {
   "ssr": "#EA580C",
-  "rly": "#C026D3"
+  "rly": "#C026D3",
+  "soil1": "#0D9488",
+  "soil2": "#4338CA"
  },
  "devices": {
   "K1": {
@@ -64,6 +66,14 @@
   "RJ45": {
    "name": "RJ45 jack (Cat6 to IR sensor)",
    "color": "#0F766E"
+  },
+  "SOIL1": {
+   "name": "soil moisture 1 (cool side)",
+   "color": "#0D9488"
+  },
+  "SOIL2": {
+   "name": "soil moisture 2 (warm side)",
+   "color": "#4338CA"
   }
  },
  "parts": [
@@ -142,7 +152,9 @@
     "19",
     "18",
     "16",
-    "4"
+    "4",
+    "34",
+    "35"
    ]
   },
   {
@@ -230,6 +242,18 @@
    "from": "T-@2",
    "to": "B+@2",
    "color": "gnd"
+  },
+  {
+   "from": "c15",
+   "to": "c5",
+   "color": "soil1",
+   "under": true
+  },
+  {
+   "from": "b16",
+   "to": "b4",
+   "color": "soil2",
+   "under": true
   }
  ],
  "offboard": [
@@ -324,6 +348,30 @@
   {
    "pin": "STONE.GND",
    "hole": "B+@27"
+  },
+  {
+   "pin": "SOIL1.AOUT",
+   "hole": "a5"
+  },
+  {
+   "pin": "SOIL1.VCC",
+   "hole": "T+@3"
+  },
+  {
+   "pin": "SOIL1.GND",
+   "hole": "B+@3"
+  },
+  {
+   "pin": "SOIL2.AOUT",
+   "hole": "a4"
+  },
+  {
+   "pin": "SOIL2.VCC",
+   "hole": "B-@4"
+  },
+  {
+   "pin": "SOIL2.GND",
+   "hole": "B+@5"
   }
  ],
  "notes": [

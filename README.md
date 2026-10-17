@@ -13,7 +13,7 @@ Built for a corn snake, but the setpoints are adjustable for other species.
 
 ## Hardware (summary)
 
-ESP32 · 2× DS18B20 (stone surface, cool side) · MLX90614ESF-DCI IR sensor (over Cat6) · SHT30 humidity probe · SH1106 OLED · SSR + cutoff relay · radiant heat panel. Full parts list and wiring are in `BUILD.md`.
+ESP32 · 2× DS18B20 (stone surface, cool side) · MLX90614ESF-DCI IR sensor (over Cat6) · SHT30 humidity probe · 2× capacitive soil moisture probes · SH1106 OLED · SSR + cutoff relay · radiant heat panel. Full parts list and wiring are in `BUILD.md`.
 
 ## Files
 

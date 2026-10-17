@@ -16,6 +16,12 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 | `number.snake_enclosure_cool_side_low_alert` | Number | Cool-side low alert threshold (default 70°F) |
 | `number.snake_enclosure_humidity_low_alert` | Number | Humidity low alert threshold (default 30%) |
 | `number.snake_enclosure_humidity_high_alert` | Number | Humidity high alert threshold (default 70%) |
+| `number.snake_enclosure_soil_moisture_low_alert` | Number | Soil moisture low alert threshold (default 20%) |
+| `number.snake_enclosure_soil_moisture_high_alert` | Number | Soil moisture high alert threshold (default 80%) |
+| `number.snake_enclosure_soil_moisture_1_dry_voltage` | Number (config) | Probe 1 voltage in dry substrate, = 0% (default 2.60 V) |
+| `number.snake_enclosure_soil_moisture_1_wet_voltage` | Number (config) | Probe 1 voltage in soaked substrate, = 100% (default 1.20 V) |
+| `number.snake_enclosure_soil_moisture_2_dry_voltage` | Number (config) | Probe 2 dry calibration (default 2.60 V) |
+| `number.snake_enclosure_soil_moisture_2_wet_voltage` | Number (config) | Probe 2 wet calibration (default 1.20 V) |
 | `climate.snake_enclosure_hot_zone_thermostat` | Climate | PID thermostat. Its target follows the setpoint numbers, so set targets there rather than on this card |
 
 ## Readings
@@ -29,6 +35,8 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 | `sensor.snake_enclosure_cool_side_temperature` | DS18B20 on the cool side |
 | `sensor.snake_enclosure_enclosure_air_temperature` | SHT30 air temperature |
 | `sensor.snake_enclosure_enclosure_humidity` | SHT30 relative humidity |
+| `sensor.snake_enclosure_soil_moisture_1` | Soil moisture, cool side (0–100%, from calibration) |
+| `sensor.snake_enclosure_soil_moisture_2` | Soil moisture, warm side (0–100%, from calibration) |
 | `sensor.snake_enclosure_active_setpoint` | Setpoint currently in effect (day or night) |
 | `sensor.snake_enclosure_heater_duty` | Heater output, 0–100% |
 
@@ -45,6 +53,7 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 | `binary_sensor.snake_enclosure_night_mode` | On during night hours |
 | `binary_sensor.snake_enclosure_cool_side_low` | On when cool side is below its alert threshold |
 | `binary_sensor.snake_enclosure_humidity_out_of_range` | On when humidity is outside its alert range |
+| `binary_sensor.snake_enclosure_soil_moisture_out_of_range` | On when either soil probe is outside the soil alert range (monitor only, not part of Alarm) |
 | `binary_sensor.snake_enclosure_status` | Device connectivity (use for an "offline" alert) |
 
 ## Diagnostics and maintenance
@@ -53,6 +62,8 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 |---|---|
 | `sensor.snake_enclosure_wifi_signal` | Wi-Fi RSSI |
 | `sensor.snake_enclosure_uptime` | Seconds since boot |
+| `sensor.snake_enclosure_soil_moisture_1_voltage` | Raw probe 1 voltage (use for calibration) |
+| `sensor.snake_enclosure_soil_moisture_2_voltage` | Raw probe 2 voltage (use for calibration) |
 | `button.snake_enclosure_pid_autotune` | Start PID autotune (results appear in device logs) |
 | `button.snake_enclosure_pid_reset_integral` | Clear the PID integral term |
 | `button.snake_enclosure_clear_alarm` | Reset the latched alarm (re-raises if the cause persists) |
@@ -74,6 +85,10 @@ cards:
         name: Humidity
       - entity: sensor.snake_enclosure_heater_duty
         name: Heater
+      - entity: sensor.snake_enclosure_soil_moisture_1
+        name: Soil cool
+      - entity: sensor.snake_enclosure_soil_moisture_2
+        name: Soil warm
   - type: entities
     title: Heat control
     entities:
@@ -93,10 +108,13 @@ cards:
       - binary_sensor.snake_enclosure_heater_fault
       - binary_sensor.snake_enclosure_cool_side_low
       - binary_sensor.snake_enclosure_humidity_out_of_range
+      - binary_sensor.snake_enclosure_soil_moisture_out_of_range
       - binary_sensor.snake_enclosure_status
       - number.snake_enclosure_cool_side_low_alert
       - number.snake_enclosure_humidity_low_alert
       - number.snake_enclosure_humidity_high_alert
+      - number.snake_enclosure_soil_moisture_low_alert
+      - number.snake_enclosure_soil_moisture_high_alert
   - type: history-graph
     title: Last 24 hours
     hours_to_show: 24

@@ -23,6 +23,8 @@
 #     >2 min, or heat above 95°F with the heater cut off. It stays on
 #     (through reboots) until "Clear Alarm" is pressed. Alert on it in HA.
 #   - Optional upstream Z-Wave plug failsafe via Home Assistant (BUILD.md).
+#   - Two capacitive soil moisture probes (GPIO34/35) are monitor-only:
+#     they never affect heat control or the latched Alarm.
 # =====================================================================
 
 substitutions:
@@ -245,6 +247,90 @@ number:
     restore_value: true
     mode: box
 
+  # Soil moisture: two-point calibration per probe (probe voltage in dry and
+  # soaked substrate) plus alert limits. Calibrate from HA, no reflash needed.
+  - platform: template
+    id: soil1_dry_v
+    name: "Soil Moisture 1 Dry Voltage"
+    icon: mdi:sine-wave
+    entity_category: config
+    unit_of_measurement: "V"
+    min_value: 0
+    max_value: 3.3
+    step: 0.01
+    initial_value: 2.6
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: soil1_wet_v
+    name: "Soil Moisture 1 Wet Voltage"
+    icon: mdi:sine-wave
+    entity_category: config
+    unit_of_measurement: "V"
+    min_value: 0
+    max_value: 3.3
+    step: 0.01
+    initial_value: 1.2
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: soil2_dry_v
+    name: "Soil Moisture 2 Dry Voltage"
+    icon: mdi:sine-wave
+    entity_category: config
+    unit_of_measurement: "V"
+    min_value: 0
+    max_value: 3.3
+    step: 0.01
+    initial_value: 2.6
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: soil2_wet_v
+    name: "Soil Moisture 2 Wet Voltage"
+    icon: mdi:sine-wave
+    entity_category: config
+    unit_of_measurement: "V"
+    min_value: 0
+    max_value: 3.3
+    step: 0.01
+    initial_value: 1.2
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: soil_low_alert
+    name: "Soil Moisture Low Alert"
+    icon: mdi:water-alert
+    unit_of_measurement: "%"
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 20
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: soil_high_alert
+    name: "Soil Moisture High Alert"
+    icon: mdi:water-alert
+    unit_of_measurement: "%"
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 80
+    optimistic: true
+    restore_value: true
+    mode: box
+
 # Picks the day or night setpoint and pushes it to the PID thermostat.
 script:
   - id: apply_setpoint
@@ -310,6 +396,64 @@ sensor:
     humidity:
       name: "Enclosure Humidity"
       id: humidity
+
+  # Capacitive soil probes on ADC1 (works with Wi-Fi on). Probe voltage falls
+  # as the substrate gets wetter. Powered from 3V3 so the output stays < 3.3 V.
+  - platform: adc
+    pin: GPIO34
+    id: soil1_v
+    name: "Soil Moisture 1 Voltage"
+    entity_category: diagnostic
+    attenuation: 12db
+    samples: 16
+    update_interval: 30s
+    accuracy_decimals: 2
+    filters:
+      - median:
+          window_size: 5
+          send_every: 2
+
+  - platform: adc
+    pin: GPIO35
+    id: soil2_v
+    name: "Soil Moisture 2 Voltage"
+    entity_category: diagnostic
+    attenuation: 12db
+    samples: 16
+    update_interval: 30s
+    accuracy_decimals: 2
+    filters:
+      - median:
+          window_size: 5
+          send_every: 2
+
+  - platform: template
+    id: soil1
+    name: "Soil Moisture 1"
+    icon: mdi:water-percent
+    device_class: moisture
+    state_class: measurement
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: 60s
+    lambda: |-
+      const float v = id(soil1_v).state, dry = id(soil1_dry_v).state, wet = id(soil1_wet_v).state;
+      if (isnan(v) || !(dry - wet > 0.1f)) return NAN;
+      return clamp((dry - v) / (dry - wet) * 100.0f, 0.0f, 100.0f);
+
+  - platform: template
+    id: soil2
+    name: "Soil Moisture 2"
+    icon: mdi:water-percent
+    device_class: moisture
+    state_class: measurement
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: 60s
+    lambda: |-
+      const float v = id(soil2_v).state, dry = id(soil2_dry_v).state, wet = id(soil2_wet_v).state;
+      if (isnan(v) || !(dry - wet > 0.1f)) return NAN;
+      return clamp((dry - v) / (dry - wet) * 100.0f, 0.0f, 100.0f);
 
   - platform: template
     id: hot_zone_control
@@ -411,6 +555,15 @@ binary_sensor:
     lambda: |-
       const float h = id(humidity).state;
       return !isnan(h) && (h < id(humidity_low_alert).state || h > id(humidity_high_alert).state);
+
+  - platform: template
+    name: "Soil Moisture Out of Range"
+    device_class: problem
+    lambda: |-
+      const float lo = id(soil_low_alert).state, hi = id(soil_high_alert).state;
+      for (float m : {id(soil1).state, id(soil2).state})
+        if (!isnan(m) && (m < lo || m > hi)) return true;
+      return false;
 
   - platform: status
     name: "Status"
