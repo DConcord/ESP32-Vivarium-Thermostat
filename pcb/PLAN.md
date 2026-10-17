@@ -2,7 +2,7 @@
 
 A low-voltage-only carrier board that replaces the CircuitSetup protoboard and its hand wiring. The ESP32-DevKitC plugs into female headers; everything else lands on labelled screw terminals. Mains (relay shield, SSR, C14, outlet) stays off this board, in the mains bay, exactly as in `BUILD.md`.
 
-Source of truth for every connection: `diagrams/circuit.json`. The board adds no new nets except optional pull-ups (below).
+Source of truth for every connection: `diagrams/circuit.json` (including the two soil moisture probes on GPIO34/35). The board adds no new nets except optional pull-ups and filter caps (below).
 
 ## 1. What goes on the board
 
@@ -22,6 +22,9 @@ Source of truth for every connection: `diagrams/circuit.json`. The board adds no
 | J5 | 1×4 male header, 2.54 mm | GND · VCC(3V3) · SCL · SDA | OLED, in the OLED's own pin order, so a straight 4-wire Dupont cable works |
 | J6 | 2-pos screw terminal, 3.5 mm | GPIO19 (+) · GND (−) | SSR input terminals 3 (+) and 4 (−) |
 | J7 | 3-pos screw terminal, 3.5 mm | 5V · GND · GPIO18 | Relay shield 5V · GND · D1 |
+| J8 | 3-pos screw terminal, 3.5 mm | 3V3 · GPIO34 · GND | Soil moisture 1 (cool side), capacitive analog probe |
+| J9 | 3-pos screw terminal, 3.5 mm | 3V3 · GPIO35 · GND | Soil moisture 2 (warm side) |
+| C3, C4 | 100 nF ceramic, 2.54 mm (optional) | GPIO34 → GND, GPIO35 → GND | Smooths the analog soil readings; fit right at J8/J9 |
 | H1–H4 | M3 mounting holes, 3.2 mm | GND-free (isolated) | Same 87 × 47.7 mm pattern as the CircuitSetup board, so the enclosure standoffs don't change |
 
 Power stays as it is now: USB into the ESP32. 5V reaches J7 from the DevKit's 5V/VIN pin.
@@ -29,8 +32,8 @@ Power stays as it is now: USB into the ESP32. 5V reaches J7 from the DevKit's 5V
 ## 2. Board rules
 
 - **Size:** 95 × 56 mm (same footprint as the CircuitSetup board, so the enclosure model is unchanged). 2 layers, 1.6 mm FR-4, 1 oz copper.
-- **Layout:** the ESP32 runs along the USB edge. All screw terminals sit along the back edge, toward the grommets: J1, J2 and J3 together, then J4 (RJ45), then J6 and J7 at the divider end so the SSR and relay wires take the shortest path to the floor notch. J5 (OLED) sits on the front edge, toward the OLED.
-- **Traces:** 0.3 mm for signals and 0.6 mm for 3V3, 5V and GND, with a ground pour on both layers. I2C runs SDA and SCL side by side over solid ground.
+- **Layout:** the ESP32 runs along the USB edge. All screw terminals sit along the back edge, toward the grommets: J1, J2, J3, J8 and J9 together, then J4 (RJ45), then J6 and J7 at the divider end so the SSR and relay wires take the shortest path to the floor notch. J5 (OLED) sits on the front edge, toward the OLED.
+- **Traces:** 0.3 mm for signals and 0.6 mm for 3V3, 5V and GND, with a ground pour on both layers. I2C runs SDA and SCL side by side over solid ground. Keep the GPIO34/35 analog traces short and away from the 5V relay line.
 - **Antenna:** the WROOM-32**U** in your photo uses an external antenna on its u.FL connector, so the board needs no copper keep-out under it. You do need a u.FL-to-SMA pigtail with a small antenna; route it out of the enclosure or tape it to the lid, because the box walls and the mains wiring shield it. (A WROOM-32**D/E** with a PCB antenna would need a keep-out instead, and the antenna end hanging past the board edge.)
 - **Silkscreen:** label every terminal pin with net name and wire colour. Mark "LOW VOLTAGE ONLY, NO MAINS", plus the R3/R4 and R5/R6 fit rules.
 - **Checks before ordering:** compare the KiCad netlist against `diagrams/circuit.json`, pass DRC with JLCPCB's default rules, and print a 1:1 copy on paper to dry-fit the headers, terminals and standoff holes.
@@ -65,13 +68,14 @@ Power stays as it is now: USB into the ESP32. 5V reaches J7 from the DevKit's 5V
 |---|---|
 | 2 | 1×19 female header, 2.54 mm (or cut from 1×40 strips) |
 | 1 | 1×4 male header, 2.54 mm |
-| 3 | 3-pos screw terminal, 3.5 mm pitch |
+| 5 | 3-pos screw terminal, 3.5 mm pitch |
 | 1 | 4-pos screw terminal, 3.5 mm pitch |
 | 1 | 2-pos screw terminal, 3.5 mm pitch |
 | 1 | RJ45 8P8C through-hole jack (unshielded, no LEDs) |
 | 2 | 10k 1/4 W (you have these) |
 | 2–4 | 4.7k 1/4 W |
 | 1 | 10 µF electrolytic or ceramic (optional) |
+| 2 | 100 nF ceramic (optional, soil inputs) |
 | 1 | u.FL → SMA pigtail + 2.4 GHz antenna (for the WROOM-32U) |
 
 Order the exact terminal and jack part numbers from the BOM in step 5, so their footprints match the board.
