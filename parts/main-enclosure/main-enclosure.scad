@@ -12,7 +12,7 @@ wall = 3;  floor_t = 3;
 mains_w = 100;                  // mains bay interior width (X): SSR + cutoff relay
 div_t = 2;                      // divider thickness
 lv_w = 98;                      // low-voltage bay interior width (X): CircuitSetup board
-in_y = 90;  in_h = 45;          // interior depth (Y) and height (Z)
+in_y = 104;  in_h = 60;         // interior depth (Y) and height (Z): sized for the switched inlet
 corner_r = 4;                   // outer vertical-edge rounding
 
 boss_d = 9;                     // lid screw bosses in the 4 corners
@@ -23,20 +23,23 @@ m3_clear = 3.4;  m3_head_d = 6.2;  m3_head_depth = 1.5;
 // Inkbird SSR-40DA: 62.5 x 45 body, M4 holes 47.6 apart along the long axis
 ssr_size = [62.5, 45];  ssr_hole_pitch = 47.6;
 ssr_boss_d = 10;  ssr_boss_h = 8;  m4_insert_d = 5.1;  m4_insert_depth = 9.5;  // M4 x 8 inserts
-ssr_cx = 37.25;  ssr_center_y = 62;  // front-left of the mains bay, clear of the corner boss
+ssr_cx = 37.25;  ssr_center_y = 76;  // front-left of the mains bay, clear of the corner boss
 // Cutoff relay: Wemos D1 mini relay shield (SRD-05VDC-SL-C), no mounting holes.
 // It drops onto 4 corner posts (L-shaped, open sides for wiring); header pins hang below.
 // Screw terminals face the back (inlet/outlet), pin row with 5V/GND/D1 faces the divider.
 relay_pcb = [25.6, 34.2, 1.6];  // X, Y, thickness (verify)
 relay_lift = 14;                // PCB underside above the floor: room for header pins + dupont
-relay_cy = 69;  relay_gap = 1.5;  // relay center Y; clearance from the divider
+relay_cy = 83;  relay_gap = 1.5;  // relay center Y; clearance from the divider
 relay_clr = 0.25;  relay_post = 4;  relay_post_t = 1.6;  relay_ledge = 2.5;  relay_locate_h = 2;
 
 // C14 fused inlet (screw-ear type): panel cutout and ear holes
-c14_cut = [28, 32];  c14_hole_pitch = 40;  c14_x = 31;
+// AC-14-F16A switched inlet (rocker switch + fuse + C14 in one, upright, ears left/right).
+// Sizes estimated from photos; see the measurements sheet, rows 37-42.
+c14_cut = [28, 50];  c14_hole_pitch = 45;  c14_x = 31;
+c14_flange = [52, 61];  c14_depth = 34;  c14_harness = 15;  // body depth incl. tabs; wire bend room
 c14_pad_d = 9;  c14_pad_t = 5;  c14_insert_depth = 6.5; // inside pads, M3 x 5 inserts from outside
 // NEMA 5-15R snap-in receptacle: cutout, and snap clips want a thin panel
-outlet_cut = [27, 27];  outlet_panel_t = 1.6;  outlet_x = 73;
+outlet_cut = [27, 27];  outlet_panel_t = 1.6;  outlet_x = 78;
 outlet_pocket = [34, 34];       // inside thinning pocket around the cutout
 
 // Low-voltage bay
@@ -97,6 +100,9 @@ assert(standoff_d - 4.5 >= 3.5, "standoff wall too thin around insert");
 assert(c14_x - c14_hole_pitch/2 - 4 > wall, "C14 ears hit left wall");
 assert(outlet_x + outlet_pocket.x/2 < div_x, "outlet pocket crosses divider");
 assert(c14_x + c14_hole_pitch/2 + 4 < outlet_x - outlet_pocket.x/2, "C14 and outlet overlap");
+assert(c14_x + c14_flange.x/2 < outlet_x - outlet_cut.x/2 - 1, "inlet flange overlaps outlet");
+assert(mid_z + c14_cut.y/2 < outer.z - 3 && mid_z - c14_cut.y/2 > floor_t + 2, "inlet cutout does not fit the back wall");
+assert(wall + c14_depth + c14_harness <= ssr_center_y - ssr_size.y/2, "no room for the inlet harness in front of the SSR");
 assert(ssr_cx - ssr_size.x/2 > wall + 2, "SSR hits left wall");
 assert(ssr_cx + ssr_size.x/2 + 3 < relay_cx - relay_in.x/2 - relay_post_t, "SSR hits relay posts");
 assert(ssr_center_y + ssr_size.y/2 < outer.y - boss_off - boss_d/2, "SSR hits front-left boss");
@@ -253,11 +259,12 @@ module components() {
   }
   // C14 inlet: flange outside, body inside
   color("#222") translate([c14_x, 0, mid_z]) {
-    translate([0, -3, 0]) cuboid([c14_hole_pitch + 8, 3, c14_cut.y + 2], rounding=2, edges="Y", anchor=FRONT);
-    cuboid([c14_cut.x - 0.5, 27, c14_cut.y - 0.5], anchor=FRONT);
+    translate([0, -3, 0]) cuboid([c14_flange.x, 3, c14_flange.y], rounding=2, edges="Y", anchor=FRONT);
+    cuboid([c14_cut.x - 0.5, c14_depth, c14_cut.y - 0.5], anchor=FRONT);
+    color("#E53935") translate([0, -3, c14_cut.y/2 - 9]) cuboid([20, 4, 12], anchor=BACK);   // rocker switch
   }
   // power cord plug into the C14
-  color("#333") translate([c14_x, -3, mid_z]) cuboid([24, 30, 20], rounding=3, anchor=BACK);
+  color("#333") translate([c14_x, -3, mid_z - c14_cut.y/2 + 12]) cuboid([24, 30, 20], rounding=3, anchor=BACK);
   // NEMA outlet: face flush outside, body inside
   color("#222") translate([outlet_x, 0, mid_z]) cuboid([outlet_cut.x - 0.5, 24, outlet_cut.y - 0.5], anchor=FRONT);
   color("#111") translate([outlet_x, -0.6, mid_z]) cuboid([outlet_cut.x + 2, 0.6, outlet_cut.y + 2], anchor=FRONT);
