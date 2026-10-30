@@ -55,7 +55,8 @@ lid_tab_clr = 0.3;
 pb_size = [95, 56];  pb_hole_pitch = [87.5, 48.5];  // measured: 3.1 mm holes, 2.2 mm edge to hole edge
 pb_center_y = 55;  pb_edge_gap = 1.5;          // USB end of the board this far from the +X wall
 // ESP32-DevKitC 38-pin on 8.5 mm female headers; micro-USB at the column-30 end, faces +X wall
-esp_hdr_h = 11.7;  usb_in = 9.9;  usb_y_off = 0;  // measured: 13.3 board top to ESP32 board top, minus 1.6 ESP32 board; port mouth inside board edge; Y offset
+esp_hdr_h = 7.4;  usb_in = 9.9;  usb_y_off = 0;   // measured: chip top 12.04 above the board (7.4 + 1.6 board + 3 can); port mouth 9.9 inside board edge
+usb_h = 8;                      // measured: USB centre 8 above the board top (the ESP32 sits tilted, USB end lower)
 usb_open = [15, 11];            // opening in +X wall for the plug overmold (Y, Z)
 standoff_d = 8.5;  standoff_h = 9;  pb_insert_depth = 6.5;  // M3 x 5 inserts; 9 mm clears the 8 mm underside
 div_notch = [10, 8];  div_notch_y = 42;  // wire pass-through at floor (Y width, Z height), center Y
@@ -81,7 +82,7 @@ relay_cx = div_x - relay_gap - relay_post_t - relay_clr - relay_pcb.x/2;
 relay_in = [relay_pcb.x + 2*relay_clr, relay_pcb.y + 2*relay_clr];
 pb_cx = outer.x - wall - pb_edge_gap - pb_size.x/2;
 pb_top_z = floor_t + standoff_h + 1.6;
-usb_z = pb_top_z + esp_hdr_h + 1.6 + 1.5;
+usb_z = pb_top_z + usb_h;
 mid_z = floor_t + in_h/2;
 boss_off = wall + boss_d/2 - 1;               // boss centers from outer edges
 boss_pts = [for (x=[boss_off, outer.x-boss_off], y=[boss_off, outer.y-boss_off]) [x,y]];
