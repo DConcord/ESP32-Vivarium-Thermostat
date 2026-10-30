@@ -52,12 +52,12 @@ grommet_z = 19;  grommet_pitch = 36;  grommet_slot_w = 8;  // slot passes Cat6 (
 grommet_pocket_d = grommet_flange_d + 3;
 lid_tab_clr = 0.3;
 // CircuitSetup Project Box Breadboard (measured from photo via 2.54 mm hole pitch; verify)
-pb_size = [95, 56];  pb_hole_pitch = [87, 47.7];  // 4 corner M3 holes
+pb_size = [95, 56];  pb_hole_pitch = [87.5, 48.5];  // measured: 3.1 mm holes, 2.2 mm edge to hole edge
 pb_center_y = 55;  pb_edge_gap = 1.5;          // USB end of the board this far from the +X wall
 // ESP32-DevKitC 38-pin on 8.5 mm female headers; micro-USB at the column-30 end, faces +X wall
 esp_hdr_h = 8.5;  usb_in = 9.5;  usb_y_off = 0;  // port mouth inside board edge; Y offset from board center
 usb_open = [15, 11];            // opening in +X wall for the plug overmold (Y, Z)
-standoff_d = 8.5;  standoff_h = 6;  pb_insert_depth = 6.5;  // M3 x 5 inserts
+standoff_d = 8.5;  standoff_h = 9;  pb_insert_depth = 6.5;  // M3 x 5 inserts; 9 mm clears the 8 mm underside
 div_notch = [10, 8];  div_notch_y = 42;  // wire pass-through at floor (Y width, Z height), center Y
 
 // Lid
