@@ -55,7 +55,7 @@ lid_tab_clr = 0.3;
 pb_size = [95, 56];  pb_hole_pitch = [87.5, 48.5];  // measured: 3.1 mm holes, 2.2 mm edge to hole edge
 pb_center_y = 55;  pb_edge_gap = 1.5;          // USB end of the board this far from the +X wall
 // ESP32-DevKitC 38-pin on 8.5 mm female headers; micro-USB at the column-30 end, faces +X wall
-esp_hdr_h = 8.5;  usb_in = 9.5;  usb_y_off = 0;  // port mouth inside board edge; Y offset from board center
+esp_hdr_h = 11.7;  usb_in = 9.5;  usb_y_off = 0;  // measured: 13.3 board top to ESP32 board top, minus 1.6 ESP32 board; port mouth inside board edge; Y offset
 usb_open = [15, 11];            // opening in +X wall for the plug overmold (Y, Z)
 standoff_d = 8.5;  standoff_h = 9;  pb_insert_depth = 6.5;  // M3 x 5 inserts; 9 mm clears the 8 mm underside
 div_notch = [10, 8];  div_notch_y = 42;  // wire pass-through at floor (Y width, Z height), center Y
