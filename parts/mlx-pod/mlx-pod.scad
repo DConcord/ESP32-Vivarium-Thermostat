@@ -1,9 +1,11 @@
 // GY-906-DCI (MLX90614) sensor pod with tilt yoke and a wall bracket.
-// GY-906 dimensions are measured (measurements sheet rows 1-5); bracket is a first pass.
+// GY-906 dimensions are measured (measurements sheet rows 1-5).
+// Pan and tilt joints have radial teeth (24 per turn = 15 deg steps): loosen, re-aim, tighten.
 // Parts: body (front-down), cap, yoke (base-down), bracket (on its side).
-// Assembly: 2x M3 screws from OUTSIDE the PVC wall into inserts in the bracket
+// Assembly: 2x M3 self-tapping screws from OUTSIDE the PVC wall into the bracket
 //   (no screw points inside the enclosure) -> M3 pan screw -> yoke -> 2x M3 tilt screws -> body.
-// Kadrick M3 heat-set inserts (OD 4.5, tip 3.9): hole 4.0, depth = length + 1.5.
+// Heat-set inserts (Kadrick M3, hole 4.0) only in the pan and tilt joints, which get re-tightened;
+// the cap and wall screws are self-tapping into 2.5 mm pilots.
 include <BOSL2/std.scad>
 $fa = 1; $fs = 0.2;
 part = "body";                  // "body" | "cap" | "yoke" | "bracket" | "assembly"
@@ -25,8 +27,15 @@ ledge_w = 0.8;                  // PCB edges rest on this ledge
 wire_h = 8;                     // wires soldered straight to the pads + 100 nF cap
 post_d = 5;  m25_pilot_d = 2.1;  m25_pilot_depth = 6;  // M2.5 self-tapping screws hold the board
 m3_insert_d = 4.0;
-piv_boss_d = 9;  piv_boss_l = 5;  piv_insert_depth = 5.5;  // M3 x 4 inserts
-cap_tab = [9, 7];  cap_tab_h = 8;  cap_insert_depth = 6.5;   // M3 x 5 inserts, tabs on +/-Y
+m3_pilot_d = 2.5;               // M3 self-tapping pilot
+piv_boss_d = 13;  piv_boss_l = 5;  piv_insert_depth = 5.5;  // M3 x 4 inserts; boss face carries teeth
+cap_tab = [9, 7];  cap_tab_h = 8;  cap_pilot_depth = 6.5;   // M3 self-tapping, tabs on +/-Y
+
+// ---- parameters: toothed joints (identical rings mesh with each other) ----
+teeth_n = 24;  tooth_h = 0.7;   // 24 teeth = 15 deg steps; tooth height
+tilt_r = [2.6, 6.3];            // tilt rings: inner/outer radius (clears the M3 insert)
+pan_r = [2.6, 7.5];             // pan rings: inner/outer radius (clears the pan insert)
+groove_clr = 0.2;               // extra depth for the cut-in pan grooves
 corner_r = 2;
 
 // ---- parameters: cap ----
@@ -34,7 +43,7 @@ cap_t = 2;  cap_lip_h = 3;  cap_lip_t = 1.2;  cap_clr = 0.2;
 cable_d = 6.5;                  // Cat6 jacket pass-through
 
 // ---- parameters: yoke ----
-ear_t = 3;  yoke_w = 16;  yoke_base_t = 6;  washer_gap = 0.5;  // pan: M3 x 5 insert, through
+ear_t = 3;  yoke_w = 16;  yoke_base_t = 6;  // pan: M3 x 5 insert, through
 m3_clear = 3.4;
 piv_margin = 1.5;               // clearance between swinging pod and yoke base
 
@@ -43,7 +52,7 @@ br_w = 24;                      // bracket width (along the wall)
 plate_t = 7;  plate_h = 34;     // wall plate thickness, height above the arm
 arm_t = 5;  arm_reach = 28;     // arm thickness; wall face to pan screw
 gusset = 14;                    // triangular brace between plate and arm
-wall_screw_pitch = 12;  wall_screw_y = 26;  wall_insert_depth = 5.5;  // M3 x 4 inserts in the plate
+wall_screw_pitch = 12;  wall_screw_y = 26;  wall_pilot_depth = 6;  // M3 self-tapping from outside
 pvc_t = 6;                      // PVC wall thickness (measurement sheet), preview only
 
 // ---- derived ----
@@ -56,7 +65,7 @@ piv_z = z_top/2;
 body_span_x = body_xy.x + 2*piv_boss_l;
 swing_r = norm([z_top/2, body_xy.y/2 + cap_tab.y]);  // pod corner (incl. cap tabs) about the pivot
 cap_hole_y = body_xy.y/2 + 2.5;
-ear_gap = body_span_x + 2*washer_gap;
+ear_gap = body_span_x + 2*tooth_h;      // meshed teeth set the gap
 ear_piv_h = yoke_base_t + swing_r + piv_margin;
 ear_h = ear_piv_h + yoke_w/2;
 yoke_reach = max(ear_gap/2 + ear_t, swing_r);  // largest radius about the pan axis
@@ -70,8 +79,19 @@ assert(back_parts_h + 4 < wire_h, "not enough room behind the board");
 assert(piv_insert_depth < wall + piv_boss_l - 0.5, "pivot insert breaks into cavity");
 assert(cap_tab.y - (cap_hole_y - body_xy.y/2) - 4.5/2 >= 1.2, "cap tab wall too thin");
 assert(arm_reach > yoke_reach + 2, "pod swings into the wall below the arm");
-assert(wall_insert_depth < plate_t - 1, "wall insert breaks through the plate");
+assert(wall_pilot_depth < plate_t - 0.8, "wall pilot breaks through the plate");
+assert(tilt_r[1] <= piv_boss_d/2 && tilt_r[1] <= yoke_w/2, "tilt teeth larger than the boss or ear");
+assert(pan_r[1] <= yoke_w/2 && pan_r[1] <= br_w/2, "pan teeth larger than the yoke or arm");
 assert(wall_screw_y - 4.5/2 > arm_t + gusset - 4, "wall screw hits the gusset");
+
+// Radial tooth ring on the z = 0 plane, teeth pointing +Z. Two identical rings face to face mesh.
+module teeth(r, n = teeth_n, h = tooth_h) {
+  a = 360 / n;
+  wi = 2 * r[0] * tan(a/2);
+  for (i = [0:n-1]) rotate([0, 0, i*a])
+    multmatrix([[0,0,1,r[0]], [1,0,0,0], [0,1,0,0]])
+      linear_extrude(r[1] - r[0], scale=[r[1]/r[0], 1]) polygon([[-wi/2, 0], [wi/2, 0], [0, h]]);
+}
 
 // ---- body ----
 module body() {
@@ -88,6 +108,8 @@ module body() {
       // pivot bosses (inverted teardrop so the underside prints without support)
       for (s=[-1,1]) translate([s*(body_xy.x/2 + piv_boss_l/2 - eps), 0, piv_z])
         mirror([0,0,1]) teardrop(h=piv_boss_l + 2*eps, d=piv_boss_d, spin=90);
+      // tilt teeth on each boss face, pointing outward
+      for (s=[-1,1]) translate([s*(body_span_x/2 - eps), 0, piv_z]) rotate([0, s*90, 0]) teeth(tilt_r);
       // cap screw tabs, with a >45 deg wedge underneath so they print without support
       for (s=[-1,1]) translate([0, s*(body_xy.y/2 - eps), z_top - cap_tab_h]) hull() {
         translate([0, s*cap_tab.y/2, 0]) cuboid([cap_tab.x, cap_tab.y + eps, cap_tab_h], anchor=BOT);
@@ -102,8 +124,8 @@ module body() {
     // M3 inserts in pivot bosses and cap tabs
     for (s=[-1,1]) translate([s*(body_span_x/2 + eps), 0, piv_z])
       cyl(d=m3_insert_d, h=2*piv_insert_depth, orient=RIGHT);
-    for (s=[-1,1]) translate([0, s*cap_hole_y, z_top - cap_insert_depth])
-      cyl(d=m3_insert_d, h=cap_insert_depth + eps, anchor=BOT);
+    for (s=[-1,1]) translate([0, s*cap_hole_y, z_top - cap_pilot_depth])
+      cyl(d=m3_pilot_d, h=cap_pilot_depth + eps, anchor=BOT);
   }
 }
 
@@ -136,7 +158,11 @@ module yoke() {
           cuboid([ear_t, yoke_w, eps], anchor=BOT);
           translate([0,0,ear_piv_h]) cyl(d=yoke_w, h=ear_t, orient=RIGHT);
         }
+      // tilt teeth on the ears' inner faces, pointing at the pod
+      for (s=[-1,1]) translate([s*(ear_gap/2 + eps), 0, ear_piv_h]) rotate([0, -s*90, 0]) teeth(tilt_r);
     }
+    // pan grooves cut into the face that sits against the bracket arm (print bed face)
+    translate([0, 0, -eps]) teeth(pan_r, h = tooth_h + groove_clr);
     for (s=[-1,1]) translate([s*(ear_gap/2 + ear_t/2), 0, ear_piv_h]) cyl(d=m3_clear, h=ear_t + 2*eps, orient=RIGHT);
     // pan insert (M3 x 5, through; press in from the bracket side = print bed face)
     translate([0,0,-eps]) cyl(d=m3_insert_d, h=yoke_base_t + 2*eps, anchor=BOT);
@@ -145,6 +171,11 @@ module yoke() {
 
 // ---- wall bracket: L profile in XY (X = out from the wall, Y = up), extruded along Z ----
 module bracket() {
+  // pan teeth on the arm's underside (y = 0 face), pointing down in use (-Y here)
+  translate([arm_reach, eps, br_w/2]) rotate([90, 0, 0]) difference() {
+    teeth(pan_r);
+    cyl(r=pan_r[0], h=10);
+  }
   difference() {
     linear_extrude(br_w) polygon([
       [0, 0], [arm_l, 0], [arm_l, arm_t], [plate_t + gusset, arm_t],
@@ -153,7 +184,7 @@ module bracket() {
     translate([arm_reach, arm_t/2, br_w/2]) cyl(d=m3_clear, h=arm_t + 2*eps, orient=BACK);
     // two M3 x 4 inserts in the wall face; screws come in from outside the enclosure
     for (s=[-1,1]) translate([-eps, wall_screw_y, br_w/2 + s*wall_screw_pitch/2])
-      cyl(d=m3_insert_d, h=wall_insert_depth + eps, orient=RIGHT, anchor=BOT);
+      cyl(d=m3_pilot_d, h=wall_pilot_depth + eps, orient=RIGHT, anchor=BOT);
   }
 }
 
@@ -163,7 +194,7 @@ else if (part == "yoke") yoke();
 else if (part == "bracket") bracket();
 
 // ---- assembly preview (not for printing): bracket on the PVC wall, pod tilted ----
-tilt = 25;
+tilt = 30;                      // a multiple of 15 so the teeth mesh
 if (part == "assembly") {
   rotate([90,0,0]) bracket();                                  // wall face at x = 0, arm along +X
   color("Gray", 0.3) translate([-pvc_t, -br_w - 20, -30]) cube([pvc_t, br_w + 40, arm_t + plate_h + 40]);

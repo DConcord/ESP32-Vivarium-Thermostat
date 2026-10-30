@@ -1,5 +1,5 @@
 // Main thermostat enclosure: base (mains bay + low-voltage bay) and lid.
-// MOCKUP: component dimensions are typical values; verify against real parts.
+// Dimensions from the measurements sheet (Google Sheets "Vivarium thermostat measurements").
 // Frame: origin = outer back-left-bottom corner of the base, +Z up.
 // -Y wall = BACK (inlet, outlet, cable grommets). +Y wall = FRONT (OLED window).
 include <BOSL2/std.scad>
@@ -16,40 +16,44 @@ in_y = 104;  in_h = 60;         // interior depth (Y) and height (Z): sized for 
 corner_r = 4;                   // outer vertical-edge rounding
 
 boss_d = 9;                     // lid screw bosses in the 4 corners
-// Kadrick heat-set inserts: M3 OD 4.5 / 3.9 tip, M4 OD 5.5 / 5.0 tip. Hole = tip + ~0.1, depth = length + 1.5
-m3_insert_d = 4.0;  m3_insert_depth = 7.5;     // lid screws: M3 x 6 inserts
+// Fasteners: heat-set inserts only in the lid (opened often); everything else uses
+// self-tapping screws for plastic into printed pilot holes.
+m3_insert_d = 4.0;  m3_insert_depth = 7.5;     // lid screws: Kadrick M3 x 6 inserts
+m3_pilot_d = 2.5;  m4_pilot_d = 3.4;          // self-tapping M3 (#4) and M4 (#6) pilots
 m3_clear = 3.4;  m3_head_d = 6.2;  m3_head_depth = 1.5;
 
-// Inkbird SSR-40DA: 62.5 x 45 body, M4 holes 47.6 apart along the long axis
-ssr_size = [62.5, 45];  ssr_hole_pitch = 47.6;
-ssr_boss_d = 10;  ssr_boss_h = 8;  m4_insert_d = 5.1;  m4_insert_depth = 9.5;  // M4 x 8 inserts
-ssr_cx = 37.25;  ssr_center_y = 76;  // front-left of the mains bay, clear of the corner boss
+// Inkbird SSR-40DA (measured): 63.2 x 45 x 23, 4.4 mm holes 46.0 apart along the long axis
+ssr_size = [63.2, 45];  ssr_hole_pitch = 46.0;
+ssr_boss_d = 10;  ssr_boss_h = 8;  ssr_pilot_depth = 9.5;  // M4 self-tapping screws
+ssr_cx = 37;  ssr_center_y = 76;  // front-left of the mains bay, clear of the corner boss
 // Cutoff relay: Wemos D1 mini relay shield (SRD-05VDC-SL-C), no mounting holes.
 // It drops onto 4 corner posts (L-shaped, open sides for wiring); header pins hang below.
 // Screw terminals face the back (inlet/outlet), pin row with 5V/GND/D1 faces the divider.
-relay_pcb = [25.6, 34.2, 1.6];  // X, Y, thickness (verify)
+relay_pcb = [26, 28.2, 1.6];    // X, Y, thickness (measured)
 relay_lift = 14;                // PCB underside above the floor: room for header pins + dupont
 relay_cy = 83;  relay_gap = 1.5;  // relay center Y; clearance from the divider
 relay_clr = 0.25;  relay_post = 4;  relay_post_t = 1.6;  relay_ledge = 2.5;  relay_locate_h = 2;
 
-// C14 fused inlet (screw-ear type): panel cutout and ear holes
-// AC-14-F16A switched inlet (rocker switch + fuse + C14 in one, upright, ears left/right).
-// Sizes estimated from photos; see the measurements sheet, rows 37-42.
-c14_cut = [28, 50];  c14_hole_pitch = 45;  c14_x = 31;
-c14_flange = [52, 61];  c14_depth = 34;  c14_harness = 15;  // body depth incl. tabs; wire bend room
-c14_pad_d = 9;  c14_pad_t = 5;  c14_insert_depth = 6.5; // inside pads, M3 x 5 inserts from outside
-// NEMA 5-15R snap-in receptacle: cutout, and snap clips want a thin panel
-outlet_cut = [27, 27];  outlet_panel_t = 1.6;  outlet_x = 78;
-outlet_pocket = [34, 34];       // inside thinning pocket around the cutout
+// AC-14-F16A switched inlet (rocker switch + fuse + C14 in one), upright, ears left/right.
+// Measured: body 27.48 x 47, flange 48.8 x 59, 3.5 mm ear holes 39.6 apart, 28 deep incl. tabs.
+c14_cut = [28, 47.5];  c14_hole_pitch = 39.6;  c14_x = 31;
+c14_flange = [48.8, 59];  c14_depth = 28;  c14_harness = 15;  // body depth incl. tabs; wire bend room
+c14_pad_d = 9;  c14_pad_t = 6;  c14_pilot_depth = 7;   // inside pads; M3 self-tapping screws from outside
+// NEMA 5-15R snap-in receptacle (measured): body 23.3 square; side clips grip walls up to 2.21
+outlet_cut = [23.7, 23.7];  outlet_panel_t = 2.0;  outlet_x = 76;
+outlet_pocket = [31, 31];       // inside thinning pocket around the cutout (covers the clips)
 
 // Low-voltage bay
-// Two rubber grommets (Vrupin kit, 3/4" = 19.05 mm mounting hole) in the back wall.
-// Each hole has a slot up to the rim so pre-soldered cables drop in (slit the grommet);
-// a lid tab with a concave bottom closes the slot so the grommet seats all the way round.
-grommet_hole_d = 19.05;  grommet_flange_d = 25.4;  // flange OD (verify)
-grommet_panel_t = 1.6;          // grommet groove width; wall is thinned to this (verify)
-grommet_z = 19;  grommet_pitch = 36;  grommet_slot_w = 8;  // slot passes Cat6 (~6 mm)
-grommet_pocket_d = grommet_flange_d + 3;
+// Three rubber grommets (Vrupin kit) in the back wall, each with a slot up to the rim so
+// pre-soldered cables drop in (slit the grommet); a lid tab with a concave bottom closes the
+// slot so the grommet seats all the way round. Measured: 3/4 in = 24 flange, 20 groove bottom,
+// 13 centre; 5/8 in = 19.7 flange, 15.5 groove bottom, 10.5 centre; grooves 1.8-2 wide.
+//   [centre X offset from the LV bay's left wall, hole d, flange d, slot w, what passes]
+grommets = [[16.5, 20.0, 24.0, 8, "Cat6 + 2 soil probes"],
+            [45.5, 20.0, 24.0, 8, "2 DS18B20 + SHT30"],
+            [72.5, 15.9, 19.7, 6, "USB (right-angle plug)"]];
+grommet_panel_t = 1.8;          // grooves are 1.8-2 wide; wall thinned to this around each hole
+grommet_z = 19;  grommet_pocket_extra = 3;  // pocket = flange + extra
 lid_tab_clr = 0.3;
 // CircuitSetup Project Box Breadboard (measured from photo via 2.54 mm hole pitch; verify)
 pb_size = [95, 56];  pb_hole_pitch = [87.5, 48.5];  // measured: 3.1 mm holes, 2.2 mm edge to hole edge
@@ -57,18 +61,17 @@ pb_center_y = 55;  pb_edge_gap = 1.5;          // USB end of the board this far 
 // ESP32-DevKitC 38-pin on 8.5 mm female headers; micro-USB at the column-30 end, faces +X wall
 esp_hdr_h = 7.4;  usb_in = 9.9;  usb_y_off = 0;   // measured: chip top 12.04 above the board (7.4 + 1.6 board + 3 can); port mouth 9.9 inside board edge
 usb_h = 8;                      // measured: USB centre 8 above the board top (the ESP32 sits tilted, USB end lower)
-usb_open = [15, 11];            // opening in +X wall for the plug overmold (Y, Z)
-standoff_d = 8.5;  standoff_h = 9;  pb_insert_depth = 6.5;  // M3 x 5 inserts; 9 mm clears the 8 mm underside
+standoff_d = 8;  standoff_h = 9;  pb_pilot_depth = 7;  // M3 self-tapping; 9 mm clears the 6 mm underside
 div_notch = [10, 8];  div_notch_y = 42;  // wire pass-through at floor (Y width, Z height), center Y
 
 // Lid
 lid_t = 3;  lip_h = 3;  lip_t = 1.6;  lip_clr = 0.2;
 // SH1106 1.3" OLED on the FRONT wall. The PCB drops into open-top grooves behind the
 // window (glass against the wall), rests on a ledge, and the lid lip keeps it down.
-oled_pcb = [35.4, 33.5, 1.6];   // width (X), height (Z), thickness (verify)
+oled_pcb = [35.4, 33.5, 1.6];   // width (X), height (Z), thickness (confirmed)
 oled_glass_t = 1.2;             // measured: 2.8 total front of glass to back of board, minus 1.6 PCB
-oled_win = [31, 17];  oled_win_dz = 1.5;  // window offset toward the header (up)
-oled_z0 = 9;                    // PCB bottom edge height
+oled_win = [31, 19.5];  oled_view_top = 5;  // measured: lit area 19.5 tall, starting 5 below the pin edge (top)
+oled_z0 = 14;                   // PCB bottom edge height: window roughly centred on the front wall
 oled_clr = 0.3;  rail_t = 2;  rail_lip = 2;
 
 // ---- derived ----
@@ -91,13 +94,15 @@ oled_w = oled_pcb.x + 2*oled_clr;
 oled_y_in = outer.y - wall;                              // front wall inner face
 oled_y_back = oled_y_in - oled_groove - rail_t;
 oled_rail_top = oled_z0 + oled_pcb.y + 1;
-oled_win_z = oled_z0 + oled_pcb.y/2 + oled_win_dz;
+oled_win_z = oled_z0 + oled_pcb.y - oled_view_top - oled_win.y/2;
+g_x = [for (g = grommets) lv_x0 + g[0]];      // grommet centres (X)
 
 // ---- asserts ----
 assert(wall >= 2.0, "mains enclosure wall too thin");
-assert(floor_t + ssr_boss_h - m4_insert_depth >= 1.2, "SSR insert breaks through floor");
-assert(c14_insert_depth < wall + c14_pad_t - 1, "C14 insert breaks through pad");
-assert(standoff_d - 4.5 >= 3.5, "standoff wall too thin around insert");
+assert(floor_t + ssr_boss_h - ssr_pilot_depth >= 1.2, "SSR pilot breaks through floor");
+assert(c14_pilot_depth < wall + c14_pad_t - 1, "C14 pilot breaks through pad");
+assert(standoff_d - m3_pilot_d >= 4, "standoff wall too thin around the pilot");
+assert(standoff_h - pb_pilot_depth >= 0 && pb_pilot_depth <= standoff_h + floor_t - 1.2, "standoff pilot breaks through floor");
 assert(c14_x - c14_hole_pitch/2 - 4 > wall, "C14 ears hit left wall");
 assert(outlet_x + outlet_pocket.x/2 < div_x, "outlet pocket crosses divider");
 assert(c14_x + c14_hole_pitch/2 + 4 < outlet_x - outlet_pocket.x/2, "C14 and outlet overlap");
@@ -109,9 +114,10 @@ assert(ssr_cx + ssr_size.x/2 + 3 < relay_cx - relay_in.x/2 - relay_post_t, "SSR 
 assert(ssr_center_y + ssr_size.y/2 < outer.y - boss_off - boss_d/2, "SSR hits front-left boss");
 assert(relay_cy - relay_in.y/2 - relay_post_t > div_notch_y + div_notch.x/2, "relay posts block divider notch");
 assert(relay_cy + relay_in.y/2 + relay_post_t < outer.y - wall, "relay hits front wall");
-assert(grommet_pitch/2 + grommet_pocket_d/2 + boss_d < lv_w/2, "grommet pocket hits corner boss");
-assert(grommet_pitch > grommet_pocket_d, "grommet pockets overlap");
-assert(grommet_z - grommet_flange_d/2 > floor_t, "grommet flange hits floor");
+assert(grommets[0][0] - (grommets[0][2] + grommet_pocket_extra)/2 > 0, "first grommet pocket hits the divider");
+assert(lv_x0 + grommets[2][0] + (grommets[2][2] + grommet_pocket_extra)/2 < outer.x - boss_off - boss_d/2, "last grommet pocket hits the corner boss");
+for (i = [0:len(grommets)-2]) assert(grommets[i+1][0] - grommets[i][0] > (grommets[i][2] + grommets[i+1][2])/2 + grommet_pocket_extra, "grommet pockets overlap");
+assert(grommet_z - max([for (g = grommets) g[2]])/2 > floor_t, "grommet flange hits floor");
 assert(oled_rail_top <= outer.z - lip_h - 0.3, "OLED rails hit lid lip");
 assert(pb_center_y + pb_size.y/2 < oled_y_back - 1, "protoboard hits OLED rails");
 assert(pb_cx - pb_size.x/2 > lv_x0 + 0.5, "protoboard does not fit the LV bay");
@@ -167,31 +173,29 @@ module base() {
     // lid screw inserts
     for (p = boss_pts) translate([p.x, p.y, outer.z - m3_insert_depth])
       cyl(d=m3_insert_d, h=m3_insert_depth+eps, anchor=BOT);
-    // SSR inserts
-    for (s=[-1,1]) translate([ssr_cx + s*ssr_hole_pitch/2, ssr_center_y, floor_t+ssr_boss_h-m4_insert_depth])
-      cyl(d=m4_insert_d, h=m4_insert_depth+eps, anchor=BOT);
-    // protoboard inserts
-    for (sx=[-1,1], sy=[-1,1]) translate([pb_cx + sx*pb_hole_pitch.x/2, pb_center_y + sy*pb_hole_pitch.y/2, floor_t+standoff_h-pb_insert_depth])
-      cyl(d=m3_insert_d, h=pb_insert_depth+eps, anchor=BOT);
-    // USB opening in the +X wall for the ESP32's micro-USB plug
-    translate([outer.x - wall/2, pb_center_y + usb_y_off, usb_z])
-      cuboid([wall + 2*eps, usb_open.x, usb_open.y], rounding=2, edges="X");
+    // SSR pilots (M4 self-tapping)
+    for (s=[-1,1]) translate([ssr_cx + s*ssr_hole_pitch/2, ssr_center_y, floor_t+ssr_boss_h-ssr_pilot_depth])
+      cyl(d=m4_pilot_d, h=ssr_pilot_depth+eps, anchor=BOT);
+    // protoboard pilots (M3 self-tapping)
+    for (sx=[-1,1], sy=[-1,1]) translate([pb_cx + sx*pb_hole_pitch.x/2, pb_center_y + sy*pb_hole_pitch.y/2, floor_t+standoff_h-pb_pilot_depth])
+      cyl(d=m3_pilot_d, h=pb_pilot_depth+eps, anchor=BOT);
     // divider wire notch
     translate([div_x-eps, div_notch_y - div_notch.x/2, floor_t-eps]) cube([div_t+2*eps, div_notch.x, div_notch.y]);
     // C14 inlet cutout + ear holes (-Y wall)
     translate([c14_x, wall/2, mid_z]) cube([c14_cut.x, wall+2*eps, c14_cut.y], center=true);
     for (s=[-1,1]) translate([c14_x + s*c14_hole_pitch/2, -eps, mid_z])
-      cyl(d=m3_insert_d, h=c14_insert_depth+eps, orient=BACK, anchor=BOT);
+      cyl(d=m3_pilot_d, h=c14_pilot_depth+eps, orient=BACK, anchor=BOT);
     // outlet cutout + inside thinning pocket (-Y wall)
     translate([outlet_x, wall/2, mid_z]) cube([outlet_cut.x, wall+2*eps, outlet_cut.y], center=true);
     translate([outlet_x - outlet_pocket.x/2, outlet_panel_t, mid_z - outlet_pocket.y/2])
       cube([outlet_pocket.x, wall - outlet_panel_t + eps, outlet_pocket.y]);
     // grommet keyholes (back wall, LV bay): hole + slot to the rim + inside thinning pocket
-    for (s=[-1,1]) translate([lv_cx + s*grommet_pitch/2, 0, 0]) {
-      translate([0, -eps, grommet_z]) cyl(d=grommet_hole_d, h=wall + 2*eps, orient=BACK, anchor=BOT);
-      translate([-grommet_slot_w/2, -eps, grommet_z]) cube([grommet_slot_w, wall + 2*eps, outer.z]);
-      hull() for (z=[grommet_z, outer.z + grommet_pocket_d/2])
-        translate([0, grommet_panel_t, z]) cyl(d=grommet_pocket_d, h=wall - grommet_panel_t + eps, orient=BACK, anchor=BOT);
+    for (g = grommets) translate([lv_x0 + g[0], 0, 0]) {
+      translate([0, -eps, grommet_z]) cyl(d=g[1], h=wall + 2*eps, orient=BACK, anchor=BOT);
+      translate([-g[3]/2, -eps, grommet_z]) cube([g[3], wall + 2*eps, outer.z]);
+      pocket_d = g[2] + grommet_pocket_extra;
+      hull() for (z=[grommet_z, outer.z + pocket_d/2])
+        translate([0, grommet_panel_t, z]) cyl(d=pocket_d, h=wall - grommet_panel_t + eps, orient=BACK, anchor=BOT);
     }
     // OLED window (front wall), chamfered outward
     translate([lv_cx, oled_y_in - eps, oled_win_z]) rotate([-90,0,0])
@@ -211,10 +215,10 @@ module lid_assembled() {
         translate([lip_t, lip_t, -eps]) cube([lip_out.x-2*lip_t, lip_out.y-2*lip_t, lip_h+3*eps]);
       }
       // tabs that close the grommet slots; concave bottom completes the round hole
-      for (s=[-1,1]) translate([lv_cx + s*grommet_pitch/2, 0, 0]) difference() {
-        translate([-grommet_slot_w/2 + lid_tab_clr, 0, grommet_z - outer.z])
-          cube([grommet_slot_w - 2*lid_tab_clr, grommet_panel_t, outer.z - grommet_z + eps]);
-        translate([0, -eps, grommet_z - outer.z]) cyl(d=grommet_hole_d, h=grommet_panel_t + 2*eps, orient=BACK, anchor=BOT);
+      for (g = grommets) translate([lv_x0 + g[0], 0, 0]) difference() {
+        translate([-g[3]/2 + lid_tab_clr, 0, grommet_z - outer.z])
+          cube([g[3] - 2*lid_tab_clr, grommet_panel_t, outer.z - grommet_z + eps]);
+        translate([0, -eps, grommet_z - outer.z]) cyl(d=g[1], h=grommet_panel_t + 2*eps, orient=BACK, anchor=BOT);
       }
     }
     // lip clearance around bosses and divider
@@ -280,28 +284,28 @@ module components() {
   color("#1a1a1a") translate([esp_cx, pb_center_y, pb_top_z + esp_hdr_h]) cuboid([55, 28, 1.6], anchor=BOT);
   color("Silver") translate([esp_x1 - 55 + 9, pb_center_y, pb_top_z + esp_hdr_h + 1.6]) cuboid([18, 25.5, 3], anchor=BOT);
   color("Silver") translate([esp_x1, pb_center_y + usb_y_off, usb_z]) cuboid([5.5, 7.5, 3], anchor=RIGHT);
-  // micro-USB plug through the side wall
+  // right-angle micro-USB plug turning toward the back, cable to the third grommet
   color("#222") translate([esp_x1, pb_center_y + usb_y_off, usb_z]) {
-    cuboid([6, 7, 2], anchor=LEFT);
-    translate([6, 0, 0]) cuboid([16, 11, 8], rounding=2, edges="X", anchor=LEFT);
-    translate([21, 0, 0]) cyl(d=3.5, h=25, orient=RIGHT, anchor=BOT);
+    cuboid([10, 12, 7], rounding=1.5, anchor=LEFT);
+    translate([5, -6, 0]) cyl(d=3.5, h=pb_center_y - 6 - wall - 4, orient=FWD, anchor=BOT);
   }
   // OLED module in its grooves
   oy = oled_y_in - oled_glass_t - oled_clr;
   color("#1565c0") translate([lv_cx, oy, oled_z0]) cuboid([oled_pcb.x, oled_pcb.z, oled_pcb.y], anchor=BACK+BOT);
   color("#0b0b2a") translate([lv_cx, oy, oled_win_z]) cuboid([34.5, oled_glass_t, 23], anchor=FRONT);
   // grommets + cables
-  for (s=[-1,1]) translate([lv_cx + s*grommet_pitch/2, 0, grommet_z]) {
+  for (g = grommets) translate([lv_x0 + g[0], 0, grommet_z]) {
     color("#151515") translate([0, grommet_panel_t/2, 0]) rotate([90,0,0]) difference() {
       union() {
-        for (z=[-1,1]) translate([0,0,z*(grommet_panel_t/2 + 0.75)]) cyl(d=grommet_flange_d, h=1.5);
-        cyl(d=grommet_hole_d, h=grommet_panel_t + eps);
+        for (z=[-1,1]) translate([0,0,z*(grommet_panel_t/2 + 0.75)]) cyl(d=g[2], h=1.5);
+        cyl(d=g[1], h=grommet_panel_t + eps);
       }
-      cyl(d=12.7, h=10);
+      cyl(d=g[1] - 7, h=10);
     }
   }
-  cab = [[-1, [[0, 0, 6.0, "#3a7bd5"]]],                                     // Cat6 (IR sensor)
-         [ 1, [[-2.6, -1.5, 4.0, "#111"], [2.6, -1.5, 4.0, "#111"], [0, 2.6, 4.5, "#111"]]]]; // DS18B20 x2 + SHT30
+  cab = [[0, [[-2.6, 1.5, 6.0, "#3a7bd5"], [2.8, 1.5, 4.5, "#5a3d1e"], [0.1, -3.2, 4.5, "#5a3d1e"]]],  // Cat6 + 2 soil
+         [1, [[-2.6, -1.5, 4.0, "#111"], [2.6, -1.5, 4.0, "#111"], [0, 2.6, 4.5, "#111"]]],          // DS18B20 x2 + SHT30
+         [2, [[0, 0, 3.5, "#222"]]]];                                                               // USB
   for (g = cab) for (c = g[1]) color(c[3])
-    translate([lv_cx + g[0]*grommet_pitch/2 + c[0], -40, grommet_z + c[1]]) cyl(d=c[2], h=40 + 20, orient=BACK, anchor=BOT);
+    translate([g_x[g[0]] + c[0], -40, grommet_z + c[1]]) cyl(d=c[2], h=40 + 20, orient=BACK, anchor=BOT);
 }
