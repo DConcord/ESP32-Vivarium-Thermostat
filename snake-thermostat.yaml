@@ -447,7 +447,7 @@ output:
   - platform: slow_pwm
     id: heater_pwm
     pin: GPIO19
-    period: 15s
+    period: 5s
   - platform: gpio
     id: cutoff_relay
     pin: GPIO18
