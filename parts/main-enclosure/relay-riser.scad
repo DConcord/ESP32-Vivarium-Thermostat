@@ -11,7 +11,7 @@ part = "riser";                 // "riser" (print) | "riser_check" (in the base,
 pin_pitch = 2.54;  pins_n = 8;  row_gap = 22.86;   // Wemos D1 mini shield header geometry
 strip_w = 2.5;  strip_h = 2.5;  pin_below = 6;     // header plastic strip; pin length below it
 pin_slot_w = 1.0;               // prints a little narrower: pins should be snug
-rail_w = 4;  rail_h = 6;        // rails carry the header strips
+rail_w = 4;  rail_h = 16;       // rails carry the header strips; tall so the Dupont wires can bend underneath
 dupont_w = 3.0;  dupont_pins = [1, 2, 6];          // 5V, GND, D1 counted from the terminal end
 first_pin = 9.15;               // terminal-end board edge to pin 1 centre (28.2 - 1.27 - 7*2.54)
 frame_clr = 0.25;  frame_rim = 3;
