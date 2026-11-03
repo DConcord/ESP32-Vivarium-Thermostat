@@ -1,19 +1,19 @@
-// Wall holster for a DS18B20 probe (5.85 mm x 50 mm steel tip), hanging tip-down on the inside of
-// the PVC wall. The steel tip sits in a ventilated cage, standing off the wall, so it reads the
-// air (not the wall) and the snake can't hook it. Drop the probe in from the top: the tip rests
-// on a floor ring at the bottom of the cage (a 4 mm hole keeps air moving past it), and a slotted
-// clip above the cage grips the 6.4 mm sleeve. The sleeve is only 0.55 mm fatter than the steel,
-// so nothing relies on that step. Two screws from outside the PVC into 2.5 mm pilots (same depth
-// as the IR pod bracket: M3 x 10-12, or #6 x 1/2" with the printed shims). Print standing upright,
-// as modelled; no supports.
+// Wall holster for a DS18B20 probe (5.85 x 33.6 mm steel tip, 6.4 x 16 mm sleeve), hanging tip-
+// down on the inside of the PVC wall. The steel tip sits in a ventilated cage, standing off the
+// wall, so it reads the air (not the wall) and the snake can't hook it. Drop the probe in from
+// the top: the tip rests on a floor ring at the bottom of the cage (a 4 mm hole keeps air moving
+// past it), and a slotted clip above the cage grips the 6.4 mm sleeve. The sleeve is only 0.55 mm
+// fatter than the steel, so nothing relies on that step. Two screws from outside the PVC into 2.5
+// mm pilots (same depth as the IR pod bracket: M3 x 10-12, or #6 x 1/2" with the printed shims).
+// Print standing upright, as modelled; no supports.
 include <BOSL2/std.scad>
 $fa = 1; $fs = 0.2;
 part = "mount";                 // "mount" | "check" (with a mock probe)
 eps = 0.01;
 
 // ---- parameters ----
-probe_d = 5.85;  probe_l = 50;  // steel tip (measured; length from the listing)
-sleeve_d = 6.4;                 // black sleeve just above the steel (measured)
+probe_d = 5.85;  probe_l = 33.6; // steel tip (measured)
+sleeve_d = 6.4;  sleeve_l = 16; // black sleeve just above the steel (measured)
 clip_id = 6.15;                 // clip bore: the steel must slide through, the sleeve must pinch.
                                 // Set from parts/test-prints/probe-clip-test (6.0 / 6.15 / 6.3)
 cage_id = 11;  tube_t = 1.6;    // ventilated cage around the tip
@@ -44,6 +44,7 @@ assert(clip_id > probe_d && clip_id < sleeve_d, "clip must pass the steel and pi
 assert(clip_gap < clip_id - 1.5, "clip opening too wide to hold");
 assert(slot_w <= 4, "slots wide enough for a snake to get into");
 assert(slot_h > 20, "slots too short");
+assert(sleeve_clr + clip_h <= sleeve_l - 1, "clip runs past the sleeve");
 
 module mount() {
   difference() {
