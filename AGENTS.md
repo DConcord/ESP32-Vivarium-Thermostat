@@ -13,7 +13,7 @@ ESPHome firmware and build docs for an ESP32 reptile-enclosure thermostat. It pu
 | `diagrams/circuit.json` | Parts and nets: single source of truth for the schematic (and breadboard layout) |
 | `diagrams/schematic.json`, `diagrams/schematic.svg` | Schematic sheet and rendered SVG, machine-checked against `circuit.json` (schematic-svg skill) |
 | `diagrams/breadboard.json`, `diagrams/breadboard.svg` | Protoboard layout, checked against `circuit.json`. Render with `python3 diagrams/tools/bbsvg.py diagrams/breadboard.json diagrams/breadboard.svg` (patched copy of the breadboard-layout-svg skill script: mirrored column numbering and per-rail polarity labels for the CircuitSetup board) |
-| `parts/main-enclosure/` | 3D-printed enclosure (OpenSCAD + BOSL2): `main-enclosure.scad` (base, lid), `relay-riser.scad` (drop-in riser for the relay shield), with STL/3MF exports and renders |
+| `parts/main-enclosure/` | 3D-printed enclosure (OpenSCAD + BOSL2): `main-enclosure.scad` (base, lid), `relay-riser.scad` (drop-in riser for the relay shield), `washers.scad` (spacers/shims for #6 and #8 self-tappers), with STL/3MF exports and renders |
 | `parts/mlx-pod/` | Tilt/pan pod and wall bracket for the GY-906 IR sensor (`mlx-pod.scad`), with STL/3MF exports |
 | `parts/test-prints/` | Small fit-test prints of the enclosure's cutouts, screw holes and grommet slots; values copied from `main-enclosure.scad` (keep in sync) |
 | `pcb/` | Custom carrier PCB plans (`PLAN.md` assembled, `PLAN-self-solder.md` earlier) |
