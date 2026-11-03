@@ -1,5 +1,7 @@
 # Custom carrier PCB: plan (fully assembled, zero soldering)
 
+> The earlier solder-it-yourself version of this plan is kept in `PLAN-self-solder.md`.
+
 A low-voltage carrier board that replaces the CircuitSetup protoboard and all its hand wiring. The board arrives from the factory **with every part already soldered**. You plug the ESP32-DevKitC into its headers, push the OLED cable on, and screw each sensor's wires into a plug. No soldering iron.
 
 Mains (relay shield, SSR, inlet, outlet) stays off this board, in the mains bay, exactly as in `BUILD.md`. The firmware doesn't change: every GPIO stays the same.
