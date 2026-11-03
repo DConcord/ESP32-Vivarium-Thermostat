@@ -51,18 +51,19 @@ See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
 | Inkbird SSR-40DA (budget) **or** genuine Crydom D2410 | 1 | $10 / $48–57 | Inkbird [Amazon B00HV974KC](https://www.amazon.com/dp/B00HV974KC); Crydom via [Digi-Key](https://www.digikey.com/en/products/result?keywords=Crydom%20D2410) |
 | Wemos D1 mini relay shield (SRD-05VDC-SL-C, 5V coil, 10A) | 1 | $3–5 | Amazon "D1 mini relay shield"; cutoff relay in series with the SSR |
 | *Optional:* Zooz ZEN04 Z-Wave plug **or** Inkbird ITC-308 | 1 | $35–40 | Independent upstream failsafe; [getzooz.com](https://www.getzooz.com) |
-| C14 fused inlet, 5×20 mm (no switch) | 1 | $8–10 | [Amazon search](https://www.amazon.com/s?k=IEC+C14+inlet+fuse+holder+panel+mount) |
+| AC-14-F16A switched inlet (C14 + rocker + 5×20 mm fuse holder), with pre-wired harness | 1 | $8–10 | Mounts upright in the enclosure's back wall; harness red = L, blue = N, yellow/green = ⏚ |
 | 2A slow-blow 5×20 mm fuses | 1 pack | $6 | [Amazon search](https://www.amazon.com/s?k=2A+250V+slow+blow+5x20mm+fuse) |
 | C13 power cord, 18 AWG, 3-prong | 1 | $7 | Any computer cord |
-| NEMA 5-15R pigtail outlet (black/white/green leads) | 1 | $5–10 | Amazon |
-| Project box: 3D-printed ASA/PETG (not PLA) or purchased, + cable glands | 1 | $15–20 | |
+| NEMA 5-15R snap-in outlet (black/white/green leads) | 1 | $5–10 | Clips grip panels up to 2.21 mm; the enclosure thins the wall to 2.0 mm around it |
+| 3D-printed enclosure, ASA/PETG (not PLA): `parts/main-enclosure/` | 1 | filament | Base, lid and relay riser; see [Enclosure](#enclosure) |
+| Rubber grommets, 3/4" × 2 and 5/8" × 1 | 3 | $8 (kit) | Slit them so pre-soldered cables drop in |
 | USB 5V supply + cable (ESP32) | 1 | $8 | On a separate outlet |
-| 18 AWG stranded wire, insulated 0.187" quick-connects, heat shrink | — | $10 | Any |
+| 18 AWG stranded wire, insulated quick-connects or heat-shrink butt splices, #8 (M4) fork terminals | — | $10–20 | Quick-connects must match the tab width (4.8 or 6.3 mm); see the mains notes |
 
 **Verify on arrival**
 - [ ] SH1106 is the **4-pin I2C** version (header: GND VCC SCL SDA).
 - [ ] MLX90614 has the **tall canned lens** (GY-906-DCI, narrow FOV).
-- [ ] C14 inlet: identify the **fused L**, N, and E tabs with a continuity test.
+- [ ] Inlet: with the fuse in and the rocker **on**, the front L pin has continuity to the L tab; rocker **off** or fuse out, it doesn't. Also identify N and ⏚.
 - [ ] SHT30 probe: confirm which of yellow/white is SDA vs SCL from the seller listing.
 
 ---
@@ -102,33 +103,66 @@ Notes:
 
 ## Mains-side wiring
 
-Path: wall outlet → *(optional ZEN04 / ITC-308)* → C13 cord → **C14 fused inlet (2A)** → cutoff relay → SSR → pigtail outlet → RHP.
+Path: wall outlet → *(optional ZEN04 / ITC-308)* → C13 cord → **AC-14-F16A switched, fused inlet (2A)** → cutoff relay → SSR → snap-in outlet → RHP.
 
 | From | To | Conductor |
 |---|---|---|
-| C14 L (fused) | Relay **COM** (middle screw terminal) | Hot |
-| Relay **NO** (screw terminal marked NO) | SSR terminal 1 | Hot |
-| SSR terminal 2 | Outlet black lead | Hot |
-| C14 N | Outlet white lead | Neutral |
-| C14 E | Outlet green ring lug (+ box chassis if metal) | Ground |
+| Inlet **L** tab (fused, switched): red harness wire | Relay **COM** (middle screw terminal) | Hot |
+| Relay **NO** (screw terminal marked NO) | SSR terminal **1** | Hot |
+| SSR terminal **2** | Outlet black lead | Hot |
+| Inlet **N** tab: blue harness wire | Outlet white lead | Neutral |
+| Inlet **⏚** tab: yellow/green harness wire | Outlet green lead | Ground |
 
 - Only hot passes through the relay and SSR. Leave the relay's NC terminal empty.
-- Use slow-blow fuses and insulated quick-connects with heat shrink.
-- The inlet has no switch. Unplug it for maintenance; turning off Heater Enable opens the relay but leaves the inlet, relay, and SSR terminals live.
+- Use slow-blow fuses.
+- **Terminations:** relay COM/NO take bare stripped wire (its screw terminals are too small for lugs). SSR terminals 1/2 take #8 (M4) insulated forks or bare wire. Join the neutral and ground wires with heat-shrink butt splices, or with a fully insulated male/female quick-connect pair (female on the inlet side). Crimp with a ratcheting crimper and tug-test every crimp.
+- The inlet's rocker switch cuts power to the heater circuit; the ESP32 stays up on its own USB and keeps reporting. Turning off Heater Enable opens the relay but leaves the inlet, relay and SSR terminals live. Unplug the cord before touching any mains terminal: the rocker may switch only L.
 - Keep SSR mains terminals physically separated from the ESP32 and low-voltage wiring.
 - The relay shield carries mains on the same small PCB as its logic pins. Mount it in the mains compartment on standoffs, insulate it from the ESP32 side, and run only its 5V/GND/D1 jumpers across. Don't stack it on a D1 mini or the ESP32 board.
+
+---
+
+## Enclosure
+
+Files are in `parts/` (OpenSCAD source, plus STL and 3MF that open directly in Bambu Studio).
+
+| Part | File | Print |
+|---|---|---|
+| Base | `parts/main-enclosure/base.3mf` | Floor down. Supports off. |
+| Lid | `parts/main-enclosure/lid.3mf` | Outside face down. At least 3 walls, for the grommet-slot tabs. |
+| Relay riser | `parts/main-enclosure/relay-riser.3mf` | Frame down. Drops onto the relay corner posts so the shield sits on its header strips, with the Dupont plugs on 5V/GND/D1 hanging through the gaps (gaps toward the divider and the back). |
+| IR sensor pod | `parts/mlx-pod/mlx-pod-set.3mf` | Body, cap, yoke and wall bracket on one plate |
+| Fit tests | `parts/test-prints/` | Optional: check the outlet, inlet, grommet, screw and OLED fits on your printer first |
+
+Print in ASA or PETG, not PLA. Put the seam on the back or a corner so it stays off the front around the OLED window.
+
+**Hardware**
+
+| Function | Screw | Qty | Into |
+|---|---|---|---|
+| Lid to base | M3 × 8 machine screw | 4 | M3 × 6 heat-set inserts in the corner bosses (4.0 mm holes) |
+| Inlet ears | M3 × 8 self-tapping, from outside | 2 | Printed pads behind the back wall |
+| CircuitSetup board | M3 × 8 self-tapping | 4 | Standoffs |
+| SSR | M4 × 12 self-tapping | 2 | SSR posts (9.5 mm pilots) |
+| GY-906 board in the pod | M2.5 × 6 self-tapping | 2 | Pod body posts |
+| Pod cap | M3 × 8 self-tapping | 2 | Body tabs |
+| Pod tilt joint | M3 × 8 machine screw | 2 | M3 × 4 inserts in the body |
+| Pod pan joint | M3 × 10 machine screw | 1 | M3 × 5 insert through the yoke |
+| Pod bracket to the PVC wall | M3 × 10–12 self-tapping, from outside | 2 | Bracket (6 mm pilots); length depends on the wall thickness |
+
+The relay shield, OLED and outlet need no screws: the shield drops onto the riser, the OLED slides into its rails, and the outlet snaps in.
 
 ---
 
 ## Sensor placement
 
 - **Stone probe:** on **top** of the basking stone (radiant heat comes from above), recessed in a shallow masonry-cut groove sealed with aquarium-safe silicone, near an edge but still under the panel.
-- **Cool probe:** cool-side floor.
+- **Cool probe:** low on the cool-side wall, 2–5 cm above the substrate, ideally beside the cool hide. That reads close to floor temperature without a cable across the floor. Cover the tip with a short tube or clip so the snake can't hook it.
 - **GY-906-DCI:** ~12" above the stone (reads ~1" spot), beside the panel rather than under it. The RJ45 adapter and Cat6 jacket are rated only to ~70°C.
-- **SHT30 probe:** mid-height toward the cool side, away from the water bowl and panel, above the substrate.
+- **SHT30 probe:** mid-height on the cool-side wall, about 1 cm off the wall, away from the water bowl, vents and misting spot. Not on the ceiling: the panel heats the sensor and the warm, dry air pools there. Its air temperature is logged as Enclosure Air Temperature.
 - **Soil probes:** one on the cool side, one on the warm side but outside the heat panel's footprint, pushed in vertically to the probe's fill line, mid-depth, away from the water bowl. Run the cables along the glass so the snake can't drag them up while burrowing. Monitor only: they never affect heat control.
 - **OLED + ESP32:** in the project box **outside** the enclosure.
-- Route sensor cables through a sealed grommet; keep cable jackets away from the panel.
+- Route sensor cables through the enclosure's grommets. Inside the tank, clip every cable flat to the wall every few inches with no slack or loops, so the snake can't push through or drag it; keep cable jackets away from the panel.
 - **Never** use electric heat rocks; the stone is passive thermal mass only.
 
 ## ESPHome config summary (`snake-thermostat.yaml`)
