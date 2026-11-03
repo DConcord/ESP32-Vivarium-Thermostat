@@ -49,8 +49,8 @@ Everything is soldered by the factory. Small parts are surface-mount on the top 
 | J5 | 1×4 male header, 2.54 mm | GND · VCC (3V3) · SCL · SDA | OLED, in the OLED's own pin order, so a straight 4-wire Dupont cable fits |
 | J6 | 1×2 male header, 2.54 mm | GPIO19 (+) · GND (−) | SSR input terminals 3 (+) and 4 (−), via a 2-wire Dupont jumper with the far end stripped into the SSR's screws |
 | J7 | 1×3 male header, 2.54 mm | 5V · GND · GPIO18 | Relay shield 5V · GND · D1, with female-to-female Dupont jumpers to the shield's pins |
-| J8 | 1×3 male header, 2.54 mm | GPIO34 · 3V3 · GND | Soil probe 1 (cool side). Pin order matches the probe cable's plug: yellow (AOUT) · red (VCC) · black (GND) |
-| J9 | 1×3 male header, 2.54 mm | GPIO35 · 3V3 · GND | Soil probe 2 (warm side), same order |
+| J8 | 1×4 male header, 2.54 mm | GPIO34 · 3V3 · GND · GND | Soil probe 1 (cool side), DFRobot SEN0308. Its 4-wire cable: yellow = AOUT, red = VCC, black = GND in a 3-pin plug, plus a second black GND wire on its own plug (pins 3 and 4 are joined on the probe, per its schematic). 3V3 sits in the middle pin, so a reversed 3-pin plug does no harm. |
+| J9 | 1×4 male header, 2.54 mm | GPIO35 · 3V3 · GND · GND | Soil probe 2 (warm side), same order |
 | H1–H4 | M3 mounting holes, 3.2 mm | Isolated | **87.5 × 48.5 mm** pattern, as measured on the CircuitSetup board, so the enclosure's standoffs fit unchanged |
 | TP1–TP4 | Test pads | 3V3, 5V, GND, SDA | For a meter probe while troubleshooting |
 
@@ -107,7 +107,7 @@ All in `pcb/`, from KiCad (it can be installed in this session):
 | J5 (OLED) | The existing 4-wire Dupont cable |
 | J6 (SSR) | A 2-wire Dupont jumper: plug one end on J6, cut the other end and clamp + into SSR 3 and − into SSR 4 |
 | J7 (relay) | Your existing female-to-female Dupont jumpers: J7's 5V, GND and D1 to the shield's 5V, GND and D1 pins |
-| J8 / J9 (soil probes) | Push the probe cable's plug straight on: yellow, red, black in the silkscreen order. If the black wire has its own single plug, it goes on the GND pin. |
+| J8 / J9 (soil probes) | Push the 3-pin plug (yellow, red, black) onto the first three pins in the silkscreen order, and the single black plug onto the 4th pin (GND). |
 
 4. Power up over USB. The power LED lights, and the firmware runs unchanged.
 
