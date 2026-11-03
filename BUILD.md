@@ -42,6 +42,7 @@ See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
 | DROK DS18B20 waterproof probe 2-pack (adapter boards, 4.7k resistors) | 1–2 | $10–12/pack | [Amazon B0FLDQJ71M](https://www.amazon.com/dp/B0FLDQJ71M) |
 | GY-906-DCI (MLX90614ESF-DCI) IR sensor, 5° FOV | 1 | $30–40 | [Amazon B0B63N57CS](https://www.amazon.com/dp/B0B63N57CS) |
 | SHT30 enclosed probe, 2 m cable | 1 | $8–12 | Amazon "SHT30 probe waterproof" |
+| Capacitive soil moisture probe, analog (DFRobot SEN0308 waterproof, or a v2.0 capacitive probe with its top edge sealed) | 2 | $15 / $3 each | Monitor only; never resistive (two-prong) probes, which corrode and leach metal into the substrate |
 | HiLetgo 1.3" SH1106 OLED (4-pin I2C) | 1 | $12 | [Amazon B07BHHV844](https://www.amazon.com/dp/B07BHHV844) |
 | Cat6 stranded patch cable (cut in half) | 1 | $5–8 | Any; solid-core bulk cable not recommended |
 | RJ45 jack for the main board | 1 | $1–2 | Through-hole RJ45 or a second screw adapter |
@@ -79,6 +80,8 @@ All sensors on **3V3**, never 5V/VIN.
 | SHT30 probe | 0x44 | SDA GPIO21 / SCL GPIO22 | Red VCC, black GND, yellow/white = SDA/SCL (verify) |
 | SH1106 OLED | 0x3C | SDA GPIO21 / SCL GPIO22 | Header: GND VCC SCL SDA |
 | GY-906-DCI (MLX90614) | 0x5A | SDA GPIO21 / SCL GPIO22 | Via Cat6 + RJ45 (map below) |
+| Soil moisture 1 (cool side) | ADC | GPIO34 | AOUT → GPIO34, VCC → **3V3**, GND → GND |
+| Soil moisture 2 (warm side) | ADC | GPIO35 | AOUT → GPIO35, VCC → **3V3**, GND → GND |
 | SSR input | — | GPIO19 → terminal 3 (+), GND → terminal 4 (−) | **10k pull-down GPIO19 → GND** |
 | Cutoff relay shield | — | GPIO18 → shield **D1**, ESP32 5V/VIN → shield **5V**, GND → shield **GND** | **10k pull-down GPIO18 → GND**. Coil is 5V (~70–90 mA from USB); 3.3V logic drives the shield's transistor |
 
@@ -95,7 +98,7 @@ Notes:
 - Each DS18B20 has its own GPIO because the adapter boards have built-in pull-ups. The OLED and GY-906 boards supply I2C pull-ups, so don't add more unless the I2C scan fails.
 - I2C runs at 50 kHz for the Cat6 run. Add a 100 nF capacitor across VIN/GND at the sensor-end adapter.
 - If the SSR triggers unreliably at 3.3V, drive it from 5V through an NPN transistor (1k base resistor) or a logic-level MOSFET (100 Ω gate, 10k pull-down).
-- For a possible second channel: GPIO17/23 (DS18B20s), GPIO32/33 (second I2C bus for a second MLX), SHT30 at 0x45, GPIO26 (second SSR), GPIO27 (second cutoff relay). Avoid GPIO0, 2, 12, 15 and 34–39.
+- For a possible second channel: GPIO17/23 (DS18B20s), GPIO32/33 (second I2C bus for a second MLX), SHT30 at 0x45, GPIO26 (second SSR), GPIO27 (second cutoff relay). Avoid GPIO0, 2, 12, 15 and (as outputs) 34–39. GPIO34/35 are used as analog inputs by the soil probes; GPIO36/39 are the remaining free ADC1 inputs. Use ADC1 pins (32–39) for analog sensors: ADC2 stops working while Wi-Fi is on.
 
 ## Mains-side wiring
 
@@ -123,6 +126,7 @@ Path: wall outlet → *(optional ZEN04 / ITC-308)* → C13 cord → **C14 fused 
 - **Cool probe:** cool-side floor.
 - **GY-906-DCI:** ~12" above the stone (reads ~1" spot), beside the panel rather than under it. The RJ45 adapter and Cat6 jacket are rated only to ~70°C.
 - **SHT30 probe:** mid-height toward the cool side, away from the water bowl and panel, above the substrate.
+- **Soil probes:** one on the cool side, one on the warm side but outside the heat panel's footprint, pushed in vertically to the probe's fill line, mid-depth, away from the water bowl. Run the cables along the glass so the snake can't drag them up while burrowing. Monitor only: they never affect heat control.
 - **OLED + ESP32:** in the project box **outside** the enclosure.
 - Route sensor cables through a sealed grommet; keep cable jackets away from the panel.
 - **Never** use electric heat rocks; the stone is passive thermal mass only.
@@ -135,6 +139,7 @@ Path: wall outlet → *(optional ZEN04 / ITC-308)* → C13 cord → **C14 fused 
 - Safety loop (2 s): forces heat off on any fault, clears once readings are valid and below 90°F, and only heats while **Heater Enable** is on. The 92°F hard limit is fixed in firmware.
 - Cutoff relay (GPIO18) is closed only while the safety loop allows heat, and boots open. If the SSR shorts, the hot zone reaches the 92°F limit, the relay opens, and it recloses below 90°F. The heater then cycles on the relay around 90–92°F until you replace the SSR. The first trip latches the **Alarm**.
 - MLX emissivity set to 0.95 for stone.
+- Soil moisture (GPIO34/35, ADC1, 12 dB attenuation): each probe's voltage is median-filtered and reported every 60 s, then mapped to 0–100% using its Dry/Wet Voltage numbers (set from HA, stored in flash). Monitor only: soil readings never touch heat control or the Alarm.
 - OLED shows Hot / Cool / RH / heater % / setpoint, shifts pixels every few minutes, and turns off during night hours.
 - After autotune, paste the suggested `kp/ki/kd` from the logs into `control_parameters`.
 - Full entity list: `ENTITIES.md`.
@@ -189,6 +194,7 @@ The ZEN04 failsafe depends on HA being up. A 4 ft gradient gives the snake room 
 - [ ] If fitted: each upstream failsafe trigger kills the lamp.
 - [ ] RHP connected: run autotune with the stone installed (1–2 hr), update PID values, then watch a full day/night cycle, including the night setpoint switch.
 - [ ] Cool side holds ≥ 72°F in the enclosure's room for a week before the animal moves in.
+- [ ] Soil probes: each `Soil Moisture N Voltage` reads ~2.5–3 V in air and drops when you grip the probe or put it in water. Calibrate in the actual substrate: note the voltage in dry substrate and in fully soaked substrate, enter them as `Soil Moisture N Dry/Wet Voltage`, and check that `Soil Moisture N` reads ~0% and ~100%.
 - [ ] Transfer to the CircuitSetup protoboard per [`diagrams/breadboard.svg`](diagrams/breadboard.svg). The ESP32 headers go in rows a and i, columns 11–29 (dry-fit confirmed).
 
 ## Open items

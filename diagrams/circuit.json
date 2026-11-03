@@ -21,7 +21,9 @@
     "5V": "5V / VIN",
     "GND_2": "GND",
     "19": "GPIO19",
-    "18": "GPIO18"
+    "18": "GPIO18",
+    "34": "GPIO34",
+    "35": "GPIO35"
    }
   },
   "R1": {
@@ -96,6 +98,24 @@
    "type": "5-15R pigtail outlet to heat panel",
    "board": "offboard",
    "table": false
+  },
+  "SOIL1": {
+   "type": "Capacitive soil moisture probe (analog)",
+   "identify": "SEN0308 or capacitive v2.0",
+   "board": "offboard",
+   "connects": "AOUT → GPIO34 · 3V3 · GND (cool side)",
+   "pin_names": {
+    "AOUT": "AOUT (signal)"
+   }
+  },
+  "SOIL2": {
+   "type": "Capacitive soil moisture probe (analog)",
+   "identify": "SEN0308 or capacitive v2.0",
+   "board": "offboard",
+   "connects": "AOUT → GPIO35 · 3V3 · GND (warm side)",
+   "pin_names": {
+    "AOUT": "AOUT (signal)"
+   }
   }
  },
  "nets": {
@@ -111,7 +131,9 @@
    "COOL.VCC",
    "RJ45.3V3",
    "IR.VIN",
-   "C1.1"
+   "C1.1",
+   "SOIL1.VCC",
+   "SOIL2.VCC"
   ],
   "GND": [
    "ESP.GND",
@@ -127,7 +149,9 @@
    "COOL.GND",
    "RJ45.GND",
    "IR.GND",
-   "C1.2"
+   "C1.2",
+   "SOIL1.GND",
+   "SOIL2.GND"
   ],
   "SSR_SIG": [
    "ESP.19",
@@ -180,6 +204,14 @@
   "EARTH": [
    "C14.E",
    "OUT.E"
+  ],
+  "IO34": [
+   "ESP.34",
+   "SOIL1.AOUT"
+  ],
+  "IO35": [
+   "ESP.35",
+   "SOIL2.AOUT"
   ]
  },
  "net_styles": {
@@ -254,6 +286,20 @@
   "EARTH": {
    "color": "#639922",
    "label": "Earth"
+  },
+  "IO34": {
+   "color": "#0D9488",
+   "fill": "#CCFBF1",
+   "label": "GPIO34 · soil 1",
+   "tag_label": "GPIO34",
+   "tag_note": "= soil moisture 1 (analog)"
+  },
+  "IO35": {
+   "color": "#4338CA",
+   "fill": "#E0E7FF",
+   "label": "GPIO35 · soil 2",
+   "tag_label": "GPIO35",
+   "tag_note": "= soil moisture 2 (analog)"
   }
  }
 }
