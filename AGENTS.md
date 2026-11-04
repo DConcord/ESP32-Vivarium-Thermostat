@@ -15,7 +15,7 @@ ESPHome firmware and build docs for an ESP32 reptile-enclosure thermostat. It pu
 | `diagrams/breadboard.json`, `diagrams/breadboard.svg` | Protoboard layout, checked against `circuit.json`. Render with `python3 diagrams/tools/bbsvg.py diagrams/breadboard.json diagrams/breadboard.svg` (patched copy of the breadboard-layout-svg skill script: mirrored column numbering and per-rail polarity labels for the CircuitSetup board) |
 | `parts/main-enclosure/` | 3D-printed enclosure (OpenSCAD + BOSL2): `main-enclosure.scad` (base, lid), `relay-riser.scad` (drop-in riser for the relay shield), with STL/3MF exports and renders |
 | `parts/mlx-pod/` | Tilt/pan pod and wall bracket for the GY-906 IR sensor (`mlx-pod.scad`), with STL/3MF exports |
-| `parts/probe-mount/` | Ventilated wall holster for a 6 mm DS18B20 probe (`probe-mount.scad`), screwed from outside the PVC |
+| `parts/probe-mount/` | Wall clip for a DS18B20 probe (`probe-mount.scad`): the probe hangs from its sleeve on a tested 6.3 mm ring, screwed from outside the PVC |
 | `parts/test-prints/` | Small fit-test prints of the enclosure's cutouts, screw holes and grommet slots; values copied from `main-enclosure.scad` (keep in sync) |
 | `pcb/` | Custom carrier PCB plans (`PLAN.md` assembled, `PLAN-self-solder.md` earlier) |
 | `snake-thermostat-wiring.drawio` | Older hand-drawn wiring diagrams (low-voltage and mains pages) |
