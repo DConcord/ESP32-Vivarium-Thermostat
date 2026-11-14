@@ -103,6 +103,8 @@ Notes:
 
 ## Mains-side wiring
 
+Terminal-by-terminal drawing: `diagrams/mains.svg` (PNG: `diagrams/mains.png`).
+
 Path: wall outlet → *(optional ZEN04 / ITC-308)* → C13 cord → **AC-14-F16A switched, fused inlet (2A)** → cutoff relay → SSR → snap-in outlet → RHP.
 
 | From | To | Conductor |
