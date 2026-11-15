@@ -76,6 +76,10 @@ wifi:
     ssid: "${name}-fallback"
     password: !secret fallback_password
 
+# If Wi-Fi fails, the fallback hotspot above serves a page for entering new
+# Wi-Fi credentials. Runs only while the hotspot is up; heat control is local.
+captive_portal:
+
 # Settings changes are written to flash within this interval.
 preferences:
   flash_write_interval: 1min
