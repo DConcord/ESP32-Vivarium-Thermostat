@@ -172,7 +172,7 @@ The relay shield, OLED and outlet need no screws: the shield drops onto the rise
 
 - `slow_pwm` output on GPIO19 (5 s period, switched by the zero-cross SSR) driven by a `pid` climate entity.
 - Control sensor "Hot Zone (Control)" = max(stone, IR), NaN if either is invalid. While the IR sensor isn't installed it is the warm-side probe alone; restore every `IR NOT INSTALLED` block in `snake-thermostat.yaml` when it goes in.
-- Day/night setpoints and schedule hours are number entities (persisted in flash). The active setpoint is pushed to the thermostat every 30 s and on any change. Time comes from SNTP, then Home Assistant; with no valid time, the day setpoint is used.
+- Day/night setpoints are number entities and the night start/end are time entities (all persisted in flash). The active setpoint is pushed to the thermostat every 30 s and on any change. Time comes from SNTP, then Home Assistant; with no valid time, the day setpoint is used.
 - Safety loop (2 s): forces heat off on any fault, clears once readings are valid and below 86°F, and only heats while **Heater Enable** is on. The 88°F hard limit is fixed in firmware.
 - Cutoff relay (GPIO18) is closed only while the safety loop allows heat, and boots open. If the SSR shorts, the hot zone reaches the 88°F limit, the relay opens, and it recloses below 86°F. The heater then cycles on the relay around 86–88°F until you replace the SSR. The first trip latches the **Alarm**.
 - MLX emissivity set to 0.95 for stone.

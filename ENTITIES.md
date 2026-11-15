@@ -11,8 +11,8 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 | `switch.snake_enclosure_heater_enable` | Switch | Master heat on/off; off also opens the cutoff relay (safety limits still apply when on) |
 | `number.snake_enclosure_hot_zone_day_setpoint` | Number | Hot-zone (warm-side air) target during the day (default 80°F, max 85°F) |
 | `number.snake_enclosure_hot_zone_night_setpoint` | Number | Hot-zone target at night (default 75°F) |
-| `number.snake_enclosure_night_start_hour` | Number | Hour night mode starts (0–23, default 21) |
-| `number.snake_enclosure_night_end_hour` | Number | Hour night mode ends (0–23, default 7) |
+| `time.snake_enclosure_night_start` | Time | Time night mode starts (default 21:00) |
+| `time.snake_enclosure_night_end` | Time | Time night mode ends (default 07:00) |
 | `number.snake_enclosure_cool_side_low_alert` | Number | Cool-side low alert threshold (default 70°F) |
 | `number.snake_enclosure_humidity_low_alert` | Number | Humidity low alert threshold (default 30%) |
 | `number.snake_enclosure_humidity_high_alert` | Number | Humidity high alert threshold (default 70%) |
@@ -97,8 +97,8 @@ cards:
       - sensor.snake_enclosure_active_setpoint
       - number.snake_enclosure_hot_zone_day_setpoint
       - number.snake_enclosure_hot_zone_night_setpoint
-      - number.snake_enclosure_night_start_hour
-      - number.snake_enclosure_night_end_hour
+      - time.snake_enclosure_night_start
+      - time.snake_enclosure_night_end
   - type: entities
     title: Alerts
     entities:

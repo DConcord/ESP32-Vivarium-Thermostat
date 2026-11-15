@@ -191,36 +191,6 @@ number:
       - script.execute: apply_setpoint
 
   - platform: template
-    id: night_start
-    name: "Night Start Hour"
-    icon: mdi:clock-start
-    unit_of_measurement: "h"
-    min_value: 0
-    max_value: 23
-    step: 1
-    initial_value: 21
-    optimistic: true
-    restore_value: true
-    mode: box
-    on_value:
-      - script.execute: apply_setpoint
-
-  - platform: template
-    id: night_end
-    name: "Night End Hour"
-    icon: mdi:clock-end
-    unit_of_measurement: "h"
-    min_value: 0
-    max_value: 23
-    step: 1
-    initial_value: 7
-    optimistic: true
-    restore_value: true
-    mode: box
-    on_value:
-      - script.execute: apply_setpoint
-
-  - platform: template
     id: cool_low_alert
     name: "Cool Side Low Alert"
     icon: mdi:thermometer-low
@@ -344,6 +314,31 @@ number:
     restore_value: true
     mode: box
 
+# Night schedule as clock times (Home Assistant shows them as times with a picker).
+# Persisted in flash like the numbers above.
+datetime:
+  - platform: template
+    id: night_start
+    type: time
+    name: "Night Start"
+    icon: mdi:clock-start
+    initial_value: "21:00:00"
+    optimistic: true
+    restore_value: true
+    on_value:
+      - script.execute: apply_setpoint
+
+  - platform: template
+    id: night_end
+    type: time
+    name: "Night End"
+    icon: mdi:clock-end
+    initial_value: "07:00:00"
+    optimistic: true
+    restore_value: true
+    on_value:
+      - script.execute: apply_setpoint
+
 # Picks the day or night setpoint and pushes it to the PID thermostat.
 script:
   - id: apply_setpoint
@@ -354,9 +349,9 @@ script:
           if (!t.is_valid()) t = id(ha_time).now();
           bool night = false;
           if (t.is_valid()) {
-            const int h = t.hour;
-            const int s = (int) id(night_start).state;
-            const int e = (int) id(night_end).state;
+            const int h = t.hour * 60 + t.minute;            // minutes since midnight
+            const int s = id(night_start).hour * 60 + id(night_start).minute;
+            const int e = id(night_end).hour * 60 + id(night_end).minute;
             if (s != e) night = (s < e) ? (h >= s && h < e) : (h >= s || h < e);
           }
           id(night_active) = night;
