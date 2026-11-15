@@ -131,9 +131,9 @@ globals:
   - id: night_active
     type: bool
     initial_value: "false"
-  - id: display_on
+  - id: display_dim
     type: bool
-    initial_value: "true"
+    initial_value: "false"
   - id: relay_closed
     type: bool
     initial_value: "false"
@@ -727,16 +727,19 @@ interval:
             ESP_LOGI("safety", "Cutoff relay %s", want_heat ? "closed" : "open");
           }
 
-  # Schedule + display power — every 30 s
+  # Schedule + display brightness — every 30 s
   - interval: 30s
     then:
       - script.execute: apply_setpoint
       - lambda: |-
-          if (id(night_active) && id(display_on)) { id(oled).turn_off(); id(display_on) = false; }
-          else if (!id(night_active) && !id(display_on)) { id(oled).turn_on(); id(display_on) = true; }
+          // Always on; dimmed at night (less light, and less OLED wear).
+          if (id(night_active) != id(display_dim)) {
+            id(display_dim) = id(night_active);
+            id(oled).set_contrast(id(display_dim) ? 0.1f : 1.0f);
+          }
 
 # ---------------------------------------------------------------------
-# Display — 1.3" SH1106 (4-pin I2C: GND VCC SCL SDA). Off during night hours.
+# Display — 1.3" SH1106 (4-pin I2C: GND VCC SCL SDA). Always on, dimmed at night.
 # ---------------------------------------------------------------------
 font:
   - file: "gfonts://Roboto Mono"
@@ -753,8 +756,9 @@ display:
     id: oled
     update_interval: 5s
     lambda: |-
-      // Shift a pixel or two every few minutes to limit burn-in.
-      const int dx = (millis() / 60000) % 3;
+      // Always on, so shift the layout a few pixels every minute or so to spread
+      // OLED wear (burn-in). 0-5 px across fits the widest line on the 128 px panel.
+      const int dx = (millis() / 60000) % 6;
       const int dy = (millis() / 180000) % 2;
       auto F = [](float c) { return c * 1.8f + 32.0f; };
 
