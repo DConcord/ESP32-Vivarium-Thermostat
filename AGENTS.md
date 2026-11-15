@@ -28,4 +28,4 @@ This controls mains heat near a live animal. Don't weaken the fail-off safety lo
 ## Git rules
 
 - **Never commit or push to `main`.** Always work on a feature branch (`git checkout -b <short-description>`) and push that branch.
-- Validate with `esphome config snake-thermostat.yaml` (needs a `secrets.yaml` copied from the example, with `api_key` set to any valid base64 32-byte key) before committing.
+- Validate with `esphome config snake-thermostat.yaml` (needs a `secrets.yaml` copied from the example; the API encryption key isn't a secret, Home Assistant sets it on the device) before committing.

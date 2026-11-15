@@ -60,8 +60,10 @@ logger:
   level: INFO
 
 api:
-  encryption:
-    key: !secret api_key
+  # No key here on purpose: Home Assistant generates one and sends it to the
+  # device the first time it connects; the device stores it in flash and
+  # refuses unencrypted connections from then on (only a factory reset clears it).
+  encryption: {}
 
 ota:
   - platform: esphome
