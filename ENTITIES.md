@@ -9,7 +9,7 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 | Entity | Type | Description |
 |---|---|---|
 | `switch.snake_enclosure_heater_enable` | Switch | Master heat on/off; off also opens the cutoff relay (safety limits still apply when on) |
-| `number.snake_enclosure_hot_zone_day_setpoint` | Number | Hot-zone target during the day (default 87°F) |
+| `number.snake_enclosure_hot_zone_day_setpoint` | Number | Hot-zone (warm-side air) target during the day (default 80°F, max 85°F) |
 | `number.snake_enclosure_hot_zone_night_setpoint` | Number | Hot-zone target at night (default 75°F) |
 | `number.snake_enclosure_night_start_hour` | Number | Hour night mode starts (0–23, default 21) |
 | `number.snake_enclosure_night_end_hour` | Number | Hour night mode ends (0–23, default 7) |
@@ -28,8 +28,8 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 
 | Entity | Description |
 |---|---|
-| `sensor.snake_enclosure_hot_zone_control` | Control input: hotter of stone probe and IR (stone probe alone while the IR sensor isn't installed) |
-| `sensor.snake_enclosure_stone_temperature` | DS18B20 on the basking stone |
+| `sensor.snake_enclosure_hot_zone_control` | Control input: hotter of the hot-zone probe and IR (the warm-side probe alone while the IR sensor isn't installed) |
+| `sensor.snake_enclosure_warm_side_temperature` | Warm-side DS18B20 (GPIO4): air a few inches above the floor, the control input |
 | `sensor.snake_enclosure_stone_surface_ir` | MLX90614 IR reading of the stone (not created while the IR sensor is disabled) |
 | `sensor.snake_enclosure_ir_sensor_ambient` | MLX90614 housing temperature (not created while the IR sensor is disabled) |
 | `sensor.snake_enclosure_cool_side_temperature` | DS18B20 on the cool side |

@@ -11,11 +11,15 @@
 #   - PID + safety logic run locally; no dependence on Home Assistant/Wi-Fi.
 #   - All user settings (setpoints, schedule, alert limits, heater enable)
 #     are stored in flash and restored on boot.
-#   - Control input = stone DS18B20. (Designed as max(stone, IR); the IR sensor
+#   - Control input = warm-side DS18B20 (GPIO4; ids still say "stone"). It reads
+#     warm-side air a few inches above the floor, not the stone surface, so the
+#     setpoints and hard limit are set for air; spot-check the stone with an IR
+#     gun. (Designed as max(stone probe, IR); the IR sensor
 #     is not installed yet, so its sensor and checks are commented out below,
 #     each marked "IR NOT INSTALLED". Restore them all when it goes in.)
 #   - Heater forced OFF on NaN, stale (>60 s), implausible, or over-limit
-#     reading. The hard limit (33.3°C / 92°F) is fixed in firmware.
+#     reading. The hard limit (31.1°C / 88°F, for the warm-side air probe) is
+#     fixed in firmware.
 #   - Heater boots OFF; heat is enabled only once sensors are valid.
 #   - Two switches in series on the heater hot lead: the SSR pulses the
 #     heat, and a mechanical cutoff relay (GPIO18) opens on any fault,
@@ -32,8 +36,8 @@
 substitutions:
   name: snake-thermostat
   friendly: "Snake Enclosure"
-  hard_limit_c: "33.3"     # 92°F — heater forced off above this
-  clear_below_c: "32.2"    # 90°F — fault clears below this
+  hard_limit_c: "31.1"     # 88°F — heater forced off above this (warm-side air; was 92°F on the stone)
+  clear_below_c: "30.0"    # 86°F — fault clears below this
   runaway_c: "35.0"        # 95°F — alarm if still this hot with the heater cut off
   fault_alarm_ms: "120000" # sensor fault must last this long to alarm
 
@@ -93,7 +97,7 @@ i2c:
 
 one_wire:
   - platform: gpio
-    pin: GPIO4                  # stone (hot zone) DS18B20
+    pin: GPIO4                  # warm-side (hot zone) DS18B20, low on the warm-side wall
     id: ow_stone
   - platform: gpio
     pin: GPIO16                 # cool side DS18B20
@@ -155,9 +159,9 @@ number:
     device_class: temperature
     unit_of_measurement: "°C"
     min_value: 24
-    max_value: 31.1              # 88°F — kept below the hard limit
+    max_value: 29.4              # 85°F — kept below the 86°F clear point (air, not stone)
     step: 0.1
-    initial_value: 30.6          # 87°F
+    initial_value: 26.7          # 80°F — raise a degree at a time, heat-gunning the stone
     optimistic: true
     restore_value: true
     mode: box
@@ -171,7 +175,7 @@ number:
     device_class: temperature
     unit_of_measurement: "°C"
     min_value: 15
-    max_value: 31.1
+    max_value: 29.4              # 85°F
     step: 0.1
     initial_value: 24            # 75°F
     optimistic: true
@@ -364,7 +368,7 @@ sensor:
   - platform: dallas_temp
     one_wire_id: ow_stone
     id: stone_temp
-    name: "Stone Temperature"
+    name: "Warm Side Temperature"
     update_interval: 10s
     on_value:
       then:
@@ -470,7 +474,7 @@ sensor:
     update_interval: 5s
     lambda: |-
       const float s = id(stone_temp).state;
-      // IR NOT INSTALLED: control on the stone probe alone. With the IR sensor:
+      // IR NOT INSTALLED: control on the warm-side probe alone. With the IR sensor:
       //   const float ir = id(ir_object).state;
       //   if (isnan(s) || isnan(ir)) return NAN;
       //   return std::max(s, ir);
@@ -619,13 +623,13 @@ climate:
     id: pid_heat
     name: "Hot Zone Thermostat"
     sensor: hot_zone_control
-    default_target_temperature: 30.6°C
+    default_target_temperature: 26.7°C
     heat_output: heater_pwm
     visual:
       min_temperature: 15°C
-      max_temperature: 31.1°C
+      max_temperature: 29.4°C
       temperature_step: 0.5
-    # Starting values only. Run "PID Autotune" with the stone installed,
+    # Starting values only. Run "PID Autotune" with the stone and panel installed,
     # then paste the suggested values from the logs here.
     control_parameters:
       kp: 0.3
@@ -656,11 +660,11 @@ interval:
           // runaway and clear tests, and add ir back to the two log lines.
 
           std::string reason;
-          if (isnan(s)) reason = "stone probe no reading";
+          if (isnan(s)) reason = "warm-side probe no reading";
           // else if (isnan(ir)) reason = "IR sensor no reading";
-          else if (now - id(t_stone_ms) > STALE_MS) reason = "stone probe stale";
+          else if (now - id(t_stone_ms) > STALE_MS) reason = "warm-side probe stale";
           // else if (now - id(t_ir_ms) > STALE_MS) reason = "IR sensor stale";
-          else if (s < 5.0f || s > 60.0f) reason = "stone probe implausible";
+          else if (s < 5.0f || s > 60.0f) reason = "warm-side probe implausible";
           // else if (ir < 5.0f || ir > 70.0f) reason = "IR sensor implausible";
           else if (s > HARD_LIMIT) reason = "over temperature limit";
 
@@ -670,7 +674,7 @@ interval:
             if (id(alarm_latched)) return;
             id(alarm_latched) = true;
             id(alarm_reason) = why;
-            ESP_LOGE("alarm", "ALARM: %s (stone=%.1f)", why.c_str(), s);
+            ESP_LOGE("alarm", "ALARM: %s (warm=%.1f)", why.c_str(), s);
           };
           if (reason == "over temperature limit") {
             if (!id(heat_fault)) {
@@ -694,7 +698,7 @@ interval:
 
           if (!reason.empty()) {
             if (!id(heat_fault) || id(fault_reason) != reason)
-              ESP_LOGW("safety", "Heater OFF: %s (stone=%.1f)", reason.c_str(), s);
+              ESP_LOGW("safety", "Heater OFF: %s (warm=%.1f)", reason.c_str(), s);
             id(heat_fault) = true;
             id(fault_reason) = reason;
           } else if (id(heat_fault) && s < CLEAR_BELOW) {

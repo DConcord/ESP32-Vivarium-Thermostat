@@ -9,10 +9,10 @@ See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
 ## Design principles
 
 - **Control runs locally on the ESP32.** PID and safety logic never depend on Home Assistant or Wi-Fi.
-- **Control input = max(stone DS18B20, MLX90614 IR).** The thermostat regulates on whichever hot-zone reading is hottest. *Until the IR sensor is installed, the firmware controls on the stone probe alone (its IR parts are commented out, marked `IR NOT INSTALLED`).*
-- **Fail off.** Any NaN, stale (>60 s), implausible, or >92°F hot-zone reading forces the heater off. The heater also boots off and enables only once sensors are valid.
+- **Control input = max(stone DS18B20, MLX90614 IR).** The thermostat regulates on whichever hot-zone reading is hottest. *For now the IR sensor isn't installed and the GPIO4 probe is a **warm-side air probe**, not on the stone: the firmware controls on that probe alone (IR parts commented out, marked `IR NOT INSTALLED`), with setpoints and the hard limit lowered for air. Spot-check the stone surface with an IR gun.*
+- **Fail off.** Any NaN, stale (>60 s), implausible, or >88°F hot-zone reading forces the heater off (92°F when the control input was the stone surface). The heater also boots off and enables only once sensors are valid.
 - **Two switches in series.** The SSR pulses the heat; a mechanical relay (SRD-05VDC-SL-C relay shield) is closed only while heating is allowed. Any fault, over-limit reading, Heater Enable off, ESP32 reboot, or ESP32 power loss opens it, so a shorted SSR is still cut off. This matches or exceeds a standalone reptile thermostat.
-- **Known limit: one controller.** The relay and SSR share the ESP32's sensors and firmware. A sensor that reads low but plausible (e.g. a stone probe that has come loose) or a bad config change can hold both closed. Mount the probes securely and keep the IR sensor aimed; the control input uses the hotter of the two. For protection against that too, add the optional upstream failsafe.
+- **Known limit: one controller.** The relay and SSR share the ESP32's sensors and firmware. A sensor that reads low but plausible (e.g. a hot-zone probe that has come loose) or a bad config change can hold both closed. Mount the probes securely and keep the IR sensor aimed; the control input uses the hotter of the two. For protection against that too, add the optional upstream failsafe.
 - **Optional failsafe upstream.** A ZEN04 plug (via Home Assistant) or a plug-in thermostat such as an Inkbird ITC-308 with its own probe can cut the whole heater circuit independently of the ESP32.
 - **Settings persist locally.** Setpoints, the day/night schedule, alert limits, and Heater Enable are stored in the ESP32's flash and restored on boot, so control continues unchanged if Home Assistant is offline.
 - **ESP32 powered separately.** It runs on its own USB supply on a different outlet, so monitoring and alerts survive an upstream failsafe trip.
@@ -22,11 +22,12 @@ See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
 
 | Zone | Target |
 |---|---|
-| Warm surface (stone top) | 85–88°F (default day setpoint 87°F) |
+| Warm surface (stone top) | 85–88°F: spot-check with an IR gun |
+| Warm-side air (control probe, a few inches above the floor) | ~80–85°F (default day setpoint 80°F, max 85°F); raise it a degree at a time until the stone reads 85–88°F |
 | Cool side | 72–75°F |
 | Night | Upper 60s ambient OK (default night setpoint 75°F) |
 | Humidity | ~40% (30s tolerated) |
-| Software hard limit | 92°F, heater forced off (re-enables below 90°F) |
+| Software hard limit | 88°F on the warm-side air probe, heater forced off (re-enables below 86°F). It was 92°F/90°F with the probe on the stone. |
 | Optional upstream failsafe trip | ~95°F |
 
 ---
@@ -76,7 +77,7 @@ All sensors on **3V3**, never 5V/VIN.
 
 | Device | Address | ESP32 pin | Wire colors / pins |
 |---|---|---|---|
-| Stone DS18B20 (hot zone) | 1-Wire | GPIO4 | Probe → adapter: yellow DAT, red VCC, black GND |
+| Warm-side DS18B20 (hot zone) | 1-Wire | GPIO4 | Probe → adapter: yellow DAT, red VCC, black GND |
 | Cool-side DS18B20 | 1-Wire | GPIO16 | Same as above |
 | SHT30 probe | 0x44 | SDA GPIO21 / SCL GPIO22 | Red VCC, black GND, yellow/white = SDA/SCL (verify) |
 | SH1106 OLED | 0x3C | SDA GPIO21 / SCL GPIO22 | Header: GND VCC SCL SDA |
@@ -158,7 +159,7 @@ The relay shield, OLED and outlet need no screws: the shield drops onto the rise
 
 ## Sensor placement
 
-- **Stone probe:** on **top** of the basking stone (radiant heat comes from above), recessed in a shallow masonry-cut groove sealed with aquarium-safe silicone, near an edge but still under the panel.
+- **Warm-side probe (GPIO4, the control input):** low on the warm-side wall, a few inches above the substrate, in the probe clip (`parts/probe-mount/`), **outside the heat panel's footprint**. Under the panel its steel tip would be heated directly and read high. It reads warm-side air, not the stone: spot-check the stone's top with an IR gun, especially after raising the day setpoint. (Original design: on top of the stone, recessed in a groove; then the 92°F limit applied.)
 - **Cool probe:** low on the cool-side wall, 2–5 cm above the substrate, ideally beside the cool hide. That reads close to floor temperature without a cable across the floor. Cover the tip with a short tube or clip so the snake can't hook it.
 - **GY-906-DCI:** ~12" above the stone (reads ~1" spot), beside the panel rather than under it. The RJ45 adapter and Cat6 jacket are rated only to ~70°C.
 - **SHT30 probe:** mid-height on the cool-side wall, about 1 cm off the wall, away from the water bowl, vents and misting spot. Not on the ceiling: the panel heats the sensor and the warm, dry air pools there. Its air temperature is logged as Enclosure Air Temperature.
@@ -170,10 +171,10 @@ The relay shield, OLED and outlet need no screws: the shield drops onto the rise
 ## ESPHome config summary (`snake-thermostat.yaml`)
 
 - `slow_pwm` output on GPIO19 (5 s period, switched by the zero-cross SSR) driven by a `pid` climate entity.
-- Control sensor "Hot Zone (Control)" = max(stone, IR), NaN if either is invalid. While the IR sensor isn't installed it is the stone probe alone; restore every `IR NOT INSTALLED` block in `snake-thermostat.yaml` when it goes in.
+- Control sensor "Hot Zone (Control)" = max(stone, IR), NaN if either is invalid. While the IR sensor isn't installed it is the warm-side probe alone; restore every `IR NOT INSTALLED` block in `snake-thermostat.yaml` when it goes in.
 - Day/night setpoints and schedule hours are number entities (persisted in flash). The active setpoint is pushed to the thermostat every 30 s and on any change. Time comes from SNTP, then Home Assistant; with no valid time, the day setpoint is used.
-- Safety loop (2 s): forces heat off on any fault, clears once readings are valid and below 90°F, and only heats while **Heater Enable** is on. The 92°F hard limit is fixed in firmware.
-- Cutoff relay (GPIO18) is closed only while the safety loop allows heat, and boots open. If the SSR shorts, the hot zone reaches the 92°F limit, the relay opens, and it recloses below 90°F. The heater then cycles on the relay around 90–92°F until you replace the SSR. The first trip latches the **Alarm**.
+- Safety loop (2 s): forces heat off on any fault, clears once readings are valid and below 86°F, and only heats while **Heater Enable** is on. The 88°F hard limit is fixed in firmware.
+- Cutoff relay (GPIO18) is closed only while the safety loop allows heat, and boots open. If the SSR shorts, the hot zone reaches the 88°F limit, the relay opens, and it recloses below 86°F. The heater then cycles on the relay around 86–88°F until you replace the SSR. The first trip latches the **Alarm**.
 - MLX emissivity set to 0.95 for stone.
 - Soil moisture (GPIO34/35, ADC1, 12 dB attenuation): each probe's voltage is median-filtered and reported every 60 s, then mapped to 0–100% using its Dry/Wet Voltage numbers (set from HA, stored in flash). Monitor only: soil readings never touch heat control or the Alarm.
 - OLED shows Hot / Cool / RH / heater % / setpoint, shifts pixels every few minutes, and turns off during night hours.
@@ -186,7 +187,7 @@ The ESP32 exposes a latched **Alarm** (`binary_sensor.snake_enclosure_alarm`, de
 
 | Cause | Alarm Reason |
 |---|---|
-| Hot zone hits the 92°F hard limit | `Over temperature limit` (adds `; SSR may be stuck on` if the PID was asking for <10% heat) |
+| Hot zone hits the 88°F hard limit | `Over temperature limit` (adds `; SSR may be stuck on` if the PID was asking for <10% heat) |
 | Any sensor fault (no reading, stale, implausible) lasting >2 min | `Sensor fault: <reason>` |
 | Hot zone above 95°F while the relay is open | `Hot zone above 95F with heater cut off` (relay or external heat problem) |
 
@@ -226,7 +227,7 @@ The ZEN04 failsafe depends on HA being up. A 4 ft gradient gives the snake room 
 - [ ] Multimeter: ground continuity from the plug's ground pin to the outlet ground (unplugged).
 - [ ] Lamp in the outlet: ESP32 pulses it; lamp stays off during boot and flashing.
 - [ ] Relay clicks closed once sensors are valid and `Cutoff Relay Closed` turns on; it opens (lamp off) when you turn off Heater Enable, unplug a probe, or unplug the ESP32's USB.
-- [ ] Simulate a shorted SSR: jumper SSR terminals 1–2 (unplugged first), power up, warm the stone probe past 92°F; the relay must open, the lamp go off, and Alarm turn on. Remove the jumper afterwards.
+- [ ] Simulate a shorted SSR: jumper SSR terminals 1–2 (unplugged first), power up, warm the warm-side probe past 88°F (e.g. hold it in your hand, or near a lamp); the relay must open, the lamp go off, and Alarm turn on. Remove the jumper afterwards.
 - [ ] If fitted: each upstream failsafe trigger kills the lamp.
 - [ ] RHP connected: run autotune with the stone installed (1–2 hr), update PID values, then watch a full day/night cycle, including the night setpoint switch.
 - [ ] Cool side holds ≥ 72°F in the enclosure's room for a week before the animal moves in.
