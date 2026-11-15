@@ -681,12 +681,15 @@ climate:
       min_temperature: 15°C
       max_temperature: 29.4°C
       temperature_step: 0.5
-    # Starting values only. Run "PID Autotune" with the stone and panel installed,
-    # then paste the suggested values from the logs here.
+    # From PID Autotune (Ziegler-Nichols PID rule) on the built enclosure: 80 W
+    # panel, warm-side air probe, before the basking stones went in. Held 75 °F
+    # within ±0.2 °F overnight; the 75 -> 80 °F morning step overshot 0.8 °F.
+    # Re-run autotune after a physical change (stones, décor, probe position,
+    # panel) and paste the new values from the logs here.
     control_parameters:
-      kp: 0.3
-      ki: 0.0005
-      kd: 0.0
+      kp: 0.61116
+      ki: 0.00096
+      kd: 97.17365
       output_averaging_samples: 5
       derivative_averaging_samples: 5
     deadband_parameters:

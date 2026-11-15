@@ -179,7 +179,7 @@ The relay shield, OLED and outlet need no screws: the shield drops onto the rise
 - MLX emissivity set to 0.95 for stone.
 - Soil moisture (GPIO34/35, ADC1, 12 dB attenuation): each probe's voltage is median-filtered and reported every 60 s, then mapped to 0–100% using its Dry/Wet Voltage numbers (set from HA, stored in flash). Monitor only: soil readings never touch heat control or the Alarm.
 - OLED shows Hot / Cool / RH / heater % / setpoint, shifts a few pixels every minute or so to spread OLED wear, and stays on around the clock. Its day and night brightness are number entities (defaults 100% and 10%).
-- After autotune, paste the suggested `kp/ki/kd` from the logs into `control_parameters`.
+- After autotune, paste the suggested `kp/ki/kd` from the logs into `control_parameters`. The current values come from an autotune on the built enclosure (80 W panel, warm-side air probe). Re-run it after any physical change: basking stones or other décor, the probe's position, or the panel.
 - Full entity list: `ENTITIES.md`.
 
 ## Alerts (Home Assistant)
