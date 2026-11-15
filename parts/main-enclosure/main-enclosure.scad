@@ -50,7 +50,7 @@ outlet_pocket = [31, 31];       // inside thinning pocket around the cutout (cov
 // 13 centre; 5/8 in = 19.7 flange, 15.5 groove bottom, 10.5 centre; grooves 1.8-2 wide.
 //   [centre X offset from the LV bay's left wall, hole d, flange d, slot w, what passes]
 grommets = [[16.5, 20.0, 24.0, 8, "Cat6 + 2 soil probes"],
-            [45.5, 20.0, 24.0, 8, "2 DS18B20 + SHT30"],
+            [45.5, 20.0, 24.0, 8, "2 DS18B20 + RH"],
             [72.5, 15.9, 19.7, 6, "USB (right-angle plug)"]];
 grommet_panel_t = 1.8;          // grooves are 1.8-2 wide; wall thinned to this around each hole
 grommet_z = 19;  grommet_pocket_extra = 3;  // pocket = flange + extra
@@ -304,7 +304,7 @@ module components() {
     }
   }
   cab = [[0, [[-2.6, 1.5, 6.0, "#3a7bd5"], [2.8, 1.5, 4.5, "#5a3d1e"], [0.1, -3.2, 4.5, "#5a3d1e"]]],  // Cat6 + 2 soil
-         [1, [[-2.6, -1.5, 4.0, "#111"], [2.6, -1.5, 4.0, "#111"], [0, 2.6, 4.5, "#111"]]],          // DS18B20 x2 + SHT30
+         [1, [[-2.6, -1.5, 4.0, "#111"], [2.6, -1.5, 4.0, "#111"], [0, 2.6, 4.5, "#111"]]],          // DS18B20 x2 + humidity probe
          [2, [[0, 0, 3.5, "#222"]]]];                                                               // USB
   for (g = cab) for (c = g[1]) color(c[3])
     translate([g_x[g[0]] + c[0], -40, grommet_z + c[1]]) cyl(d=c[2], h=40 + 20, orient=BACK, anchor=BOT);

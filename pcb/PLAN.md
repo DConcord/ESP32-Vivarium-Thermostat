@@ -44,7 +44,7 @@ Everything is soldered by the factory. Small parts are surface-mount on the top 
 | D1 | Green LED + 1k | 3V3 → GND | Power indicator |
 | J1 | 3-pin pluggable terminal | 3V3 · GPIO4 · GND | Stone DS18B20: red · yellow · black |
 | J2 | 3-pin pluggable terminal | 3V3 · GPIO16 · GND | Cool DS18B20: red · yellow · black |
-| J3 | 4-pin pluggable terminal | 3V3 · GND · SDA · SCL | SHT30 probe |
+| J3 | 4-pin pluggable terminal | 3V3 · GND · SDA · SCL | Humidity probe (AHT20) |
 | J4 | RJ45 8P8C jack, unshielded, no LEDs | T568B: 2 = SDA, 6 = SCL, 4 = 3V3, 1/3/5/7/8 = GND | Cat6 to the GY-906. The 100 nF capacitor stays at the sensor end, as now. |
 | J5 | 1×4 male header, 2.54 mm | GND · VCC (3V3) · SCL · SDA | OLED, in the OLED's own pin order, so a straight 4-wire Dupont cable fits |
 | J6 | 2-pin pluggable terminal | GPIO19 (+) · GND (−) | SSR input terminals 3 (+) and 4 (−) |
@@ -102,7 +102,7 @@ All in `pcb/`, from KiCad (it can be installed in this session):
 | Plug | Wires |
 |---|---|
 | J1 / J2 (DS18B20) | red → 3V3, yellow → DATA, black → GND. Wire the probe directly; the DROK adapters aren't needed. |
-| J3 (SHT30) | red → 3V3, black → GND, then SDA and SCL as the listing says |
+| J3 (humidity probe) | red → 3V3, black → GND, yellow → SDA, white → SCL |
 | J4 (RJ45) | The existing Cat6 cable plugs straight in |
 | J5 (OLED) | The existing 4-wire Dupont cable |
 | J6 (SSR) | GPIO19 (+) → SSR 3, GND (−) → SSR 4 |

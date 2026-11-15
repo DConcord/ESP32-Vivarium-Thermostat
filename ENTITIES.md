@@ -33,8 +33,8 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 | `sensor.snake_enclosure_stone_surface_ir` | MLX90614 IR reading of the stone (not created while the IR sensor is disabled) |
 | `sensor.snake_enclosure_ir_sensor_ambient` | MLX90614 housing temperature (not created while the IR sensor is disabled) |
 | `sensor.snake_enclosure_cool_side_temperature` | DS18B20 on the cool side |
-| `sensor.snake_enclosure_enclosure_air_temperature` | SHT30 air temperature |
-| `sensor.snake_enclosure_enclosure_humidity` | SHT30 relative humidity |
+| `sensor.snake_enclosure_enclosure_air_temperature` | Humidity probe air temperature |
+| `sensor.snake_enclosure_enclosure_humidity` | Humidity probe relative humidity |
 | `sensor.snake_enclosure_soil_moisture_1` | Soil moisture, cool side (0–100%, from calibration) |
 | `sensor.snake_enclosure_soil_moisture_2` | Soil moisture, warm side (0–100%, from calibration) |
 | `sensor.snake_enclosure_active_setpoint` | Setpoint currently in effect (day or night) |

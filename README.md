@@ -13,7 +13,7 @@ Built for a corn snake, but the setpoints are adjustable for other species.
 
 ## Hardware (summary)
 
-ESP32 · 2× DS18B20 (warm side, cool side) · MLX90614ESF-DCI IR sensor (over Cat6) · SHT30 humidity probe · 2× capacitive soil moisture probes · SH1106 OLED · SSR + cutoff relay · radiant heat panel. Full parts list and wiring are in `BUILD.md`.
+ESP32 · 2× DS18B20 (warm side, cool side) · MLX90614ESF-DCI IR sensor (over Cat6) · AHT20 humidity probe (sold as SHT30) · 2× capacitive soil moisture probes · SH1106 OLED · SSR + cutoff relay · radiant heat panel. Full parts list and wiring are in `BUILD.md`.
 
 ## Files
 
@@ -31,7 +31,7 @@ ESP32 · 2× DS18B20 (warm side, cool side) · MLX90614ESF-DCI IR sensor (over C
 
 1. Copy `secrets.example.yaml` to `secrets.yaml` and fill it in.
 2. Wire per `BUILD.md` and the diagram. Bench-test with a lamp, not the heat panel.
-3. Flash with ESPHome and confirm the I2C scan finds 0x3C, 0x44, 0x5A (0x5A only with the IR sensor installed; it is disabled in the config until then).
+3. Flash with ESPHome and confirm the I2C scan finds 0x3C, 0x38, 0x5A (0x5A only with the IR sensor installed; it is disabled in the config until then).
 4. Adopt the device in Home Assistant and add the controls from `ENTITIES.md` to a dashboard.
 5. Run **PID Autotune** with the enclosure assembled, then copy the tuned values into the YAML.
 6. Test every fault path, including a simulated shorted SSR (see `BUILD.md`), before an animal goes in.

@@ -99,7 +99,7 @@ i2c:
   sda: GPIO21
   scl: GPIO22
   frequency: 50kHz              # slow for the Cat6 run to the IR sensor
-  scan: true                    # expect 0x3C (OLED), 0x44 (SHT30); 0x5A (MLX) once the IR sensor is installed
+  scan: true                    # expect 0x3C (OLED), 0x38 (AHT20); 0x5A (MLX) once the IR sensor is installed
 
 one_wire:
   - platform: gpio
@@ -397,8 +397,10 @@ sensor:
   #       then:
   #         - lambda: id(t_ir_ms) = millis();
 
-  - platform: sht3xd
-    address: 0x44
+  # Humidity probe: sold as an "SHT30" probe, but the chip inside is an AHT20
+  # (answers at 0x38). For a genuine SHT30 use platform: sht3xd, address: 0x44.
+  - platform: aht10
+    variant: AHT20
     update_interval: 30s
     temperature:
       name: "Enclosure Air Temperature"

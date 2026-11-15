@@ -66,11 +66,11 @@
 <polyline points="370,372 390,372" fill="none" stroke="#1F2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
 <text x="362.0" y="376.0" font-size="11" fill="#085041" text-anchor="end" font-weight="bold">GND (black)</text>
 <polyline points="370,398 390,398" fill="none" stroke="#1F2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<text x="362.0" y="402.0" font-size="11" fill="#085041" text-anchor="end" font-weight="bold">SDA</text>
+<text x="362.0" y="402.0" font-size="11" fill="#085041" text-anchor="end" font-weight="bold">SDA (yellow)</text>
 <polyline points="370,424 390,424" fill="none" stroke="#1F2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<text x="362.0" y="428.0" font-size="11" fill="#085041" text-anchor="end" font-weight="bold">SCL</text>
-<text x="260.0" y="320.0" font-size="13" fill="#085041" text-anchor="middle" font-weight="bold">SHT30 probe · 0x44</text>
-<text x="260.0" y="336.0" font-size="10" fill="#6B7280" text-anchor="middle" font-weight="normal">yellow/white = SDA/SCL: check listing</text>
+<text x="362.0" y="428.0" font-size="11" fill="#085041" text-anchor="end" font-weight="bold">SCL (white)</text>
+<text x="260.0" y="320.0" font-size="13" fill="#085041" text-anchor="middle" font-weight="bold">AHT20 humidity probe · 0x38</text>
+<text x="260.0" y="336.0" font-size="10" fill="#6B7280" text-anchor="middle" font-weight="normal">sold as an SHT30 probe</text>
 <rect x="150" y="460" width="220" height="118" rx="10" fill="#FEF3C7" stroke="#92400E" stroke-width="1.5"/>
 <polyline points="370,506 390,506" fill="none" stroke="#1F2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
 <text x="362.0" y="510.0" font-size="11" fill="#78350F" text-anchor="end" font-weight="bold">DAT</text>
@@ -372,6 +372,6 @@
 <text x="1120.0" y="1332.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">Bench test with a lamp before the heat panel.</text>
 <text x="1120.0" y="1349.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">Soil probes on 3V3 only: at 5V their output</text>
 <text x="1120.0" y="1366.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">  can exceed the ESP32&#x27;s 3.3 V input.</text>
-<text x="40.0" y="1524.0" font-size="11" fill="#6B7280" text-anchor="start" font-weight="normal">SDA/SCL are shared by the OLED, SHT30 and IR sensor (I2C at 50 kHz); their boards supply the pull-ups. The DS18B20 adapters carry their own 4.7k pull-ups.</text>
+<text x="40.0" y="1524.0" font-size="11" fill="#6B7280" text-anchor="start" font-weight="normal">SDA/SCL are shared by the OLED, humidity probe and IR sensor (I2C at 50 kHz); their boards supply the pull-ups. The DS18B20 adapters carry their own 4.7k pull-ups.</text>
 <text x="40.0" y="1542.0" font-size="11" fill="#6B7280" text-anchor="start" font-weight="normal">An optional upstream failsafe (ZEN04 or ITC-308) plugs in between the wall and the C14 cord; see BUILD.md.</text>
 </svg>

@@ -42,7 +42,7 @@ See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
 | 19-pin female headers (0.1") | 2 | $2 | The ESP32 plugs into these |
 | DROK DS18B20 waterproof probe 2-pack (adapter boards, 4.7k resistors) | 1–2 | $10–12/pack | [Amazon B0FLDQJ71M](https://www.amazon.com/dp/B0FLDQJ71M) |
 | GY-906-DCI (MLX90614ESF-DCI) IR sensor, 5° FOV | 1 | $30–40 | [Amazon B0B63N57CS](https://www.amazon.com/dp/B0B63N57CS) |
-| SHT30 enclosed probe, 2 m cable | 1 | $8–12 | Amazon "SHT30 probe waterproof" |
+| Humidity probe, enclosed, 2 m cable (sold as "SHT30"; the one used here has an AHT20 inside) | 1 | $8–12 | Amazon "SHT30 probe waterproof" |
 | Capacitive soil moisture probe, analog (DFRobot SEN0308 waterproof, or a v2.0 capacitive probe with its top edge sealed) | 2 | $15 / $3 each | Monitor only; never resistive (two-prong) probes, which corrode and leach metal into the substrate |
 | HiLetgo 1.3" SH1106 OLED (4-pin I2C) | 1 | $12 | [Amazon B07BHHV844](https://www.amazon.com/dp/B07BHHV844) |
 | Cat6 stranded patch cable (cut in half) | 1 | $5–8 | Any; solid-core bulk cable not recommended |
@@ -65,7 +65,7 @@ See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
 - [ ] SH1106 is the **4-pin I2C** version (header: GND VCC SCL SDA).
 - [ ] MLX90614 has the **tall canned lens** (GY-906-DCI, narrow FOV).
 - [ ] Inlet: with the fuse in and the rocker **on**, the front L pin has continuity to the L tab; rocker **off** or fuse out, it doesn't. Also identify N and ⏚.
-- [ ] SHT30 probe: confirm which of yellow/white is SDA vs SCL from the seller listing.
+- [ ] Humidity probe: the one used here is yellow = SDA, white = SCL, and answers at 0x38 (AHT20). Run the I2C scan to confirm yours: 0x38 is an AHT20/AHT10 (`platform: aht10`), 0x44/0x45 a genuine SHT30 (`platform: sht3xd`). Nothing at all usually means SDA/SCL are swapped; swapping the two pins in the `i2c:` block is a no-solder way to test that.
 
 ---
 
@@ -79,7 +79,7 @@ All sensors on **3V3**, never 5V/VIN.
 |---|---|---|---|
 | Warm-side DS18B20 (hot zone) | 1-Wire | GPIO4 | Probe → adapter: yellow DAT, red VCC, black GND |
 | Cool-side DS18B20 | 1-Wire | GPIO16 | Same as above |
-| SHT30 probe | 0x44 | SDA GPIO21 / SCL GPIO22 | Red VCC, black GND, yellow/white = SDA/SCL (verify) |
+| Humidity probe (AHT20) | 0x38 | SDA GPIO21 / SCL GPIO22 | Red VCC, black GND, yellow SDA, white SCL |
 | SH1106 OLED | 0x3C | SDA GPIO21 / SCL GPIO22 | Header: GND VCC SCL SDA |
 | GY-906-DCI (MLX90614) | 0x5A | SDA GPIO21 / SCL GPIO22 | Via Cat6 + RJ45 (map below) |
 | Soil moisture 1 (cool side) | ADC | GPIO34 | AOUT → GPIO34, VCC → **3V3**, GND → GND |
@@ -100,7 +100,7 @@ Notes:
 - Each DS18B20 has its own GPIO because the adapter boards have built-in pull-ups. The OLED and GY-906 boards supply I2C pull-ups, so don't add more unless the I2C scan fails.
 - I2C runs at 50 kHz for the Cat6 run. Add a 100 nF capacitor across VIN/GND at the sensor-end adapter.
 - If the SSR triggers unreliably at 3.3V, drive it from 5V through an NPN transistor (1k base resistor) or a logic-level MOSFET (100 Ω gate, 10k pull-down).
-- For a possible second channel: GPIO17/23 (DS18B20s), GPIO32/33 (second I2C bus for a second MLX), SHT30 at 0x45, GPIO26 (second SSR), GPIO27 (second cutoff relay). Avoid GPIO0, 2, 12, 15 and (as outputs) 34–39. GPIO34/35 are used as analog inputs by the soil probes; GPIO36/39 are the remaining free ADC1 inputs. Use ADC1 pins (32–39) for analog sensors: ADC2 stops working while Wi-Fi is on.
+- For a possible second channel: GPIO17/23 (DS18B20s), GPIO32/33 (second I2C bus for a second MLX), a second humidity probe on the second I2C bus, GPIO26 (second SSR), GPIO27 (second cutoff relay). Avoid GPIO0, 2, 12, 15 and (as outputs) 34–39. GPIO34/35 are used as analog inputs by the soil probes; GPIO36/39 are the remaining free ADC1 inputs. Use ADC1 pins (32–39) for analog sensors: ADC2 stops working while Wi-Fi is on.
 
 ## Mains-side wiring
 
@@ -162,7 +162,7 @@ The relay shield, OLED and outlet need no screws: the shield drops onto the rise
 - **Warm-side probe (GPIO4, the control input):** low on the warm-side wall, a few inches above the substrate, in the probe clip (`parts/probe-mount/`), **outside the heat panel's footprint**. Under the panel its steel tip would be heated directly and read high. It reads warm-side air, not the stone: spot-check the stone's top with an IR gun, especially after raising the day setpoint. (Original design: on top of the stone, recessed in a groove; then the 92°F limit applied.)
 - **Cool probe:** low on the cool-side wall, 2–5 cm above the substrate, ideally beside the cool hide. That reads close to floor temperature without a cable across the floor. Cover the tip with a short tube or clip so the snake can't hook it.
 - **GY-906-DCI:** ~12" above the stone (reads ~1" spot), beside the panel rather than under it. The RJ45 adapter and Cat6 jacket are rated only to ~70°C.
-- **SHT30 probe:** mid-height on the cool-side wall, about 1 cm off the wall, away from the water bowl, vents and misting spot. Not on the ceiling: the panel heats the sensor and the warm, dry air pools there. Its air temperature is logged as Enclosure Air Temperature.
+- **Humidity probe:** mid-height on the cool-side wall, about 1 cm off the wall, away from the water bowl, vents and misting spot. Not on the ceiling: the panel heats the sensor and the warm, dry air pools there. Its air temperature is logged as Enclosure Air Temperature.
 - **Soil probes:** one on the cool side, one on the warm side but outside the heat panel's footprint, pushed in vertically to the probe's fill line, mid-depth, away from the water bowl. Run the cables along the glass so the snake can't drag them up while burrowing. Monitor only: they never affect heat control.
 - **OLED + ESP32:** in the project box **outside** the enclosure.
 - Route sensor cables through the enclosure's grommets. Inside the tank, clip every cable flat to the wall every few inches with no slack or loops, so the snake can't push through or drag it; keep cable jackets away from the panel.
@@ -220,7 +220,7 @@ The ZEN04 failsafe depends on HA being up. A 4 ft gradient gives the snake room 
 
 ## Bring-up and test checklist
 
-- [ ] Fit the U.FL antenna, then flash the ESP32 over USB; confirm the I2C scan in logs shows 0x3C, 0x44, 0x5A (0x5A only once the IR sensor is installed and re-enabled).
+- [ ] Fit the U.FL antenna, then flash the ESP32 over USB; confirm the I2C scan in logs shows 0x3C, 0x38, 0x5A (0x5A only once the IR sensor is installed and re-enabled).
 - [ ] Both DS18B20s read sensibly; compare to a reference thermometer.
 - [ ] Unplug a probe: Heater Fault turns on and heater duty goes to 0; after 2 min, Alarm turns on with `Sensor fault: …`. Reconnect, press Clear Alarm.
 - [ ] Both HA notifications fire (Alarm on; ESP32 USB unplugged for 5 min).

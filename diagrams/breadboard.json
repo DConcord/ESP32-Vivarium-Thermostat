@@ -51,8 +51,8 @@
    "name": "SH1106 OLED",
    "color": "#7C3AED"
   },
-  "SHT30": {
-   "name": "SHT30 probe",
+  "RH": {
+   "name": "AHT20 humidity probe",
    "color": "#0891B2"
   },
   "STONE": {
@@ -258,19 +258,19 @@
  ],
  "offboard": [
   {
-   "pin": "SHT30.VCC",
+   "pin": "RH.VCC",
    "hole": "T+@6"
   },
   {
-   "pin": "SHT30.GND",
+   "pin": "RH.GND",
    "hole": "T-@7"
   },
   {
-   "pin": "SHT30.SDA",
+   "pin": "RH.SDA",
    "hole": "a8"
   },
   {
-   "pin": "SHT30.SCL",
+   "pin": "RH.SCL",
    "hole": "a9"
   },
   {

@@ -69,8 +69,8 @@
    "board": "offboard",
    "table": false
   },
-  "SHT30": {
-   "type": "SHT30 probe",
+  "RH": {
+   "type": "AHT20 humidity probe (sold as SHT30)",
    "board": "offboard",
    "table": false
   },
@@ -126,7 +126,7 @@
   "3V3": [
    "ESP.3V3",
    "OLED.VCC",
-   "SHT30.VCC",
+   "RH.VCC",
    "STONE.VCC",
    "COOL.VCC",
    "RJ45.3V3",
@@ -144,7 +144,7 @@
    "SSR.IN-",
    "K1.GND",
    "OLED.GND",
-   "SHT30.GND",
+   "RH.GND",
    "STONE.GND",
    "COOL.GND",
    "RJ45.GND",
@@ -166,14 +166,14 @@
   "SDA": [
    "ESP.21",
    "OLED.SDA",
-   "SHT30.SDA",
+   "RH.SDA",
    "RJ45.SDA",
    "IR.SDA"
   ],
   "SCL": [
    "ESP.22",
    "OLED.SCL",
-   "SHT30.SCL",
+   "RH.SCL",
    "RJ45.SCL",
    "IR.SCL"
   ],
