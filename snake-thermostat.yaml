@@ -51,6 +51,7 @@ esphome:
           id: pid_heat
           mode: "OFF"
       - output.turn_off: cutoff_relay
+      - script.execute: apply_pid_gains
       - script.execute: apply_setpoint
 
 esp32:
@@ -115,6 +116,9 @@ one_wire:
 # Runtime state
 # ---------------------------------------------------------------------
 globals:
+  - id: autotune_running        # set by the PID Autotune button; not restored (a reboot ends autotune)
+    type: bool
+    initial_value: "false"
   - id: t_stone_ms
     type: uint32_t
     initial_value: "0"
@@ -316,6 +320,55 @@ number:
     restore_value: true
     mode: box
 
+  # PID gains, stored in flash and applied at boot and on change, so tuning
+  # needs no reflash. Defaults are the autotune result on the built enclosure
+  # (see control_parameters below). After an autotune, press "PID Save Autotune
+  # Result" to copy the new gains here.
+  - platform: template
+    id: pid_kp
+    name: "PID Kp"
+    icon: mdi:alpha-p-box-outline
+    entity_category: config
+    min_value: 0
+    max_value: 10
+    step: 0.00001
+    initial_value: 0.61116
+    optimistic: true
+    restore_value: true
+    mode: box
+    on_value:
+      - script.execute: apply_pid_gains
+
+  - platform: template
+    id: pid_ki
+    name: "PID Ki"
+    icon: mdi:alpha-i-box-outline
+    entity_category: config
+    min_value: 0
+    max_value: 0.1
+    step: 0.00001
+    initial_value: 0.00096
+    optimistic: true
+    restore_value: true
+    mode: box
+    on_value:
+      - script.execute: apply_pid_gains
+
+  - platform: template
+    id: pid_kd
+    name: "PID Kd"
+    icon: mdi:alpha-d-box-outline
+    entity_category: config
+    min_value: 0
+    max_value: 2000
+    step: 0.00001
+    initial_value: 97.17365
+    optimistic: true
+    restore_value: true
+    mode: box
+    on_value:
+      - script.execute: apply_pid_gains
+
   # OLED brightness by time of day. 0% is the dimmest setting, not off.
   - platform: template
     id: oled_day_brightness
@@ -395,6 +448,18 @@ script:
             call.perform();
           }
       - script.execute: apply_display
+
+  # Pushes the stored PID gains into the controller. The safety loop limits heat
+  # regardless of the gains.
+  - id: apply_pid_gains
+    mode: restart
+    then:
+      - lambda: |-
+          const float kp = id(pid_kp).state, ki = id(pid_ki).state, kd = id(pid_kd).state;
+          if (isnan(kp) || isnan(ki) || isnan(kd)) return;
+          id(pid_heat).set_kp(kp);
+          id(pid_heat).set_ki(ki);
+          id(pid_heat).set_kd(kd);
 
   # Sets the OLED to the day or night brightness. Always on; dimmer at night
   # means less light near the enclosure and less OLED wear.
@@ -547,6 +612,36 @@ sensor:
     name: "Heater Duty"
     type: HEAT
 
+  # Gains the controller is using right now. Autotune writes its result here when
+  # it finishes, so a difference from the stored PID Kp/Ki/Kd means a new result.
+  - platform: pid
+    climate_id: pid_heat
+    id: pid_kp_active
+    name: "PID Kp (active)"
+    type: KP
+    entity_category: diagnostic
+    accuracy_decimals: 5
+    filters:
+      - throttle: 30s
+  - platform: pid
+    climate_id: pid_heat
+    id: pid_ki_active
+    name: "PID Ki (active)"
+    type: KI
+    entity_category: diagnostic
+    accuracy_decimals: 5
+    filters:
+      - throttle: 30s
+  - platform: pid
+    climate_id: pid_heat
+    id: pid_kd_active
+    name: "PID Kd (active)"
+    type: KD
+    entity_category: diagnostic
+    accuracy_decimals: 5
+    filters:
+      - throttle: 30s
+
   - platform: wifi_signal
     name: "WiFi Signal"
     update_interval: 60s
@@ -555,6 +650,21 @@ sensor:
     name: "Uptime"
 
 text_sensor:
+  - platform: template
+    id: autotune_status
+    name: "PID Autotune Status"
+    icon: mdi:tune-variant
+    entity_category: diagnostic
+    update_interval: 10s
+    lambda: |-
+      auto differs = [](float a, float b) { return fabsf(a - b) > 1e-6f * fmaxf(1.0f, fabsf(b)); };
+      const bool pending = differs(id(pid_heat).get_kp(), id(pid_kp).state) ||
+                           differs(id(pid_heat).get_ki(), id(pid_ki).state) ||
+                           differs(id(pid_heat).get_kd(), id(pid_kd).state);
+      if (pending) { id(autotune_running) = false; return {std::string("Finished: press Save to keep")}; }
+      if (id(autotune_running)) return {std::string("Running")};
+      return {std::string("Idle")};
+
   - platform: template
     id: heater_status
     name: "Heater Status"
@@ -636,7 +746,24 @@ button:
     name: "PID Autotune"
     entity_category: config
     on_press:
+      - lambda: id(autotune_running) = true;
       - climate.pid.autotune: pid_heat
+  # Copies the gains the controller is using (after autotune: its result) into the
+  # stored PID Kp/Ki/Kd, so they survive a reboot.
+  - platform: template
+    name: "PID Save Autotune Result"
+    icon: mdi:content-save-outline
+    entity_category: config
+    on_press:
+      - number.set:
+          id: pid_kp
+          value: !lambda return id(pid_heat).get_kp();
+      - number.set:
+          id: pid_ki
+          value: !lambda return id(pid_heat).get_ki();
+      - number.set:
+          id: pid_kd
+          value: !lambda return id(pid_heat).get_kd();
   - platform: template
     name: "PID Reset Integral"
     entity_category: config
@@ -685,7 +812,8 @@ climate:
     # panel, warm-side air probe, before the basking stones went in. Held 75 °F
     # within ±0.2 °F overnight; the 75 -> 80 °F morning step overshot 0.8 °F.
     # Re-run autotune after a physical change (stones, décor, probe position,
-    # panel) and paste the new values from the logs here.
+    # panel). These are compile-time defaults only: at boot the stored PID Kp/Ki/Kd
+    # numbers replace them, so retuning needs no reflash.
     control_parameters:
       kp: 0.61116
       ki: 0.00096

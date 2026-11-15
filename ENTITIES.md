@@ -66,7 +66,11 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 | `sensor.snake_enclosure_uptime` | Seconds since boot |
 | `sensor.snake_enclosure_soil_moisture_1_voltage` | Raw probe 1 voltage (use for calibration) |
 | `sensor.snake_enclosure_soil_moisture_2_voltage` | Raw probe 2 voltage (use for calibration) |
-| `button.snake_enclosure_pid_autotune` | Start PID autotune (results appear in device logs) |
+| `button.snake_enclosure_pid_autotune` | Start PID autotune (1–2 h). The controller uses the result as soon as it finishes |
+| `text_sensor.snake_enclosure_pid_autotune_status` | `Idle`, `Running`, or `Finished: press Save to keep` (the active gains differ from the stored ones) |
+| `button.snake_enclosure_pid_save_autotune_result` | Copy the gains in use into the stored PID Kp/Ki/Kd, so they survive a reboot |
+| `number.snake_enclosure_pid_kp` / `_pid_ki` / `_pid_kd` | Stored PID gains (config). Applied at boot and whenever changed; no reflash needed |
+| `sensor.snake_enclosure_pid_kp_active` / `_ki_active` / `_kd_active` | Gains the controller is using right now (shows an autotune result before it's saved) |
 | `button.snake_enclosure_pid_reset_integral` | Clear the PID integral term |
 | `button.snake_enclosure_clear_alarm` | Reset the latched alarm (re-raises if the cause persists) |
 | `button.snake_enclosure_restart` | Reboot the ESP32 |
