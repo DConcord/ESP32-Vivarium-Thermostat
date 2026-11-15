@@ -22,6 +22,8 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 | `number.snake_enclosure_soil_moisture_1_wet_voltage` | Number (config) | Probe 1 voltage in soaked substrate, = 100% (default 1.20 V) |
 | `number.snake_enclosure_soil_moisture_2_dry_voltage` | Number (config) | Probe 2 dry calibration (default 2.60 V) |
 | `number.snake_enclosure_soil_moisture_2_wet_voltage` | Number (config) | Probe 2 wet calibration (default 1.20 V) |
+| `number.snake_enclosure_display_day_brightness` | Number | OLED brightness during the day, 0–100% (default 100%). 0% is the dimmest setting, not off |
+| `number.snake_enclosure_display_night_brightness` | Number | OLED brightness at night (default 10%) |
 | `climate.snake_enclosure_hot_zone_thermostat` | Climate | PID thermostat. Its target follows the setpoint numbers, so set targets there rather than on this card |
 
 ## Readings

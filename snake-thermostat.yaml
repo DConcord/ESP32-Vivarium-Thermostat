@@ -131,9 +131,9 @@ globals:
   - id: night_active
     type: bool
     initial_value: "false"
-  - id: display_dim
-    type: bool
-    initial_value: "false"
+  - id: display_contrast        # contrast last sent to the OLED (-1 = not yet)
+    type: float
+    initial_value: "-1"
   - id: relay_closed
     type: bool
     initial_value: "false"
@@ -316,6 +316,37 @@ number:
     restore_value: true
     mode: box
 
+  # OLED brightness by time of day. 0% is the dimmest setting, not off.
+  - platform: template
+    id: oled_day_brightness
+    name: "Display Day Brightness"
+    icon: mdi:brightness-7
+    unit_of_measurement: "%"
+    min_value: 0
+    max_value: 100
+    step: 5
+    initial_value: 100
+    optimistic: true
+    restore_value: true
+    mode: slider
+    on_value:
+      - script.execute: apply_display
+
+  - platform: template
+    id: oled_night_brightness
+    name: "Display Night Brightness"
+    icon: mdi:brightness-3
+    unit_of_measurement: "%"
+    min_value: 0
+    max_value: 100
+    step: 5
+    initial_value: 10
+    optimistic: true
+    restore_value: true
+    mode: slider
+    on_value:
+      - script.execute: apply_display
+
 # Night schedule as clock times (Home Assistant shows them as times with a picker).
 # Persisted in flash like the numbers above.
 datetime:
@@ -362,6 +393,22 @@ script:
             auto call = id(pid_heat).make_call();
             call.set_target_temperature(sp);
             call.perform();
+          }
+      - script.execute: apply_display
+
+  # Sets the OLED to the day or night brightness. Always on; dimmer at night
+  # means less light near the enclosure and less OLED wear.
+  - id: apply_display
+    mode: restart
+    then:
+      - lambda: |-
+          const float pct = id(night_active) ? id(oled_night_brightness).state
+                                             : id(oled_day_brightness).state;
+          if (isnan(pct)) return;
+          const float c = clamp(pct / 100.0f, 0.0f, 1.0f);
+          if (fabsf(c - id(display_contrast)) > 0.001f) {
+            id(oled).set_contrast(c);
+            id(display_contrast) = c;
           }
 
 # ---------------------------------------------------------------------
@@ -730,13 +777,7 @@ interval:
   # Schedule + display brightness — every 30 s
   - interval: 30s
     then:
-      - script.execute: apply_setpoint
-      - lambda: |-
-          // Always on; dimmed at night (less light, and less OLED wear).
-          if (id(night_active) != id(display_dim)) {
-            id(display_dim) = id(night_active);
-            id(oled).set_contrast(id(display_dim) ? 0.1f : 1.0f);
-          }
+      - script.execute: apply_setpoint     # also applies the display brightness
 
 # ---------------------------------------------------------------------
 # Display — 1.3" SH1106 (4-pin I2C: GND VCC SCL SDA). Always on, dimmed at night.

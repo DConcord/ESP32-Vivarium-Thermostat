@@ -178,7 +178,7 @@ The relay shield, OLED and outlet need no screws: the shield drops onto the rise
 - Cutoff relay (GPIO18) is closed only while the safety loop allows heat, and boots open. If the SSR shorts, the hot zone reaches the 88°F limit, the relay opens, and it recloses below 86°F. The heater then cycles on the relay around 86–88°F until you replace the SSR. The first trip latches the **Alarm**.
 - MLX emissivity set to 0.95 for stone.
 - Soil moisture (GPIO34/35, ADC1, 12 dB attenuation): each probe's voltage is median-filtered and reported every 60 s, then mapped to 0–100% using its Dry/Wet Voltage numbers (set from HA, stored in flash). Monitor only: soil readings never touch heat control or the Alarm.
-- OLED shows Hot / Cool / RH / heater % / setpoint, shifts a few pixels every minute or so to spread OLED wear, and stays on around the clock, dimmed during night hours.
+- OLED shows Hot / Cool / RH / heater % / setpoint, shifts a few pixels every minute or so to spread OLED wear, and stays on around the clock. Its day and night brightness are number entities (defaults 100% and 10%).
 - After autotune, paste the suggested `kp/ki/kd` from the logs into `control_parameters`.
 - Full entity list: `ENTITIES.md`.
 
