@@ -11,7 +11,9 @@
 #   - PID + safety logic run locally; no dependence on Home Assistant/Wi-Fi.
 #   - All user settings (setpoints, schedule, alert limits, heater enable)
 #     are stored in flash and restored on boot.
-#   - Control input = max(stone DS18B20, IR) — the hottest hot-zone reading.
+#   - Control input = stone DS18B20. (Designed as max(stone, IR); the IR sensor
+#     is not installed yet, so its sensor and checks are commented out below,
+#     each marked "IR NOT INSTALLED". Restore them all when it goes in.)
 #   - Heater forced OFF on NaN, stale (>60 s), implausible, or over-limit
 #     reading. The hard limit (33.3°C / 92°F) is fixed in firmware.
 #   - Heater boots OFF; heat is enabled only once sensors are valid.
@@ -87,7 +89,7 @@ i2c:
   sda: GPIO21
   scl: GPIO22
   frequency: 50kHz              # slow for the Cat6 run to the IR sensor
-  scan: true                    # expect 0x3C (OLED), 0x44 (SHT30), 0x5A (MLX)
+  scan: true                    # expect 0x3C (OLED), 0x44 (SHT30); 0x5A (MLX) once the IR sensor is installed
 
 one_wire:
   - platform: gpio
@@ -104,9 +106,10 @@ globals:
   - id: t_stone_ms
     type: uint32_t
     initial_value: "0"
-  - id: t_ir_ms
-    type: uint32_t
-    initial_value: "0"
+  # IR NOT INSTALLED: restore with the mlx90614 sensor.
+  # - id: t_ir_ms
+  #   type: uint32_t
+  #   initial_value: "0"
   - id: heat_fault
     type: bool
     initial_value: "true"       # faulted until sensors prove valid
@@ -373,19 +376,21 @@ sensor:
     name: "Cool Side Temperature"
     update_interval: 30s
 
-  - platform: mlx90614
-    address: 0x5A
-    update_interval: 5s
-    ambient:
-      name: "IR Sensor Ambient"
-      id: ir_ambient
-    object:
-      name: "Stone Surface (IR)"
-      id: ir_object
-      emissivity: 0.95          # slate/stone ≈ 0.93–0.95
-      on_value:
-        then:
-          - lambda: id(t_ir_ms) = millis();
+  # IR NOT INSTALLED: uncomment this sensor (and the other IR NOT INSTALLED spots)
+  # when the GY-906 goes in.
+  # - platform: mlx90614
+  #   address: 0x5A
+  #   update_interval: 5s
+  #   ambient:
+  #     name: "IR Sensor Ambient"
+  #     id: ir_ambient
+  #   object:
+  #     name: "Stone Surface (IR)"
+  #     id: ir_object
+  #     emissivity: 0.95          # slate/stone ≈ 0.93–0.95
+  #     on_value:
+  #       then:
+  #         - lambda: id(t_ir_ms) = millis();
 
   - platform: sht3xd
     address: 0x44
@@ -465,9 +470,11 @@ sensor:
     update_interval: 5s
     lambda: |-
       const float s = id(stone_temp).state;
-      const float ir = id(ir_object).state;
-      if (isnan(s) || isnan(ir)) return NAN;
-      return std::max(s, ir);
+      // IR NOT INSTALLED: control on the stone probe alone. With the IR sensor:
+      //   const float ir = id(ir_object).state;
+      //   if (isnan(s) || isnan(ir)) return NAN;
+      //   return std::max(s, ir);
+      return s;
 
   - platform: template
     id: active_setpoint
@@ -643,16 +650,19 @@ interval:
           const float HARD_LIMIT = ${hard_limit_c};
           const float CLEAR_BELOW = ${clear_below_c};
           const float s = id(stone_temp).state;
-          const float ir = id(ir_object).state;
+          // IR NOT INSTALLED: with the IR sensor, restore
+          //   const float ir = id(ir_object).state;
+          // and the three IR checks below, use max(s, ir) in the over-limit,
+          // runaway and clear tests, and add ir back to the two log lines.
 
           std::string reason;
           if (isnan(s)) reason = "stone probe no reading";
-          else if (isnan(ir)) reason = "IR sensor no reading";
+          // else if (isnan(ir)) reason = "IR sensor no reading";
           else if (now - id(t_stone_ms) > STALE_MS) reason = "stone probe stale";
-          else if (now - id(t_ir_ms) > STALE_MS) reason = "IR sensor stale";
+          // else if (now - id(t_ir_ms) > STALE_MS) reason = "IR sensor stale";
           else if (s < 5.0f || s > 60.0f) reason = "stone probe implausible";
-          else if (ir < 5.0f || ir > 70.0f) reason = "IR sensor implausible";
-          else if (s > HARD_LIMIT || ir > HARD_LIMIT) reason = "over temperature limit";
+          // else if (ir < 5.0f || ir > 70.0f) reason = "IR sensor implausible";
+          else if (s > HARD_LIMIT) reason = "over temperature limit";
 
           // Alarm: latch the first cause; "Clear Alarm" resets it, and it
           // re-raises if the condition still holds.
@@ -660,7 +670,7 @@ interval:
             if (id(alarm_latched)) return;
             id(alarm_latched) = true;
             id(alarm_reason) = why;
-            ESP_LOGE("alarm", "ALARM: %s (stone=%.1f ir=%.1f)", why.c_str(), s, ir);
+            ESP_LOGE("alarm", "ALARM: %s (stone=%.1f)", why.c_str(), s);
           };
           if (reason == "over temperature limit") {
             if (!id(heat_fault)) {
@@ -679,15 +689,15 @@ interval:
           } else {
             id(fault_since_ms) = 0;
           }
-          if (!id(relay_closed) && !isnan(s) && !isnan(ir) && std::max(s, ir) > ${runaway_c})
+          if (!id(relay_closed) && !isnan(s) && s > ${runaway_c})
             raise_alarm("Hot zone above 95F with heater cut off");
 
           if (!reason.empty()) {
             if (!id(heat_fault) || id(fault_reason) != reason)
-              ESP_LOGW("safety", "Heater OFF: %s (stone=%.1f ir=%.1f)", reason.c_str(), s, ir);
+              ESP_LOGW("safety", "Heater OFF: %s (stone=%.1f)", reason.c_str(), s);
             id(heat_fault) = true;
             id(fault_reason) = reason;
-          } else if (id(heat_fault) && std::max(s, ir) < CLEAR_BELOW) {
+          } else if (id(heat_fault) && s < CLEAR_BELOW) {
             id(heat_fault) = false;
             id(fault_reason) = "";
             ESP_LOGI("safety", "Sensors valid; fault cleared");

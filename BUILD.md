@@ -9,7 +9,7 @@ See `README.md` for the file list and `ENTITIES.md` for Home Assistant entities.
 ## Design principles
 
 - **Control runs locally on the ESP32.** PID and safety logic never depend on Home Assistant or Wi-Fi.
-- **Control input = max(stone DS18B20, MLX90614 IR).** The thermostat regulates on whichever hot-zone reading is hottest.
+- **Control input = max(stone DS18B20, MLX90614 IR).** The thermostat regulates on whichever hot-zone reading is hottest. *Until the IR sensor is installed, the firmware controls on the stone probe alone (its IR parts are commented out, marked `IR NOT INSTALLED`).*
 - **Fail off.** Any NaN, stale (>60 s), implausible, or >92°F hot-zone reading forces the heater off. The heater also boots off and enables only once sensors are valid.
 - **Two switches in series.** The SSR pulses the heat; a mechanical relay (SRD-05VDC-SL-C relay shield) is closed only while heating is allowed. Any fault, over-limit reading, Heater Enable off, ESP32 reboot, or ESP32 power loss opens it, so a shorted SSR is still cut off. This matches or exceeds a standalone reptile thermostat.
 - **Known limit: one controller.** The relay and SSR share the ESP32's sensors and firmware. A sensor that reads low but plausible (e.g. a stone probe that has come loose) or a bad config change can hold both closed. Mount the probes securely and keep the IR sensor aimed; the control input uses the hotter of the two. For protection against that too, add the optional upstream failsafe.
@@ -170,7 +170,7 @@ The relay shield, OLED and outlet need no screws: the shield drops onto the rise
 ## ESPHome config summary (`snake-thermostat.yaml`)
 
 - `slow_pwm` output on GPIO19 (5 s period, switched by the zero-cross SSR) driven by a `pid` climate entity.
-- Control sensor "Hot Zone (Control)" = max(stone, IR), NaN if either is invalid.
+- Control sensor "Hot Zone (Control)" = max(stone, IR), NaN if either is invalid. While the IR sensor isn't installed it is the stone probe alone; restore every `IR NOT INSTALLED` block in `snake-thermostat.yaml` when it goes in.
 - Day/night setpoints and schedule hours are number entities (persisted in flash). The active setpoint is pushed to the thermostat every 30 s and on any change. Time comes from SNTP, then Home Assistant; with no valid time, the day setpoint is used.
 - Safety loop (2 s): forces heat off on any fault, clears once readings are valid and below 90°F, and only heats while **Heater Enable** is on. The 92°F hard limit is fixed in firmware.
 - Cutoff relay (GPIO18) is closed only while the safety loop allows heat, and boots open. If the SSR shorts, the hot zone reaches the 92°F limit, the relay opens, and it recloses below 90°F. The heater then cycles on the relay around 90–92°F until you replace the SSR. The first trip latches the **Alarm**.
@@ -219,7 +219,7 @@ The ZEN04 failsafe depends on HA being up. A 4 ft gradient gives the snake room 
 
 ## Bring-up and test checklist
 
-- [ ] Fit the U.FL antenna, then flash the ESP32 over USB; confirm the I2C scan in logs shows 0x3C, 0x44, 0x5A.
+- [ ] Fit the U.FL antenna, then flash the ESP32 over USB; confirm the I2C scan in logs shows 0x3C, 0x44, 0x5A (0x5A only once the IR sensor is installed and re-enabled).
 - [ ] Both DS18B20s read sensibly; compare to a reference thermometer.
 - [ ] Unplug a probe: Heater Fault turns on and heater duty goes to 0; after 2 min, Alarm turns on with `Sensor fault: …`. Reconnect, press Clear Alarm.
 - [ ] Both HA notifications fire (Alarm on; ESP32 USB unplugged for 5 min).

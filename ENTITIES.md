@@ -28,10 +28,10 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 
 | Entity | Description |
 |---|---|
-| `sensor.snake_enclosure_hot_zone_control` | Control input: hotter of stone probe and IR |
+| `sensor.snake_enclosure_hot_zone_control` | Control input: hotter of stone probe and IR (stone probe alone while the IR sensor isn't installed) |
 | `sensor.snake_enclosure_stone_temperature` | DS18B20 on the basking stone |
-| `sensor.snake_enclosure_stone_surface_ir` | MLX90614 IR reading of the stone |
-| `sensor.snake_enclosure_ir_sensor_ambient` | MLX90614 housing temperature |
+| `sensor.snake_enclosure_stone_surface_ir` | MLX90614 IR reading of the stone (not created while the IR sensor is disabled) |
+| `sensor.snake_enclosure_ir_sensor_ambient` | MLX90614 housing temperature (not created while the IR sensor is disabled) |
 | `sensor.snake_enclosure_cool_side_temperature` | DS18B20 on the cool side |
 | `sensor.snake_enclosure_enclosure_air_temperature` | SHT30 air temperature |
 | `sensor.snake_enclosure_enclosure_humidity` | SHT30 relative humidity |
