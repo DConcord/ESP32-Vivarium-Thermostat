@@ -204,13 +204,13 @@
   {
    "from": "g16",
    "to": "g8",
-   "color": "sda",
+   "color": "scl",
    "under": true
   },
   {
    "from": "h13",
    "to": "h9",
-   "color": "scl",
+   "color": "sda",
    "under": true
   },
   {
@@ -226,12 +226,12 @@
   {
    "from": "f8",
    "to": "e8",
-   "color": "sda"
+   "color": "scl"
   },
   {
    "from": "f9",
    "to": "e9",
-   "color": "scl"
+   "color": "sda"
   },
   {
    "from": "T+@1",
@@ -266,11 +266,11 @@
    "hole": "T-@7"
   },
   {
-   "pin": "RH.SDA",
+   "pin": "RH.SCL",
    "hole": "a8"
   },
   {
-   "pin": "RH.SCL",
+   "pin": "RH.SDA",
    "hole": "a9"
   },
   {
@@ -286,15 +286,15 @@
    "hole": "B+@7"
   },
   {
-   "pin": "RJ45.SDA",
+   "pin": "RJ45.SCL",
    "hole": "j8"
   },
   {
-   "pin": "RJ45.SCL",
+   "pin": "RJ45.SDA",
    "hole": "j9"
   },
   {
-   "pin": "OLED.SCL",
+   "pin": "OLED.SDA",
    "hole": "j13"
   },
   {
@@ -306,7 +306,7 @@
    "hole": "B+@15"
   },
   {
-   "pin": "OLED.SDA",
+   "pin": "OLED.SCL",
    "hole": "j16"
   },
   {

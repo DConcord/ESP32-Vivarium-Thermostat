@@ -79,9 +79,9 @@ All sensors on **3V3**, never 5V/VIN.
 |---|---|---|---|
 | Warm-side DS18B20 (hot zone) | 1-Wire | GPIO4 | Probe → adapter: yellow DAT, red VCC, black GND |
 | Cool-side DS18B20 | 1-Wire | GPIO16 | Same as above |
-| Humidity probe (AHT20) | 0x38 | SDA GPIO21 / SCL GPIO22 | Red VCC, black GND, yellow SDA, white SCL |
-| SH1106 OLED | 0x3C | SDA GPIO21 / SCL GPIO22 | Header: GND VCC SCL SDA |
-| GY-906-DCI (MLX90614) | 0x5A | SDA GPIO21 / SCL GPIO22 | Via Cat6 + RJ45 (map below) |
+| Humidity probe (AHT20) | 0x38 | SDA GPIO22 / SCL GPIO21 | Red VCC, black GND, yellow SDA, white SCL |
+| SH1106 OLED | 0x3C | SDA GPIO22 / SCL GPIO21 | Header: GND VCC SCL SDA |
+| GY-906-DCI (MLX90614) | 0x5A | SDA GPIO22 / SCL GPIO21 | Via Cat6 + RJ45 (map below) |
 | Soil moisture 1 (cool side) | ADC | GPIO34 | AOUT → GPIO34, VCC → **3V3**, GND → GND |
 | Soil moisture 2 (warm side) | ADC | GPIO35 | AOUT → GPIO35, VCC → **3V3**, GND → GND |
 | SSR input | — | GPIO19 → terminal 3 (+), GND → terminal 4 (−) | **10k pull-down GPIO19 → GND** |
@@ -91,12 +91,13 @@ All sensors on **3V3**, never 5V/VIN.
 
 | Pair | Signal | Return |
 |---|---|---|
-| Orange: pin 2 / white-orange pin 1 | SDA | GND |
-| Green: pin 6 / white-green pin 3 | SCL | GND |
+| Orange: pin 2 / white-orange pin 1 | SCL | GND |
+| Green: pin 6 / white-green pin 3 | SDA | GND |
 | Blue: pin 4 / white-blue pin 5 | 3V3 → VIN | GND |
 | Brown: pins 7, 8 | Unused or GND | |
 
 Notes:
+- **I2C pins are swapped from the ESP32 default:** SDA is GPIO22 and SCL is GPIO21, to suit the soldered-in humidity probe. Everything on the bus follows that, including the RJ45 (pin 2 = SCL, pin 6 = SDA), so wire the GY-906 end to match.
 - Each DS18B20 has its own GPIO because the adapter boards have built-in pull-ups. The OLED and GY-906 boards supply I2C pull-ups, so don't add more unless the I2C scan fails.
 - I2C runs at 50 kHz for the Cat6 run. Add a 100 nF capacitor across VIN/GND at the sensor-end adapter.
 - If the SSR triggers unreliably at 3.3V, drive it from 5V through an NPN transistor (1k base resistor) or a logic-level MOSFET (100 Ω gate, 10k pull-down).

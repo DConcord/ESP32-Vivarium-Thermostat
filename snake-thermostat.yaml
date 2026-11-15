@@ -96,8 +96,10 @@ time:
 # Buses
 # ---------------------------------------------------------------------
 i2c:
-  sda: GPIO21
-  scl: GPIO22
+  # Swapped from the usual ESP32 pins (21 = SDA) to match the soldered-in humidity
+  # probe; the OLED and RJ45 jack are wired to suit.
+  sda: GPIO22
+  scl: GPIO21
   frequency: 50kHz              # slow for the Cat6 run to the IR sensor
   scan: true                    # expect 0x3C (OLED), 0x38 (AHT20); 0x5A (MLX) once the IR sensor is installed
 

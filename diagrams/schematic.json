@@ -191,8 +191,8 @@
     "Cat6, T568B"
    ],
    "labels": {
-    "SDA": "SDA (pin 2)",
-    "SCL": "SCL (pin 6)",
+    "SDA": "SDA (pin 6)",
+    "SCL": "SCL (pin 2)",
     "3V3": "3V3 (pin 4)",
     "GND": "GND (1,3,5,7,8)"
    }
@@ -524,13 +524,13 @@
   },
   {
    "pin": "ESP.21",
-   "net": "SDA",
+   "net": "SCL",
    "side": "left",
    "len": 40
   },
   {
    "pin": "ESP.22",
-   "net": "SCL",
+   "net": "SDA",
    "side": "left",
    "len": 40
   },

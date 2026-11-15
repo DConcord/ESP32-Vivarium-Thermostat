@@ -6,7 +6,7 @@ A low-voltage carrier board that replaces the CircuitSetup protoboard and all it
 
 Mains (relay shield, SSR, inlet, outlet) stays off this board, in the mains bay, exactly as in `BUILD.md`. The firmware doesn't change: every GPIO stays the same.
 
-Source of truth for every connection: `diagrams/circuit.json` (including the two soil probes on GPIO34/35). The board adds no new nets, only the pull-up resistors and filter capacitors listed below.
+I2C is SDA = GPIO22, SCL = GPIO21 (swapped from the ESP32 default, to match the current build and firmware). Source of truth for every connection: `diagrams/circuit.json` (including the two soil probes on GPIO34/35). The board adds no new nets, only the pull-up resistors and filter capacitors listed below.
 
 ## 1. How the ESP32 is attached
 
@@ -45,7 +45,7 @@ Everything is soldered by the factory. Small parts are surface-mount on the top 
 | J1 | 3-pin pluggable terminal | 3V3 · GPIO4 · GND | Stone DS18B20: red · yellow · black |
 | J2 | 3-pin pluggable terminal | 3V3 · GPIO16 · GND | Cool DS18B20: red · yellow · black |
 | J3 | 4-pin pluggable terminal | 3V3 · GND · SDA · SCL | Humidity probe (AHT20) |
-| J4 | RJ45 8P8C jack, unshielded, no LEDs | T568B: 2 = SDA, 6 = SCL, 4 = 3V3, 1/3/5/7/8 = GND | Cat6 to the GY-906. The 100 nF capacitor stays at the sensor end, as now. |
+| J4 | RJ45 8P8C jack, unshielded, no LEDs | T568B: 2 = SCL, 6 = SDA, 4 = 3V3, 1/3/5/7/8 = GND | Cat6 to the GY-906. The 100 nF capacitor stays at the sensor end, as now. |
 | J5 | 1×4 male header, 2.54 mm | GND · VCC (3V3) · SCL · SDA | OLED, in the OLED's own pin order, so a straight 4-wire Dupont cable fits |
 | J6 | 2-pin pluggable terminal | GPIO19 (+) · GND (−) | SSR input terminals 3 (+) and 4 (−) |
 | J7 | 3-pin pluggable terminal | 5V · GND · GPIO18 | Relay shield 5V · GND · D1 |

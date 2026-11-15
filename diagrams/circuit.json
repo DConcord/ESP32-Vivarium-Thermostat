@@ -164,14 +164,14 @@
    "K1.D1"
   ],
   "SDA": [
-   "ESP.21",
+   "ESP.22",
    "OLED.SDA",
    "RH.SDA",
    "RJ45.SDA",
    "IR.SDA"
   ],
   "SCL": [
-   "ESP.22",
+   "ESP.21",
    "OLED.SCL",
    "RH.SCL",
    "RJ45.SCL",
@@ -244,14 +244,14 @@
   "SDA": {
    "color": "#0284C7",
    "fill": "#E0F2FE",
-   "label": "SDA (GPIO21)",
-   "tag_note": "= GPIO21 (I2C data)"
+   "label": "SDA (GPIO22)",
+   "tag_note": "= GPIO22 (I2C data)"
   },
   "SCL": {
    "color": "#4D7C0F",
    "fill": "#ECFCCB",
-   "label": "SCL (GPIO22)",
-   "tag_note": "= GPIO22 (I2C clock)"
+   "label": "SCL (GPIO21)",
+   "tag_note": "= GPIO21 (I2C clock)"
   },
   "IO4": {
    "color": "#92400E",

@@ -91,9 +91,9 @@
 <text x="260.0" y="631.0" font-size="10" fill="#6B7280" text-anchor="middle" font-weight="normal">4.7k pull-up on adapter</text>
 <rect x="150" y="730" width="220" height="144" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
 <polyline points="370,776 390,776" fill="none" stroke="#1F2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<text x="362.0" y="780.0" font-size="11" fill="#3C3489" text-anchor="end" font-weight="bold">SDA (pin 2)</text>
+<text x="362.0" y="780.0" font-size="11" fill="#3C3489" text-anchor="end" font-weight="bold">SDA (pin 6)</text>
 <polyline points="370,802 390,802" fill="none" stroke="#1F2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<text x="362.0" y="806.0" font-size="11" fill="#3C3489" text-anchor="end" font-weight="bold">SCL (pin 6)</text>
+<text x="362.0" y="806.0" font-size="11" fill="#3C3489" text-anchor="end" font-weight="bold">SCL (pin 2)</text>
 <polyline points="370,828 390,828" fill="none" stroke="#1F2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
 <text x="362.0" y="832.0" font-size="11" fill="#3C3489" text-anchor="end" font-weight="bold">3V3 (pin 4)</text>
 <polyline points="370,854 390,854" fill="none" stroke="#1F2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
@@ -183,12 +183,12 @@
 <polyline points="580,270 540,270" fill="none" stroke="#374151" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
 <rect x="494" y="260.0" width="46" height="20" rx="10" fill="#E5E7EB" stroke="#374151" stroke-width="1.5"/>
 <text x="517.0" y="274.0" font-size="11" fill="#374151" text-anchor="middle" font-weight="bold">GND</text>
-<polyline points="580,310 540,310" fill="none" stroke="#0284C7" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-<rect x="494" y="300.0" width="46" height="20" rx="10" fill="#E0F2FE" stroke="#0284C7" stroke-width="1.5"/>
-<text x="517.0" y="314.0" font-size="11" fill="#0284C7" text-anchor="middle" font-weight="bold">SDA</text>
-<polyline points="580,350 540,350" fill="none" stroke="#4D7C0F" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-<rect x="494" y="340.0" width="46" height="20" rx="10" fill="#ECFCCB" stroke="#4D7C0F" stroke-width="1.5"/>
-<text x="517.0" y="354.0" font-size="11" fill="#4D7C0F" text-anchor="middle" font-weight="bold">SCL</text>
+<polyline points="580,310 540,310" fill="none" stroke="#4D7C0F" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="494" y="300.0" width="46" height="20" rx="10" fill="#ECFCCB" stroke="#4D7C0F" stroke-width="1.5"/>
+<text x="517.0" y="314.0" font-size="11" fill="#4D7C0F" text-anchor="middle" font-weight="bold">SCL</text>
+<polyline points="580,350 540,350" fill="none" stroke="#0284C7" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="494" y="340.0" width="46" height="20" rx="10" fill="#E0F2FE" stroke="#0284C7" stroke-width="1.5"/>
+<text x="517.0" y="354.0" font-size="11" fill="#0284C7" text-anchor="middle" font-weight="bold">SDA</text>
 <polyline points="580,390 540,390" fill="none" stroke="#92400E" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
 <rect x="486" y="380.0" width="54" height="20" rx="10" fill="#FEF3C7" stroke="#92400E" stroke-width="1.5"/>
 <text x="513.0" y="394.0" font-size="11" fill="#92400E" text-anchor="middle" font-weight="bold">GPIO4</text>
@@ -299,12 +299,12 @@
 <rect x="40" y="1282" width="46" height="20" rx="10" fill="#E5E7EB" stroke="#374151" stroke-width="1.5"/>
 <text x="63.0" y="1296.0" font-size="11" fill="#374151" text-anchor="middle" font-weight="bold">GND</text>
 <text x="96.0" y="1296.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">= any ESP32 GND</text>
-<rect x="40" y="1308" width="46" height="20" rx="10" fill="#E0F2FE" stroke="#0284C7" stroke-width="1.5"/>
-<text x="63.0" y="1322.0" font-size="11" fill="#0284C7" text-anchor="middle" font-weight="bold">SDA</text>
-<text x="96.0" y="1322.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">= GPIO21 (I2C data)</text>
-<rect x="40" y="1334" width="46" height="20" rx="10" fill="#ECFCCB" stroke="#4D7C0F" stroke-width="1.5"/>
-<text x="63.0" y="1348.0" font-size="11" fill="#4D7C0F" text-anchor="middle" font-weight="bold">SCL</text>
-<text x="96.0" y="1348.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">= GPIO22 (I2C clock)</text>
+<rect x="40" y="1308" width="46" height="20" rx="10" fill="#ECFCCB" stroke="#4D7C0F" stroke-width="1.5"/>
+<text x="63.0" y="1322.0" font-size="11" fill="#4D7C0F" text-anchor="middle" font-weight="bold">SCL</text>
+<text x="96.0" y="1322.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">= GPIO21 (I2C clock)</text>
+<rect x="40" y="1334" width="46" height="20" rx="10" fill="#E0F2FE" stroke="#0284C7" stroke-width="1.5"/>
+<text x="63.0" y="1348.0" font-size="11" fill="#0284C7" text-anchor="middle" font-weight="bold">SDA</text>
+<text x="96.0" y="1348.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">= GPIO22 (I2C data)</text>
 <rect x="40" y="1360" width="54" height="20" rx="10" fill="#FEF3C7" stroke="#92400E" stroke-width="1.5"/>
 <text x="67.0" y="1374.0" font-size="11" fill="#92400E" text-anchor="middle" font-weight="bold">GPIO4</text>
 <text x="104.0" y="1374.0" font-size="11" fill="#1F2937" text-anchor="start" font-weight="normal">= stone DS18B20 data</text>
