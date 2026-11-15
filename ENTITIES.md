@@ -9,10 +9,10 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 | Entity | Type | Description |
 |---|---|---|
 | `switch.snake_enclosure_heater_enable` | Switch | Master heat on/off; off also opens the cutoff relay (safety limits still apply when on) |
-| `number.snake_enclosure_hot_zone_day_setpoint` | Number | Hot-zone target during the day (default 87°F) |
+| `number.snake_enclosure_hot_zone_day_setpoint` | Number | Hot-zone (warm-side air) target during the day (default 80°F, max 85°F) |
 | `number.snake_enclosure_hot_zone_night_setpoint` | Number | Hot-zone target at night (default 75°F) |
-| `number.snake_enclosure_night_start_hour` | Number | Hour night mode starts (0–23, default 21) |
-| `number.snake_enclosure_night_end_hour` | Number | Hour night mode ends (0–23, default 7) |
+| `time.snake_enclosure_night_start` | Time | Time night mode starts (default 21:00) |
+| `time.snake_enclosure_night_end` | Time | Time night mode ends (default 07:00) |
 | `number.snake_enclosure_cool_side_low_alert` | Number | Cool-side low alert threshold (default 70°F) |
 | `number.snake_enclosure_humidity_low_alert` | Number | Humidity low alert threshold (default 30%) |
 | `number.snake_enclosure_humidity_high_alert` | Number | Humidity high alert threshold (default 70%) |
@@ -22,19 +22,21 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 | `number.snake_enclosure_soil_moisture_1_wet_voltage` | Number (config) | Probe 1 voltage in soaked substrate, = 100% (default 1.20 V) |
 | `number.snake_enclosure_soil_moisture_2_dry_voltage` | Number (config) | Probe 2 dry calibration (default 2.60 V) |
 | `number.snake_enclosure_soil_moisture_2_wet_voltage` | Number (config) | Probe 2 wet calibration (default 1.20 V) |
+| `number.snake_enclosure_display_day_brightness` | Number | OLED brightness during the day, 0–100% (default 100%). 0% is the dimmest setting, not off |
+| `number.snake_enclosure_display_night_brightness` | Number | OLED brightness at night (default 10%) |
 | `climate.snake_enclosure_hot_zone_thermostat` | Climate | PID thermostat. Its target follows the setpoint numbers, so set targets there rather than on this card |
 
 ## Readings
 
 | Entity | Description |
 |---|---|
-| `sensor.snake_enclosure_hot_zone_control` | Control input: hotter of stone probe and IR |
-| `sensor.snake_enclosure_stone_temperature` | DS18B20 on the basking stone |
-| `sensor.snake_enclosure_stone_surface_ir` | MLX90614 IR reading of the stone |
-| `sensor.snake_enclosure_ir_sensor_ambient` | MLX90614 housing temperature |
+| `sensor.snake_enclosure_hot_zone_control` | Control input: hotter of the hot-zone probe and IR (the warm-side probe alone while the IR sensor isn't installed) |
+| `sensor.snake_enclosure_warm_side_temperature` | Warm-side DS18B20 (GPIO4): air a few inches above the floor, the control input |
+| `sensor.snake_enclosure_stone_surface_ir` | MLX90614 IR reading of the stone (not created while the IR sensor is disabled) |
+| `sensor.snake_enclosure_ir_sensor_ambient` | MLX90614 housing temperature (not created while the IR sensor is disabled) |
 | `sensor.snake_enclosure_cool_side_temperature` | DS18B20 on the cool side |
-| `sensor.snake_enclosure_enclosure_air_temperature` | SHT30 air temperature |
-| `sensor.snake_enclosure_enclosure_humidity` | SHT30 relative humidity |
+| `sensor.snake_enclosure_enclosure_air_temperature` | Humidity probe air temperature |
+| `sensor.snake_enclosure_enclosure_humidity` | Humidity probe relative humidity |
 | `sensor.snake_enclosure_soil_moisture_1` | Soil moisture, cool side (0–100%, from calibration) |
 | `sensor.snake_enclosure_soil_moisture_2` | Soil moisture, warm side (0–100%, from calibration) |
 | `sensor.snake_enclosure_active_setpoint` | Setpoint currently in effect (day or night) |
@@ -64,7 +66,11 @@ All controls are stored on the ESP32 and restored after a reboot or Home Assista
 | `sensor.snake_enclosure_uptime` | Seconds since boot |
 | `sensor.snake_enclosure_soil_moisture_1_voltage` | Raw probe 1 voltage (use for calibration) |
 | `sensor.snake_enclosure_soil_moisture_2_voltage` | Raw probe 2 voltage (use for calibration) |
-| `button.snake_enclosure_pid_autotune` | Start PID autotune (results appear in device logs) |
+| `button.snake_enclosure_pid_autotune` | Start PID autotune (1–2 h). The controller uses the result as soon as it finishes |
+| `text_sensor.snake_enclosure_pid_autotune_status` | `Idle`, `Running`, or `Finished: press Save to keep` (the active gains differ from the stored ones) |
+| `button.snake_enclosure_pid_save_autotune_result` | Copy the gains in use into the stored PID Kp/Ki/Kd, so they survive a reboot |
+| `number.snake_enclosure_pid_kp` / `_pid_ki` / `_pid_kd` | Stored PID gains (config). Applied at boot and whenever changed; no reflash needed |
+| `sensor.snake_enclosure_pid_kp_active` / `_ki_active` / `_kd_active` | Gains the controller is using right now (shows an autotune result before it's saved) |
 | `button.snake_enclosure_pid_reset_integral` | Clear the PID integral term |
 | `button.snake_enclosure_clear_alarm` | Reset the latched alarm (re-raises if the cause persists) |
 | `button.snake_enclosure_restart` | Reboot the ESP32 |
@@ -97,8 +103,8 @@ cards:
       - sensor.snake_enclosure_active_setpoint
       - number.snake_enclosure_hot_zone_day_setpoint
       - number.snake_enclosure_hot_zone_night_setpoint
-      - number.snake_enclosure_night_start_hour
-      - number.snake_enclosure_night_end_hour
+      - time.snake_enclosure_night_start
+      - time.snake_enclosure_night_end
   - type: entities
     title: Alerts
     entities:

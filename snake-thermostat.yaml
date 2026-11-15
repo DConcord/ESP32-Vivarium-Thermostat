@@ -11,9 +11,15 @@
 #   - PID + safety logic run locally; no dependence on Home Assistant/Wi-Fi.
 #   - All user settings (setpoints, schedule, alert limits, heater enable)
 #     are stored in flash and restored on boot.
-#   - Control input = max(stone DS18B20, IR) — the hottest hot-zone reading.
+#   - Control input = warm-side DS18B20 (GPIO4; ids still say "stone"). It reads
+#     warm-side air a few inches above the floor, not the stone surface, so the
+#     setpoints and hard limit are set for air; spot-check the stone with an IR
+#     gun. (Designed as max(stone probe, IR); the IR sensor
+#     is not installed yet, so its sensor and checks are commented out below,
+#     each marked "IR NOT INSTALLED". Restore them all when it goes in.)
 #   - Heater forced OFF on NaN, stale (>60 s), implausible, or over-limit
-#     reading. The hard limit (33.3°C / 92°F) is fixed in firmware.
+#     reading. The hard limit (31.1°C / 88°F, for the warm-side air probe) is
+#     fixed in firmware.
 #   - Heater boots OFF; heat is enabled only once sensors are valid.
 #   - Two switches in series on the heater hot lead: the SSR pulses the
 #     heat, and a mechanical cutoff relay (GPIO18) opens on any fault,
@@ -30,8 +36,8 @@
 substitutions:
   name: snake-thermostat
   friendly: "Snake Enclosure"
-  hard_limit_c: "33.3"     # 92°F — heater forced off above this
-  clear_below_c: "32.2"    # 90°F — fault clears below this
+  hard_limit_c: "31.1"     # 88°F — heater forced off above this (warm-side air; was 92°F on the stone)
+  clear_below_c: "30.0"    # 86°F — fault clears below this
   runaway_c: "35.0"        # 95°F — alarm if still this hot with the heater cut off
   fault_alarm_ms: "120000" # sensor fault must last this long to alarm
 
@@ -45,6 +51,7 @@ esphome:
           id: pid_heat
           mode: "OFF"
       - output.turn_off: cutoff_relay
+      - script.execute: apply_pid_gains
       - script.execute: apply_setpoint
 
 esp32:
@@ -54,8 +61,10 @@ logger:
   level: INFO
 
 api:
-  encryption:
-    key: !secret api_key
+  # No key here on purpose: Home Assistant generates one and sends it to the
+  # device the first time it connects; the device stores it in flash and
+  # refuses unencrypted connections from then on (only a factory reset clears it).
+  encryption: {}
 
 ota:
   - platform: esphome
@@ -67,6 +76,10 @@ wifi:
   ap:
     ssid: "${name}-fallback"
     password: !secret fallback_password
+
+# If Wi-Fi fails, the fallback hotspot above serves a page for entering new
+# Wi-Fi credentials. Runs only while the hotspot is up; heat control is local.
+captive_portal:
 
 # Settings changes are written to flash within this interval.
 preferences:
@@ -84,14 +97,16 @@ time:
 # Buses
 # ---------------------------------------------------------------------
 i2c:
-  sda: GPIO21
-  scl: GPIO22
+  # Swapped from the usual ESP32 pins (21 = SDA) to match the soldered-in humidity
+  # probe; the OLED and RJ45 jack are wired to suit.
+  sda: GPIO22
+  scl: GPIO21
   frequency: 50kHz              # slow for the Cat6 run to the IR sensor
-  scan: true                    # expect 0x3C (OLED), 0x44 (SHT30), 0x5A (MLX)
+  scan: true                    # expect 0x3C (OLED), 0x38 (AHT20); 0x5A (MLX) once the IR sensor is installed
 
 one_wire:
   - platform: gpio
-    pin: GPIO4                  # stone (hot zone) DS18B20
+    pin: GPIO4                  # warm-side (hot zone) DS18B20, low on the warm-side wall
     id: ow_stone
   - platform: gpio
     pin: GPIO16                 # cool side DS18B20
@@ -101,12 +116,16 @@ one_wire:
 # Runtime state
 # ---------------------------------------------------------------------
 globals:
+  - id: autotune_running        # set by the PID Autotune button; not restored (a reboot ends autotune)
+    type: bool
+    initial_value: "false"
   - id: t_stone_ms
     type: uint32_t
     initial_value: "0"
-  - id: t_ir_ms
-    type: uint32_t
-    initial_value: "0"
+  # IR NOT INSTALLED: restore with the mlx90614 sensor.
+  # - id: t_ir_ms
+  #   type: uint32_t
+  #   initial_value: "0"
   - id: heat_fault
     type: bool
     initial_value: "true"       # faulted until sensors prove valid
@@ -116,9 +135,9 @@ globals:
   - id: night_active
     type: bool
     initial_value: "false"
-  - id: display_on
-    type: bool
-    initial_value: "true"
+  - id: display_contrast        # contrast last sent to the OLED (-1 = not yet)
+    type: float
+    initial_value: "-1"
   - id: relay_closed
     type: bool
     initial_value: "false"
@@ -152,9 +171,9 @@ number:
     device_class: temperature
     unit_of_measurement: "°C"
     min_value: 24
-    max_value: 31.1              # 88°F — kept below the hard limit
+    max_value: 29.4              # 85°F — kept below the 86°F clear point (air, not stone)
     step: 0.1
-    initial_value: 30.6          # 87°F
+    initial_value: 26.7          # 80°F — raise a degree at a time, heat-gunning the stone
     optimistic: true
     restore_value: true
     mode: box
@@ -168,39 +187,9 @@ number:
     device_class: temperature
     unit_of_measurement: "°C"
     min_value: 15
-    max_value: 31.1
+    max_value: 29.4              # 85°F
     step: 0.1
     initial_value: 24            # 75°F
-    optimistic: true
-    restore_value: true
-    mode: box
-    on_value:
-      - script.execute: apply_setpoint
-
-  - platform: template
-    id: night_start
-    name: "Night Start Hour"
-    icon: mdi:clock-start
-    unit_of_measurement: "h"
-    min_value: 0
-    max_value: 23
-    step: 1
-    initial_value: 21
-    optimistic: true
-    restore_value: true
-    mode: box
-    on_value:
-      - script.execute: apply_setpoint
-
-  - platform: template
-    id: night_end
-    name: "Night End Hour"
-    icon: mdi:clock-end
-    unit_of_measurement: "h"
-    min_value: 0
-    max_value: 23
-    step: 1
-    initial_value: 7
     optimistic: true
     restore_value: true
     mode: box
@@ -331,6 +320,111 @@ number:
     restore_value: true
     mode: box
 
+  # PID gains, stored in flash and applied at boot and on change, so tuning
+  # needs no reflash. Defaults are the autotune result on the built enclosure
+  # (see control_parameters below). After an autotune, press "PID Save Autotune
+  # Result" to copy the new gains here.
+  - platform: template
+    id: pid_kp
+    name: "PID Kp"
+    icon: mdi:alpha-p-box-outline
+    entity_category: config
+    min_value: 0
+    max_value: 10
+    step: 0.00001
+    initial_value: 0.61116
+    optimistic: true
+    restore_value: true
+    mode: box
+    on_value:
+      - script.execute: apply_pid_gains
+
+  - platform: template
+    id: pid_ki
+    name: "PID Ki"
+    icon: mdi:alpha-i-box-outline
+    entity_category: config
+    min_value: 0
+    max_value: 0.1
+    step: 0.00001
+    initial_value: 0.00096
+    optimistic: true
+    restore_value: true
+    mode: box
+    on_value:
+      - script.execute: apply_pid_gains
+
+  - platform: template
+    id: pid_kd
+    name: "PID Kd"
+    icon: mdi:alpha-d-box-outline
+    entity_category: config
+    min_value: 0
+    max_value: 2000
+    step: 0.00001
+    initial_value: 97.17365
+    optimistic: true
+    restore_value: true
+    mode: box
+    on_value:
+      - script.execute: apply_pid_gains
+
+  # OLED brightness by time of day. 0% is the dimmest setting, not off.
+  - platform: template
+    id: oled_day_brightness
+    name: "Display Day Brightness"
+    icon: mdi:brightness-7
+    unit_of_measurement: "%"
+    min_value: 0
+    max_value: 100
+    step: 5
+    initial_value: 100
+    optimistic: true
+    restore_value: true
+    mode: slider
+    on_value:
+      - script.execute: apply_display
+
+  - platform: template
+    id: oled_night_brightness
+    name: "Display Night Brightness"
+    icon: mdi:brightness-3
+    unit_of_measurement: "%"
+    min_value: 0
+    max_value: 100
+    step: 5
+    initial_value: 10
+    optimistic: true
+    restore_value: true
+    mode: slider
+    on_value:
+      - script.execute: apply_display
+
+# Night schedule as clock times (Home Assistant shows them as times with a picker).
+# Persisted in flash like the numbers above.
+datetime:
+  - platform: template
+    id: night_start
+    type: time
+    name: "Night Start"
+    icon: mdi:clock-start
+    initial_value: "21:00:00"
+    optimistic: true
+    restore_value: true
+    on_value:
+      - script.execute: apply_setpoint
+
+  - platform: template
+    id: night_end
+    type: time
+    name: "Night End"
+    icon: mdi:clock-end
+    initial_value: "07:00:00"
+    optimistic: true
+    restore_value: true
+    on_value:
+      - script.execute: apply_setpoint
+
 # Picks the day or night setpoint and pushes it to the PID thermostat.
 script:
   - id: apply_setpoint
@@ -341,9 +435,9 @@ script:
           if (!t.is_valid()) t = id(ha_time).now();
           bool night = false;
           if (t.is_valid()) {
-            const int h = t.hour;
-            const int s = (int) id(night_start).state;
-            const int e = (int) id(night_end).state;
+            const int h = t.hour * 60 + t.minute;            // minutes since midnight
+            const int s = id(night_start).hour * 60 + id(night_start).minute;
+            const int e = id(night_end).hour * 60 + id(night_end).minute;
             if (s != e) night = (s < e) ? (h >= s && h < e) : (h >= s || h < e);
           }
           id(night_active) = night;
@@ -353,6 +447,34 @@ script:
             call.set_target_temperature(sp);
             call.perform();
           }
+      - script.execute: apply_display
+
+  # Pushes the stored PID gains into the controller. The safety loop limits heat
+  # regardless of the gains.
+  - id: apply_pid_gains
+    mode: restart
+    then:
+      - lambda: |-
+          const float kp = id(pid_kp).state, ki = id(pid_ki).state, kd = id(pid_kd).state;
+          if (isnan(kp) || isnan(ki) || isnan(kd)) return;
+          id(pid_heat).set_kp(kp);
+          id(pid_heat).set_ki(ki);
+          id(pid_heat).set_kd(kd);
+
+  # Sets the OLED to the day or night brightness. Always on; dimmer at night
+  # means less light near the enclosure and less OLED wear.
+  - id: apply_display
+    mode: restart
+    then:
+      - lambda: |-
+          const float pct = id(night_active) ? id(oled_night_brightness).state
+                                             : id(oled_day_brightness).state;
+          if (isnan(pct)) return;
+          const float c = clamp(pct / 100.0f, 0.0f, 1.0f);
+          if (fabsf(c - id(display_contrast)) > 0.001f) {
+            id(oled).set_contrast(c);
+            id(display_contrast) = c;
+          }
 
 # ---------------------------------------------------------------------
 # Sensors
@@ -361,7 +483,7 @@ sensor:
   - platform: dallas_temp
     one_wire_id: ow_stone
     id: stone_temp
-    name: "Stone Temperature"
+    name: "Warm Side Temperature"
     update_interval: 10s
     on_value:
       then:
@@ -373,22 +495,26 @@ sensor:
     name: "Cool Side Temperature"
     update_interval: 30s
 
-  - platform: mlx90614
-    address: 0x5A
-    update_interval: 5s
-    ambient:
-      name: "IR Sensor Ambient"
-      id: ir_ambient
-    object:
-      name: "Stone Surface (IR)"
-      id: ir_object
-      emissivity: 0.95          # slate/stone ≈ 0.93–0.95
-      on_value:
-        then:
-          - lambda: id(t_ir_ms) = millis();
+  # IR NOT INSTALLED: uncomment this sensor (and the other IR NOT INSTALLED spots)
+  # when the GY-906 goes in.
+  # - platform: mlx90614
+  #   address: 0x5A
+  #   update_interval: 5s
+  #   ambient:
+  #     name: "IR Sensor Ambient"
+  #     id: ir_ambient
+  #   object:
+  #     name: "Stone Surface (IR)"
+  #     id: ir_object
+  #     emissivity: 0.95          # slate/stone ≈ 0.93–0.95
+  #     on_value:
+  #       then:
+  #         - lambda: id(t_ir_ms) = millis();
 
-  - platform: sht3xd
-    address: 0x44
+  # Humidity probe: sold as an "SHT30" probe, but the chip inside is an AHT20
+  # (answers at 0x38). For a genuine SHT30 use platform: sht3xd, address: 0x44.
+  - platform: aht10
+    variant: AHT20
     update_interval: 30s
     temperature:
       name: "Enclosure Air Temperature"
@@ -465,9 +591,11 @@ sensor:
     update_interval: 5s
     lambda: |-
       const float s = id(stone_temp).state;
-      const float ir = id(ir_object).state;
-      if (isnan(s) || isnan(ir)) return NAN;
-      return std::max(s, ir);
+      // IR NOT INSTALLED: control on the warm-side probe alone. With the IR sensor:
+      //   const float ir = id(ir_object).state;
+      //   if (isnan(s) || isnan(ir)) return NAN;
+      //   return std::max(s, ir);
+      return s;
 
   - platform: template
     id: active_setpoint
@@ -484,6 +612,36 @@ sensor:
     name: "Heater Duty"
     type: HEAT
 
+  # Gains the controller is using right now. Autotune writes its result here when
+  # it finishes, so a difference from the stored PID Kp/Ki/Kd means a new result.
+  - platform: pid
+    climate_id: pid_heat
+    id: pid_kp_active
+    name: "PID Kp (active)"
+    type: KP
+    entity_category: diagnostic
+    accuracy_decimals: 5
+    filters:
+      - throttle: 30s
+  - platform: pid
+    climate_id: pid_heat
+    id: pid_ki_active
+    name: "PID Ki (active)"
+    type: KI
+    entity_category: diagnostic
+    accuracy_decimals: 5
+    filters:
+      - throttle: 30s
+  - platform: pid
+    climate_id: pid_heat
+    id: pid_kd_active
+    name: "PID Kd (active)"
+    type: KD
+    entity_category: diagnostic
+    accuracy_decimals: 5
+    filters:
+      - throttle: 30s
+
   - platform: wifi_signal
     name: "WiFi Signal"
     update_interval: 60s
@@ -492,6 +650,21 @@ sensor:
     name: "Uptime"
 
 text_sensor:
+  - platform: template
+    id: autotune_status
+    name: "PID Autotune Status"
+    icon: mdi:tune-variant
+    entity_category: diagnostic
+    update_interval: 10s
+    lambda: |-
+      auto differs = [](float a, float b) { return fabsf(a - b) > 1e-6f * fmaxf(1.0f, fabsf(b)); };
+      const bool pending = differs(id(pid_heat).get_kp(), id(pid_kp).state) ||
+                           differs(id(pid_heat).get_ki(), id(pid_ki).state) ||
+                           differs(id(pid_heat).get_kd(), id(pid_kd).state);
+      if (pending) { id(autotune_running) = false; return {std::string("Finished: press Save to keep")}; }
+      if (id(autotune_running)) return {std::string("Running")};
+      return {std::string("Idle")};
+
   - platform: template
     id: heater_status
     name: "Heater Status"
@@ -573,7 +746,24 @@ button:
     name: "PID Autotune"
     entity_category: config
     on_press:
+      - lambda: id(autotune_running) = true;
       - climate.pid.autotune: pid_heat
+  # Copies the gains the controller is using (after autotune: its result) into the
+  # stored PID Kp/Ki/Kd, so they survive a reboot.
+  - platform: template
+    name: "PID Save Autotune Result"
+    icon: mdi:content-save-outline
+    entity_category: config
+    on_press:
+      - number.set:
+          id: pid_kp
+          value: !lambda return id(pid_heat).get_kp();
+      - number.set:
+          id: pid_ki
+          value: !lambda return id(pid_heat).get_ki();
+      - number.set:
+          id: pid_kd
+          value: !lambda return id(pid_heat).get_kd();
   - platform: template
     name: "PID Reset Integral"
     entity_category: config
@@ -612,18 +802,22 @@ climate:
     id: pid_heat
     name: "Hot Zone Thermostat"
     sensor: hot_zone_control
-    default_target_temperature: 30.6°C
+    default_target_temperature: 26.7°C
     heat_output: heater_pwm
     visual:
       min_temperature: 15°C
-      max_temperature: 31.1°C
+      max_temperature: 29.4°C
       temperature_step: 0.5
-    # Starting values only. Run "PID Autotune" with the stone installed,
-    # then paste the suggested values from the logs here.
+    # From PID Autotune (Ziegler-Nichols PID rule) on the built enclosure: 80 W
+    # panel, warm-side air probe, before the basking stones went in. Held 75 °F
+    # within ±0.2 °F overnight; the 75 -> 80 °F morning step overshot 0.8 °F.
+    # Re-run autotune after a physical change (stones, décor, probe position,
+    # panel). These are compile-time defaults only: at boot the stored PID Kp/Ki/Kd
+    # numbers replace them, so retuning needs no reflash.
     control_parameters:
-      kp: 0.3
-      ki: 0.0005
-      kd: 0.0
+      kp: 0.61116
+      ki: 0.00096
+      kd: 97.17365
       output_averaging_samples: 5
       derivative_averaging_samples: 5
     deadband_parameters:
@@ -643,16 +837,19 @@ interval:
           const float HARD_LIMIT = ${hard_limit_c};
           const float CLEAR_BELOW = ${clear_below_c};
           const float s = id(stone_temp).state;
-          const float ir = id(ir_object).state;
+          // IR NOT INSTALLED: with the IR sensor, restore
+          //   const float ir = id(ir_object).state;
+          // and the three IR checks below, use max(s, ir) in the over-limit,
+          // runaway and clear tests, and add ir back to the two log lines.
 
           std::string reason;
-          if (isnan(s)) reason = "stone probe no reading";
-          else if (isnan(ir)) reason = "IR sensor no reading";
-          else if (now - id(t_stone_ms) > STALE_MS) reason = "stone probe stale";
-          else if (now - id(t_ir_ms) > STALE_MS) reason = "IR sensor stale";
-          else if (s < 5.0f || s > 60.0f) reason = "stone probe implausible";
-          else if (ir < 5.0f || ir > 70.0f) reason = "IR sensor implausible";
-          else if (s > HARD_LIMIT || ir > HARD_LIMIT) reason = "over temperature limit";
+          if (isnan(s)) reason = "warm-side probe no reading";
+          // else if (isnan(ir)) reason = "IR sensor no reading";
+          else if (now - id(t_stone_ms) > STALE_MS) reason = "warm-side probe stale";
+          // else if (now - id(t_ir_ms) > STALE_MS) reason = "IR sensor stale";
+          else if (s < 5.0f || s > 60.0f) reason = "warm-side probe implausible";
+          // else if (ir < 5.0f || ir > 70.0f) reason = "IR sensor implausible";
+          else if (s > HARD_LIMIT) reason = "over temperature limit";
 
           // Alarm: latch the first cause; "Clear Alarm" resets it, and it
           // re-raises if the condition still holds.
@@ -660,7 +857,7 @@ interval:
             if (id(alarm_latched)) return;
             id(alarm_latched) = true;
             id(alarm_reason) = why;
-            ESP_LOGE("alarm", "ALARM: %s (stone=%.1f ir=%.1f)", why.c_str(), s, ir);
+            ESP_LOGE("alarm", "ALARM: %s (warm=%.1f)", why.c_str(), s);
           };
           if (reason == "over temperature limit") {
             if (!id(heat_fault)) {
@@ -679,15 +876,15 @@ interval:
           } else {
             id(fault_since_ms) = 0;
           }
-          if (!id(relay_closed) && !isnan(s) && !isnan(ir) && std::max(s, ir) > ${runaway_c})
+          if (!id(relay_closed) && !isnan(s) && s > ${runaway_c})
             raise_alarm("Hot zone above 95F with heater cut off");
 
           if (!reason.empty()) {
             if (!id(heat_fault) || id(fault_reason) != reason)
-              ESP_LOGW("safety", "Heater OFF: %s (stone=%.1f ir=%.1f)", reason.c_str(), s, ir);
+              ESP_LOGW("safety", "Heater OFF: %s (warm=%.1f)", reason.c_str(), s);
             id(heat_fault) = true;
             id(fault_reason) = reason;
-          } else if (id(heat_fault) && std::max(s, ir) < CLEAR_BELOW) {
+          } else if (id(heat_fault) && s < CLEAR_BELOW) {
             id(heat_fault) = false;
             id(fault_reason) = "";
             ESP_LOGI("safety", "Sensors valid; fault cleared");
@@ -708,16 +905,13 @@ interval:
             ESP_LOGI("safety", "Cutoff relay %s", want_heat ? "closed" : "open");
           }
 
-  # Schedule + display power — every 30 s
+  # Schedule + display brightness — every 30 s
   - interval: 30s
     then:
-      - script.execute: apply_setpoint
-      - lambda: |-
-          if (id(night_active) && id(display_on)) { id(oled).turn_off(); id(display_on) = false; }
-          else if (!id(night_active) && !id(display_on)) { id(oled).turn_on(); id(display_on) = true; }
+      - script.execute: apply_setpoint     # also applies the display brightness
 
 # ---------------------------------------------------------------------
-# Display — 1.3" SH1106 (4-pin I2C: GND VCC SCL SDA). Off during night hours.
+# Display — 1.3" SH1106 (4-pin I2C: GND VCC SCL SDA). Always on, dimmed at night.
 # ---------------------------------------------------------------------
 font:
   - file: "gfonts://Roboto Mono"
@@ -734,8 +928,9 @@ display:
     id: oled
     update_interval: 5s
     lambda: |-
-      // Shift a pixel or two every few minutes to limit burn-in.
-      const int dx = (millis() / 60000) % 3;
+      // Always on, so shift the layout a few pixels every minute or so to spread
+      // OLED wear (burn-in). 0-5 px across fits the widest line on the 128 px panel.
+      const int dx = (millis() / 60000) % 6;
       const int dy = (millis() / 180000) % 2;
       auto F = [](float c) { return c * 1.8f + 32.0f; };
 
