@@ -29,7 +29,7 @@ gy_pins = 4;  gy_pin_y = pcb.y/2 - 1.27;
 
 // ---- headers and Dupont jumpers ----
 pitch = 2.54;  hdr_plastic = 2.5;  dupont_l = 14;
-wire_room = 6;                  // turn space at the open end of each row of housings
+wire_room = 12;                 // turn space at the open end of each row of housings
 
 // ---- RJ45 breakout (PLACEHOLDERS: measure yours) ----
 rj_pcb = [22, 26, 1.6];         // width (X), length jack-edge to header-edge (Y), thickness
@@ -82,7 +82,7 @@ swing_r = norm([rear_len, body_xy.y/2 + cap_tab.y]);      // back corners incl. 
 ear_gap = body_span_x + 2*tooth_h;
 ear_piv_h = yoke_base_t + swing_r + piv_margin;
 yoke_reach = max(ear_gap/2 + ear_t, swing_r);
-wall_gap = 65;                  // pan axis to the wall: room for the pod + plug when aimed out
+wall_gap = 45;                  // pan axis to the wall: room for the pod + plug when aimed out
 arm_reach = max(yoke_reach + 3, wall_gap);  arm_l = arm_reach + 8;
 
 // ---- asserts ----
