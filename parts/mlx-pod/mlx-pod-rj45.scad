@@ -9,7 +9,7 @@
 //   mouth facing -Y out through a notch in the side wall. The cap closes the back and bears on
 //   the jack, holding the board down.
 //
-// RJ45 BOARD DIMENSIONS ARE PLACEHOLDERS: measure the real board (rj_* below) before printing.
+// RJ45 board: Treedix RJ45 breakout, measured with calipers (header pin offset assumed 1.27).
 // The pivot sits near the back so the yoke stays short. Pan + tilt joints keep the 15 deg teeth.
 include <BOSL2/std.scad>
 $fa = 1; $fs = 0.2;
@@ -34,11 +34,12 @@ gy_pins = 4;  gy_pin_y = gy_dir*(pcb.y/2 - 1.27);
 pitch = 2.54;  hdr_plastic = 2.5;  dupont_l = 14;
 wire_room = 12;                 // turn space at the open end of each row of housings
 
-// ---- RJ45 breakout (PLACEHOLDERS: measure yours) ----
-rj_pcb = [22, 26, 1.6];         // width (X), length jack-edge to header-edge (Y), thickness
-rj_jack = [16, 18, 13.5];       // jack body: width (X), depth (Y), height above the board (Z)
-rj_jack_overhang = 1;           // jack mouth past the board's jack edge
-rj_pins = 8;  rj_hdr_from_edge = 1.27;  // straight header row along the far (+Y) edge, underside
+// ---- RJ45 breakout: Treedix (measured) ----
+rj_pcb = [20.33, 24.32, 1.57];  // width (X, along the header), depth jack-edge to header-edge (Y), thickness
+rj_jack = [15.79, 21.16, 14.29];// jack shield: width (X, centred), length (Y, flared top), height above the board
+rj_jack_overhang = 0.35;        // jack mouth past the board's port edge (3.61 + 21.08 - 24.32 = 0.37)
+rj_solder = 1.17;               // solder joints/pins below the board (under the jack, inboard of the ledges)
+rj_pins = 8;  rj_hdr_from_edge = 1.27;  // straight header, 8 pins across the full width, underside (ASSUMED offset)
 
 // ---- RJ45 plug + Cat6 (preview only) ----
 plug = [11.7, 21, 8.3];  boot_l = 12;  cable_d = 6;
@@ -93,6 +94,8 @@ assert(abs(rj_hdr_y - gy_pin_y) >= pitch + 0.5, "the two rows of housings collid
 assert(rj_jack.x + 2*win_clr < in_x, "jack wider than the cavity");
 assert(pocket_xy.y < in_y, "GY-906 pocket deeper than the cavity");
 assert(piv_insert_depth < wall + piv_boss_l - 0.5, "pivot insert breaks into the cavity");
+assert(in_x/2 - rib_w > rj_jack.x/2 + 0.5, "ledges reach under the jack's solder joints");
+assert(rj_y0 + rj_pcb.y - 5 < rj_hdr_y - pitch/2 - 0.5, "ledges run into the header strip");
 
 module teeth(r, n = teeth_n, h = tooth_h) {
   a = 360 / n;  wi = 2 * r[0] * tan(a/2);
