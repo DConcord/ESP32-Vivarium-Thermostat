@@ -13,7 +13,7 @@
 // The pivot sits near the back so the yoke stays short. Pan + tilt joints keep the 15 deg teeth.
 include <BOSL2/std.scad>
 $fa = 1; $fs = 0.2;
-part = "assembly";              // "body" | "cap" | "yoke" | "bracket" | "assembly" | "cutaway" | "mount"
+part = "assembly";              // "body" | "cap" | "yoke" | "bracket" | "assembly" | "cutaway" | "mount" | "exploded" | "open"
 show_plug = true;               // preview: Cat6 plug in the jack
 pan = 270;                      // preview: 270 = aimed straight out from the wall
 tilt = 45;                      // preview: 0 = lens straight down (multiple of 15)
@@ -215,6 +215,13 @@ module assembled(cut=false) {
   }
   gy906(); rj45_board(); if (show_plug) plug_cable();
 }
+// Assembly preview: cap and RJ45 board lifted out of the open back (rj_dz = 0, cap_dz = 0: in place).
+module exploded(cap_dz = 45, rj_dz = 30, gy_dz = 0, ghost = true, cut = false) {
+  color("DimGray", ghost ? 0.45 : 1) difference() { body(); if (cut) translate([0, -100, -50]) cube([100, 200, 300]); }
+  translate([0,0,gy_dz]) gy906();
+  translate([0,0,rj_dz]) rj45_board();
+  if (cap_dz >= 0) color("SlateGray") translate([0,0,z_top + cap_t + cap_dz]) mirror([0,0,1]) cap();
+}
 // Mounted: PVC wall at x = 0, bracket arm out along +X, yoke below the arm (pan about vertical),
 // pod hanging in the yoke. pan = 270 turns the yoke so the pod tilts away from the wall; the jack
 // (-Y side) then faces down and back toward the wall.
@@ -234,5 +241,10 @@ else if (part == "bracket") bracket();
 else if (part == "assembly") assembled();
 else if (part == "cutaway") assembled(cut=true);
 else if (part == "mount") mount();
+else if (part == "exploded") exploded();
+else if (part == "open") exploded(cap_dz = -1, rj_dz = 0, ghost = false);
+else if (part == "step1") exploded(cap_dz = -1, rj_dz = 200, gy_dz = 45, ghost = false, cut = true);
+else if (part == "step2") exploded(cap_dz = -1, rj_dz = 35, ghost = false, cut = true);
+else if (part == "step3") exploded(cap_dz = 30, rj_dz = 0, ghost = false, cut = true);
 echo(str("POD outer: ", body_xy.x, " x ", body_xy.y, " x ", z_top + cap_t, " mm; pivot z=", piv_z,
   "; yoke pivot height ", ear_piv_h, "; arm reach ", arm_reach));
