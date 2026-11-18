@@ -22,10 +22,13 @@ eps = 0.01;
 // ---- GY-906-DCI (measured, from mlx-pod.scad; origin = PCB centre, +Y = pin edge) ----
 pcb = [11.41, 16.86, 1.57];
 tube_d = 9.05;  tube_h = 20.43;
-tube_xy = [0, pcb.y/2 - 8.22];
+gy_flip = true;                 // GY-906 turned 180 deg: its pins on the jack side (-Y), opposite
+                                // the RJ45 header row, so the jumpers run diagonally across
+gy_dir = gy_flip ? -1 : 1;
+tube_xy = [0, gy_dir*(pcb.y/2 - 8.22)];
 hole_d = 3.0;  hole_pitch = 6.35;  hole_from_end = 2.52;
-hole_xy = [for (s=[-1,1]) [s*hole_pitch/2, -pcb.y/2 + hole_from_end]];
-gy_pins = 4;  gy_pin_y = pcb.y/2 - 1.27;
+hole_xy = [for (s=[-1,1]) [s*hole_pitch/2, gy_dir*(-pcb.y/2 + hole_from_end)]];
+gy_pins = 4;  gy_pin_y = gy_dir*(pcb.y/2 - 1.27);
 
 // ---- headers and Dupont jumpers ----
 pitch = 2.54;  hdr_plastic = 2.5;  dupont_l = 14;
