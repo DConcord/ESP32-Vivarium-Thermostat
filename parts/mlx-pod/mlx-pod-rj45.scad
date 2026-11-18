@@ -14,7 +14,7 @@
 // bracket need regenerating for the wider body (not modelled here yet).
 include <BOSL2/std.scad>
 $fa = 1; $fs = 0.2;
-part = "assembly";              // "body" | "cap" | "assembly" | "cutaway"
+part = "assembly";              // "body" | "cap" | "assembly" | "cutaway" | "mount"
 show_plug = true;               // preview: Cat6 plug in the jack
 eps = 0.01;
 
@@ -178,8 +178,58 @@ module assembled(cut=false) {
   gy906(); rj45_board(); if (show_plug) plug_cable();
 }
 
+// ---- yoke + wall bracket, sized by the same rules as mlx-pod.scad (full-swing clearance) ----
+ear_t = 3;  yoke_w = 16;  yoke_base_t = 6;  piv_margin = 1.5;
+pan_r = [2.6, 7.5];  groove_clr = 0.2;
+br_w = 24;  plate_t = 7;  plate_h = 34;  arm_t = 5;  gusset = 14;
+wall_screw_pitch = 12;  wall_screw_y = 26;  wall_pilot_depth = 6;  pvc_t = 6;
+swing_r = norm([max(piv_z, z_top + cap_t - piv_z), body_xy.y/2 + cap_tab.y]);
+ear_gap = body_span_x + 2*tooth_h;
+ear_piv_h = yoke_base_t + swing_r + piv_margin;
+yoke_reach = max(ear_gap/2 + ear_t, swing_r);
+arm_reach = yoke_reach + 3;  arm_l = arm_reach + 8;
+tilt = 30;                      // preview tilt (multiple of 15)
+
+module yoke() {
+  outer_x = ear_gap + 2*ear_t;
+  difference() {
+    union() {
+      cuboid([outer_x, yoke_w, yoke_base_t], rounding=2, edges="Z", anchor=BOT);
+      for (s=[-1,1]) translate([s*(ear_gap/2 + ear_t/2), 0, 0]) hull() {
+        cuboid([ear_t, yoke_w, eps], anchor=BOT);
+        translate([0,0,ear_piv_h]) cyl(d=yoke_w, h=ear_t, orient=RIGHT);
+      }
+      for (s=[-1,1]) translate([s*(ear_gap/2 + eps), 0, ear_piv_h]) rotate([0, -s*90, 0]) teeth(tilt_r);
+    }
+    translate([0,0,-eps]) teeth(pan_r, h = tooth_h + groove_clr);
+    for (s=[-1,1]) translate([s*(ear_gap/2 + ear_t/2), 0, ear_piv_h]) cyl(d=m3_clear, h=ear_t + 2*eps, orient=RIGHT);
+    translate([0,0,-eps]) cyl(d=m3_insert_d, h=yoke_base_t + 2*eps, anchor=BOT);
+  }
+}
+module bracket() {
+  translate([arm_reach, eps, br_w/2]) rotate([90, 0, 0]) difference() { teeth(pan_r); cyl(r=pan_r[0], h=10); }
+  difference() {
+    linear_extrude(br_w) polygon([[0, 0], [arm_l, 0], [arm_l, arm_t], [plate_t + gusset, arm_t],
+      [plate_t, arm_t + gusset], [plate_t, arm_t + plate_h], [0, arm_t + plate_h]]);
+    translate([arm_reach, arm_t/2, br_w/2]) cyl(d=m3_clear, h=arm_t + 2*eps, orient=BACK);
+    for (s=[-1,1]) translate([-eps, wall_screw_y, br_w/2 + s*wall_screw_pitch/2])
+      cyl(d=m3_pilot_d, h=wall_pilot_depth + eps, orient=RIGHT, anchor=BOT);
+  }
+}
+// Mounted: PVC wall at x = 0, arm out along +X, yoke hanging below, pod tilted about the yoke pins.
+// tilt = 0 aims the lens straight down.
+module mount(t = tilt) {
+  rotate([90,0,0]) bracket();
+  color("Gray", 0.3) translate([-pvc_t, -br_w - 40, -120]) cube([pvc_t, br_w + 80, arm_t + plate_h + 130]);
+  translate([arm_reach, -br_w/2, 0]) {
+    color("SteelBlue") rotate([180,0,0]) yoke();
+    translate([0, 0, -ear_piv_h]) rotate([t,0,0]) translate([0, 0, -piv_z]) assembled();
+  }
+}
+
 if (part == "body") body();
 else if (part == "cap") cap();
 else if (part == "assembly") assembled();
 else if (part == "cutaway") assembled(cut=true);
+else if (part == "mount") mount();
 echo(str("POD outer: ", body_xy.x, " x ", body_xy.y, " x ", z_top + cap_t, " mm; pivot at z=", piv_z));
